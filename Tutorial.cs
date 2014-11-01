@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
@@ -12,17 +9,14 @@ namespace CrowEngine
 {
 	class Tutorial : GameWindow
 	{
-		int attribute_vcol;
-		int attribute_vpos;
+		float time;
 		int uniform_mview;
-
 		GpuProgram m_Program;
-		GpuBuffer m_VboPosition;
-		GpuBuffer m_VboColor;
-		GpuBuffer m_VboModelView;
-
+		Matrix4 m_MeshViewModel = Matrix4.Identity;
+		Mesh m_Mesh;
 
 		public Tutorial ()
+			: base ( 512, 512, new GraphicsMode ( 32, 24, 0, 4 ) )
 		{
 			Title = "Hello OpenTK!";
 
@@ -41,63 +35,31 @@ namespace CrowEngine
 		protected override void OnLoad ( EventArgs e )
 		{
 			base.OnLoad ( e );
+			
+			m_Program = GpuPrograms.GpuProgramFactory.Load ( "Assets/Simple.gfx" );
 
-			m_Program = new GpuProgram ();
-			m_Program.LoadShader ( ShaderType.VertexShader, File.ReadAllText ( "vs.glsl", Encoding.ASCII ) );
-			m_Program.LoadShader ( ShaderType.FragmentShader, File.ReadAllText ( "fs.glsl", Encoding.ASCII ) );
-
-			m_Program.Link ();
-
-			attribute_vpos = m_Program.GetAttributeLocation ( "vPosition" );
-			attribute_vcol = m_Program.GetAttributeLocation ( "vColor" );
 			uniform_mview = m_Program.GetUniformLocation ( "modelview" );
 
-			if ( attribute_vpos == -1 || attribute_vcol == -1 || uniform_mview == -1 )
+			if ( uniform_mview == -1 )
 			{
 				Console.WriteLine ( "Error binding attributes" );
 			}
 
-			var vertdata = new[] { 
-				new Vector3 (-0.8f, -0.8f, 0f ),
-                new Vector3 ( 0.8f, -0.8f, 0f ),
-                new Vector3 ( 0f,  0.8f, 0f )
-			};
-
-			var coldata = new[] {
-				new Vector3 ( 1f, 0f, 0f ),
-                new Vector3 ( 0f, 0f, 1f ),
-                new Vector3 ( 0f, 1f, 0f )
-			};
-
-			var mviewdata = new[] {
-                Matrix4.Identity
-            };
-
-
-			m_VboPosition = new GpuBuffer ();
-			m_VboPosition.Bind ( BufferTarget.ArrayBuffer );
-			m_VboPosition.SetData (
-				BufferTarget.ArrayBuffer,
-				BufferUsageHint.StaticDraw,
-				vertdata,
-				vertdata.Length * Vector3.SizeInBytes );
-
-			m_VboColor = new GpuBuffer ();
-			m_VboColor.Bind ( BufferTarget.ArrayBuffer );
-			m_VboColor.SetData (
-				BufferTarget.ArrayBuffer,
-				BufferUsageHint.StaticDraw,
-				coldata,
-				coldata.Length * Vector3.SizeInBytes );
-
+			m_Mesh = MeshPrimitive.CreateBox ();
 
 			GL.ClearColor ( Color4.CornflowerBlue );
-			//GL.PointSize ( 5f );
+			GL.PointSize ( 5f );
 		}
 
 		protected override void OnUpdateFrame ( FrameEventArgs e )
 		{
 			base.OnUpdateFrame ( e );
+			time += (float)e.Time;
+
+			m_MeshViewModel = Matrix4.CreateRotationY ( 0.55f * time )
+				* Matrix4.CreateRotationX ( 0.15f * time )
+				* Matrix4.CreateTranslation ( 0.0f, 0.0f, -3.0f )
+				* Matrix4.CreatePerspectiveFieldOfView ( 1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 40.0f );
 		}
 
 		protected override void OnRenderFrame ( FrameEventArgs e )
@@ -108,26 +70,15 @@ namespace CrowEngine
 			GL.Clear ( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
 			GL.Enable ( EnableCap.DepthTest );
 
+			m_Program.Use ();
 
-			m_VboPosition.Bind ( BufferTarget.ArrayBuffer );
-			GL.VertexAttribPointer ( attribute_vpos, 3, VertexAttribPointerType.Float, false, 0, 0 );
+			GL.UniformMatrix4 ( uniform_mview, false, ref m_MeshViewModel );
 			
-			m_VboColor.Bind ( BufferTarget.ArrayBuffer );
-			GL.VertexAttribPointer ( attribute_vcol, 3, VertexAttribPointerType.Float, true, 0, 0 );
+			m_Mesh.m_Ibo.Bind ();
 
-			var ma = Matrix4.Identity;
-			GL.UniformMatrix4 ( uniform_mview, false, ref ma );
+			m_Mesh.m_Vao.Bind ();
 
-
-			GL.EnableVertexAttribArray ( attribute_vpos );
-			GL.EnableVertexAttribArray ( attribute_vcol );
-
-
-			GL.DrawArrays ( PrimitiveType.Triangles, 0, 3 );
-
-
-			GL.DisableVertexAttribArray ( attribute_vpos );
-			GL.DisableVertexAttribArray ( attribute_vcol );
+			GL.DrawElements ( BeginMode.Triangles, m_Mesh.m_Indices, m_Mesh.m_Ibo.ElementType, 0 );
 
 
 			GL.Flush ();

@@ -3,6 +3,8 @@
 in vec4 color;
 out vec4 outputColor;
 
+uniform sampler2D diffuse;
+
 void main()
 {
 	outputColor = color;

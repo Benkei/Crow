@@ -1,0 +1,12 @@
+﻿{
+	"Fragment" : { "Path" : "fs.glsl" },
+	"Vertex" :
+	{
+		"Path" : "vs.glsl",
+		"SemanticInput" :
+		{
+			"POSITION" : "vPosition",
+			"COLOR" : "vColor"
+		}
+	}
+}

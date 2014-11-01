@@ -7,72 +7,115 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace CrowEngine
 {
-	class GpuProgram
+	class GpuProgram : BaseHandler
 	{
-		private int m_ProgramId;
+		private GpuShader m_FragmentShader;
+		private GpuShader m_VertexShader;
+		private GpuShader m_GeometryShader;
+		private GpuShader m_TessEvaluationShader;
+		private GpuShader m_TessControlShader;
+		private GpuShader m_ComputeShader;
 
-		private int m_FragmentShader;
-		private int m_VertexShader;
-		private int m_GeometryShader;
-		private int m_TessEvaluationShader;
-		private int m_TessControlShader;
-		private int m_ComputeShader;
+		//private Dictionary<string, object> 
 
 		public GpuProgram ()
 		{
-			m_ProgramId = GL.CreateProgram ();
+			m_Handler = GL.CreateProgram ();
 		}
 
-		public void LoadShader ( ShaderType type, string sourceText )
+		public bool IsLinked
 		{
-			int shaderId = GL.CreateShader ( type );
-			GL.ShaderSource ( shaderId, sourceText );
-
-			GL.CompileShader ( shaderId );
-
-			GL.AttachShader ( m_ProgramId, shaderId );
-
-			var info = GL.GetShaderInfoLog ( shaderId );
-			if ( !string.IsNullOrWhiteSpace ( info ) )
-				Console.WriteLine ( sourceText + "\n" + info );
-			info = GL.GetProgramInfoLog ( m_ProgramId );
-			if ( !string.IsNullOrWhiteSpace ( info ) )
-				Console.WriteLine ( info );
-
-			switch ( type )
+			get
 			{
-				case ShaderType.ComputeShader:
-					m_ComputeShader = shaderId;
-					break;
-				case ShaderType.FragmentShader:
-					m_FragmentShader = shaderId;
-					break;
-				case ShaderType.GeometryShader:
-					m_GeometryShader = shaderId;
-					break;
-				case ShaderType.TessControlShader:
-					m_TessControlShader = shaderId;
-					break;
-				case ShaderType.TessEvaluationShader:
-					m_TessEvaluationShader = shaderId;
-					break;
-				case ShaderType.VertexShader:
-					m_VertexShader = shaderId;
-					break;
+				int status;
+				GL.GetProgram ( m_Handler, GetProgramParameterName.LinkStatus, out status );
+				return status == 1;
 			}
 		}
 
-		public void Init ()
+		public GpuShader GetShader ( ShaderType type )
 		{
-			GL.LinkProgram ( m_ProgramId );
+			switch ( type )
+			{
+				case ShaderType.ComputeShader:
+					return m_ComputeShader;
+				case ShaderType.FragmentShader:
+					return m_FragmentShader;
+				case ShaderType.GeometryShader:
+					return m_GeometryShader;
+				case ShaderType.TessControlShader:
+					return m_TessControlShader;
+				case ShaderType.TessEvaluationShader:
+					return m_TessEvaluationShader;
+				case ShaderType.VertexShader:
+					return m_VertexShader;
+				default: throw new ArgumentOutOfRangeException ();
+			}
+		}
 
-			Console.WriteLine ( GL.GetProgramInfoLog ( m_ProgramId ) );
+		public void SetShader ( GpuShader shader )
+		{
+			GpuShader oldShader = null;
+			switch ( shader.Type )
+			{
+				case ShaderType.ComputeShader:
+					oldShader = m_ComputeShader;
+					m_ComputeShader = shader;
+					break;
+				case ShaderType.FragmentShader:
+					oldShader = m_FragmentShader;
+					m_FragmentShader = shader;
+					break;
+				case ShaderType.GeometryShader:
+					oldShader = m_GeometryShader;
+					m_GeometryShader = shader;
+					break;
+				case ShaderType.TessControlShader:
+					oldShader = m_TessControlShader;
+					m_TessControlShader = shader;
+					break;
+				case ShaderType.TessEvaluationShader:
+					oldShader = m_TessEvaluationShader;
+					m_TessEvaluationShader = shader;
+					break;
+				case ShaderType.VertexShader:
+					oldShader = m_VertexShader;
+					m_VertexShader = shader;
+					break;
+			}
+
+			if ( oldShader != shader && oldShader != null )
+				GL.DetachShader ( m_Handler, oldShader.Handler );
+
+			if ( oldShader != shader && shader != null )
+				GL.AttachShader ( m_Handler, shader.Handler );
+
+
+			var info = GL.GetProgramInfoLog ( m_Handler );
+			if ( !string.IsNullOrWhiteSpace ( info ) )
+				Console.WriteLine ( info );
+		}
+
+		public void Use ()
+		{
+			GL.UseProgram ( m_Handler );
+		}
+
+		public bool Link ()
+		{
+			GL.LinkProgram ( m_Handler );
+
+			if ( !IsLinked )
+			{
+				Console.WriteLine ( GL.GetProgramInfoLog ( m_Handler ) );
+				return false;
+			}
 
 			int attributeCount;
-			int UniformCount;
+			int uniformCount;
 
-			GL.GetProgram ( m_ProgramId, GetProgramParameterName.ActiveAttributes, out attributeCount );
-			GL.GetProgram ( m_ProgramId, GetProgramParameterName.ActiveUniforms, out UniformCount );
+			GL.GetProgram ( m_Handler, GetProgramParameterName.ActiveAttributes, out attributeCount );
+			GL.GetProgram ( m_Handler, GetProgramParameterName.ActiveUniforms, out uniformCount );
 
 			StringBuilder nameBuffer = new StringBuilder ( 256 );
 			for ( int i = 0; i < attributeCount; i++ )
@@ -80,40 +123,47 @@ namespace CrowEngine
 				int size;
 				ActiveAttribType type;
 				int length;
-				nameBuffer.Length = 0;
 
-				GL.GetActiveAttrib ( m_ProgramId, i, 256, out length, out size, out type, nameBuffer );
+				nameBuffer.Length = 0;
+				GL.GetActiveAttrib ( m_Handler, i, 256, out length, out size, out type, nameBuffer );
 
 				var name = nameBuffer.ToString ();
-				var address = GL.GetAttribLocation ( m_ProgramId, name );
+				var address = GL.GetAttribLocation ( m_Handler, name );
+
+				Console.WriteLine ( "Attribute " + name + " " + type + " " + size );
 			}
 
-			for ( int i = 0; i < UniformCount; i++ )
+			for ( int i = 0; i < uniformCount; i++ )
 			{
 				int size;
 				ActiveUniformType type;
 				int length;
 
-				GL.GetActiveUniform ( m_ProgramId, i, 256, out length, out size, out type, nameBuffer );
+				nameBuffer.Length = 0;
+				GL.GetActiveUniform ( m_Handler, i, 256, out length, out size, out type, nameBuffer );
 
 				var name = nameBuffer.ToString ();
-				var address = GL.GetUniformLocation ( m_ProgramId, name );
+				var address = GL.GetUniformLocation ( m_Handler, name );
+
+				Console.WriteLine ( "Uniform " + name + " " + type + " " + size );
 			}
+
+			return true;
 		}
 
-		public void Link ()
+		public void BindAttributeLocation ( string name, int index )
 		{
-			GL.LinkProgram ( m_ProgramId );
+			GL.BindAttribLocation ( m_Handler, index, name );
 		}
 
 		public int GetAttributeLocation ( string name )
 		{
-			return GL.GetAttribLocation ( m_ProgramId, name );
+			return GL.GetAttribLocation ( m_Handler, name );
 		}
 
 		public int GetUniformLocation ( string name )
 		{
-			return GL.GetUniformLocation ( m_ProgramId, name );
+			return GL.GetUniformLocation ( m_Handler, name );
 		}
 	}
 }
