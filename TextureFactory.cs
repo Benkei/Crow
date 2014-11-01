@@ -10,9 +10,9 @@ namespace CrowEngine
 {
 	class TextureFactory
 	{
-		public static Texture2D Load ()
+		public static Texture2D Load ( string filePath )
 		{
-			var bitmap = new Bitmap ( "Assets/guid.JPG" );
+			var bitmap = new Bitmap ( filePath );
 
 			var bmp_data = bitmap.LockBits (
 				new Rectangle ( 0, 0, bitmap.Width, bitmap.Height ),

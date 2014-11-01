@@ -13,11 +13,13 @@ namespace CrowEngine
 		struct Vertex
 		{
 			public Vector3 Position;
+			public Vector2 UV;
 			public Color Color;
 
-			public Vertex ( Vector3 position, Color color )
+			public Vertex ( Vector3 position, Vector2 uv, Color color )
 			{
 				Position = position;
+				UV = uv;
 				Color = color;
 			}
 		}
@@ -25,15 +27,16 @@ namespace CrowEngine
 
 		public unsafe static Mesh CreateBox ()
 		{
-			Vertex* block = stackalloc Vertex[8];
-			block[0] = new Vertex ( new Vector3 ( -0.8f, -0.8f, -0.8f ), new Color ( 1f, 0f, 0f ) );
-			block[1] = new Vertex ( new Vector3 ( 0.8f, -0.8f, -0.8f ), new Color ( 0f, 0f, 1f ) );
-			block[2] = new Vertex ( new Vector3 ( 0.8f, 0.8f, -0.8f ), new Color ( 0f, 1f, 0f ) );
-			block[3] = new Vertex ( new Vector3 ( -0.8f, 0.8f, -0.8f ), new Color ( 1f, 0f, 0f ) );
-			block[4] = new Vertex ( new Vector3 ( -0.8f, -0.8f, 0.8f ), new Color ( 0f, 0f, 1f ) );
-			block[5] = new Vertex ( new Vector3 ( 0.8f, -0.8f, 0.8f ), new Color ( 0f, 1f, 0f ) );
-			block[6] = new Vertex ( new Vector3 ( 0.8f, 0.8f, 0.8f ), new Color ( 1f, 0f, 0f ) );
-			block[7] = new Vertex ( new Vector3 ( -0.8f, 0.8f, 0.8f ), new Color ( 0f, 0f, 1f ) );
+			Vertex* vertices = stackalloc Vertex[8];
+			vertices[0] = new Vertex ( new Vector3 ( -0.8f, -0.8f, -0.8f ), new Vector2 ( 1, 0 ), new Color ( 1f, 0f, 0f ) );
+			vertices[1] = new Vertex ( new Vector3 ( 0.8f, -0.8f, -0.8f ), new Vector2 ( 0, 0 ), new Color ( 0f, 0f, 1f ) );
+			vertices[2] = new Vertex ( new Vector3 ( 0.8f, 0.8f, -0.8f ), new Vector2 ( 0, 1 ), new Color ( 0f, 1f, 0f ) );
+			vertices[3] = new Vertex ( new Vector3 ( -0.8f, 0.8f, -0.8f ), new Vector2 ( 1, 1 ), new Color ( 1f, 0f, 0f ) );
+
+			vertices[4] = new Vertex ( new Vector3 ( -0.8f, -0.8f, 0.8f ), new Vector2 ( 1, 0 ), new Color ( 0f, 0f, 1f ) );
+			vertices[5] = new Vertex ( new Vector3 ( 0.8f, -0.8f, 0.8f ), new Vector2 ( 0, 0 ), new Color ( 0f, 1f, 0f ) );
+			vertices[6] = new Vertex ( new Vector3 ( 0.8f, 0.8f, 0.8f ), new Vector2 ( 0, 1 ), new Color ( 1f, 0f, 0f ) );
+			vertices[7] = new Vertex ( new Vector3 ( -0.8f, 0.8f, 0.8f ), new Vector2 ( 1, 1 ), new Color ( 0f, 0f, 1f ) );
 
 			byte* indices = stackalloc byte[36];
 			indices[0] = 0;
@@ -82,18 +85,33 @@ namespace CrowEngine
 
 			mesh.m_Vbo = new GpuBuffer ( BufferTarget.ArrayBuffer );
 			mesh.m_Vbo.Bind ();
-			mesh.m_Vbo.SetData ( BufferUsageHint.StaticDraw, (IntPtr)block, Utilities.SizeOf<Vertex> () * 8 );
+			mesh.m_Vbo.SetData ( BufferUsageHint.StaticDraw, (IntPtr)vertices, Utilities.SizeOf<Vertex> () * 8 );
 
 			// bind VBO to VAO
 			mesh.m_Vao = VertexArrayObject.Create ();
 			mesh.m_Vao.Bind ();
-			
+
 			// Position 3 float
 			GL.EnableVertexAttribArray ( (int)VertexShaderSemanticInput.POSITION );
-			GL.VertexAttribPointer ( (int)VertexShaderSemanticInput.POSITION, 3, VertexAttribPointerType.Float, false, Utilities.SizeOf<Vertex> (), 0 );
+			GL.VertexAttribPointer ( (int)VertexShaderSemanticInput.POSITION,
+				3,
+				VertexAttribPointerType.Float,
+				false,
+				Utilities.SizeOf<Vertex> (), 0 );
+			// UV 2 float
+			GL.EnableVertexAttribArray ( (int)VertexShaderSemanticInput.TEXCOORD );
+			GL.VertexAttribPointer ( (int)VertexShaderSemanticInput.TEXCOORD,
+				2,
+				VertexAttribPointerType.Float,
+				true,
+				Utilities.SizeOf<Vertex> (), Utilities.SizeOf<Vector3> () );
 			// Color 4 byte
 			GL.EnableVertexAttribArray ( (int)VertexShaderSemanticInput.COLOR );
-			GL.VertexAttribPointer ( (int)VertexShaderSemanticInput.COLOR, 4, VertexAttribPointerType.UnsignedByte, true, Utilities.SizeOf<Vertex> (), Utilities.SizeOf<Vector3> () );
+			GL.VertexAttribPointer ( (int)VertexShaderSemanticInput.COLOR,
+				4,
+				VertexAttribPointerType.UnsignedByte,
+				true,
+				Utilities.SizeOf<Vertex> (), Utilities.SizeOf<Vector3> () + Utilities.SizeOf<Vector2> () );
 
 			GL.BindVertexArray ( 0 );
 

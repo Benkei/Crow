@@ -6,6 +6,7 @@
 		"SemanticInput" :
 		{
 			"POSITION" : "vPosition",
+			"TEXCOORD" : "vUv",
 			"COLOR" : "vColor"
 		}
 	}

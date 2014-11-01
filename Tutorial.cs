@@ -11,9 +11,11 @@ namespace CrowEngine
 	{
 		float time;
 		int uniform_mview;
+		int uniform_diffuse;
 		GpuProgram m_Program;
 		Matrix4 m_MeshViewModel = Matrix4.Identity;
 		Mesh m_Mesh;
+		Texture2D m_Texture;
 
 		public Tutorial ()
 			: base ( 512, 512, new GraphicsMode ( 32, 24, 0, 4 ) )
@@ -36,9 +38,12 @@ namespace CrowEngine
 		{
 			base.OnLoad ( e );
 			
+			m_Texture = TextureFactory.Load ( "Assets/guid.JPG" );
+
 			m_Program = GpuPrograms.GpuProgramFactory.Load ( "Assets/Simple.gfx" );
 
 			uniform_mview = m_Program.GetUniformLocation ( "modelview" );
+			uniform_diffuse = m_Program.GetUniformLocation ( "diffuse" );
 
 			if ( uniform_mview == -1 )
 			{
@@ -73,7 +78,11 @@ namespace CrowEngine
 			m_Program.Use ();
 
 			GL.UniformMatrix4 ( uniform_mview, false, ref m_MeshViewModel );
-			
+			GL.Uniform1 ( uniform_diffuse, 0 );
+
+			GL.ActiveTexture ( TextureUnit.Texture0 + 0 );
+			GL.BindTexture ( TextureTarget.Texture2D, m_Texture.Handler );
+
 			m_Mesh.m_Ibo.Bind ();
 
 			m_Mesh.m_Vao.Bind ();
