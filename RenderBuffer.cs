@@ -7,9 +7,9 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace CrowEngine
 {
-	class RenderTarget : BaseHandler
+	class RenderBuffer : BaseHandler
 	{
-		public RenderTarget ( int width, int height )
+		public RenderBuffer ( int width, int height, int samples, RenderbufferStorage type )
 		{
 			var maxSize = GL.GetInteger ( GetPName.MaxRenderbufferSize );
 
@@ -24,8 +24,8 @@ namespace CrowEngine
 
 			GL.RenderbufferStorageMultisample (
 				RenderbufferTarget.Renderbuffer,
-				0,
-				RenderbufferStorage.Rgb8,
+				samples,
+				type,
 				width,
 				height );
 		}
