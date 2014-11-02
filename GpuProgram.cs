@@ -111,40 +111,44 @@ namespace CrowEngine
 				return false;
 			}
 
-			int attributeCount;
-			int uniformCount;
+			int count, nameLength;
 
-			GL.GetProgram ( m_Handler, GetProgramParameterName.ActiveAttributes, out attributeCount );
-			GL.GetProgram ( m_Handler, GetProgramParameterName.ActiveUniforms, out uniformCount );
+			GL.GetProgram ( m_Handler, GetProgramParameterName.ActiveAttributes, out count );
+			GL.GetProgram ( m_Handler, GetProgramParameterName.ActiveAttributeMaxLength, out nameLength );
 
-			StringBuilder nameBuffer = new StringBuilder ( 256 );
-			for ( int i = 0; i < attributeCount; i++ )
+			StringBuilder nameBuffer = new StringBuilder ( nameLength );
+			for ( int i = 0; i < count; i++ )
 			{
 				int size;
 				ActiveAttribType type;
 				int length;
 
-				nameBuffer.Length = 0;
-				GL.GetActiveAttrib ( m_Handler, i, 256, out length, out size, out type, nameBuffer );
+				GL.GetActiveAttrib ( m_Handler, i, nameLength, out length, out size, out type, nameBuffer );
 
 				var name = nameBuffer.ToString ();
 				var address = GL.GetAttribLocation ( m_Handler, name );
 
+				nameBuffer.Length = 0;
 				Console.WriteLine ( "Attribute " + name + " " + type + " " + size );
 			}
 
-			for ( int i = 0; i < uniformCount; i++ )
+			GL.GetProgram ( m_Handler, GetProgramParameterName.ActiveUniforms, out count );
+			GL.GetProgram ( m_Handler, GetProgramParameterName.ActiveUniformMaxLength, out nameLength );
+
+			nameBuffer.Capacity = nameLength;
+
+			for ( int i = 0; i < count; i++ )
 			{
 				int size;
 				ActiveUniformType type;
 				int length;
 
-				nameBuffer.Length = 0;
-				GL.GetActiveUniform ( m_Handler, i, 256, out length, out size, out type, nameBuffer );
+				GL.GetActiveUniform ( m_Handler, i, nameLength, out length, out size, out type, nameBuffer );
 
 				var name = nameBuffer.ToString ();
 				var address = GL.GetUniformLocation ( m_Handler, name );
 
+				nameBuffer.Length = 0;
 				Console.WriteLine ( "Uniform " + name + " " + type + " " + size );
 			}
 

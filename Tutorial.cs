@@ -13,9 +13,10 @@ namespace CrowEngine
 		int uniform_mview;
 		int uniform_diffuse;
 		GpuProgram m_Program;
-		Matrix4 m_MeshViewModel = Matrix4.Identity;
 		Mesh m_Mesh;
 		Texture2D m_Texture;
+
+		Model m_Cube;
 
 		public Tutorial ()
 			: base ( 512, 512, new GraphicsMode ( 32, 24, 0, 4 ) )
@@ -37,7 +38,7 @@ namespace CrowEngine
 		protected override void OnLoad ( EventArgs e )
 		{
 			base.OnLoad ( e );
-			
+
 			m_Texture = TextureFactory.Load ( "Assets/guid.JPG" );
 
 			m_Program = GpuPrograms.GpuProgramFactory.Load ( "Assets/Simple.gfx" );
@@ -52,6 +53,10 @@ namespace CrowEngine
 
 			m_Mesh = MeshPrimitive.CreateBox ();
 
+
+			m_Cube = new Model ();
+			m_Cube.Position = new SharpDX.Vector3 ( 0.0f, 0.0f, -3.0f );
+
 			GL.ClearColor ( Color4.CornflowerBlue );
 			GL.PointSize ( 5f );
 		}
@@ -61,23 +66,24 @@ namespace CrowEngine
 			base.OnUpdateFrame ( e );
 			time += (float)e.Time;
 
-			m_MeshViewModel = Matrix4.CreateRotationY ( 0.55f * time )
-				* Matrix4.CreateRotationX ( 0.15f * time )
-				* Matrix4.CreateTranslation ( 0.0f, 0.0f, -3.0f )
-				* Matrix4.CreatePerspectiveFieldOfView ( 1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 40.0f );
+			m_Cube.Rotation = SharpDX.Quaternion.RotationAxis ( SharpDX.Vector3.UnitY, 0.55f * time )
+				* SharpDX.Quaternion.RotationAxis ( SharpDX.Vector3.UnitX, 0.15f * time );
 		}
 
-		protected override void OnRenderFrame ( FrameEventArgs e )
+		protected override unsafe void OnRenderFrame ( FrameEventArgs e )
 		{
 			base.OnRenderFrame ( e );
 
 			GL.Viewport ( 0, 0, Width, Height );
 			GL.Clear ( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
 			GL.Enable ( EnableCap.DepthTest );
-
+			
 			m_Program.Use ();
 
-			GL.UniformMatrix4 ( uniform_mview, false, ref m_MeshViewModel );
+			var matrix = m_Cube.m_LocalMatrix;
+			matrix *= SharpDX.Matrix.PerspectiveFovRH ( 1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 40.0f );
+
+			GL.UniformMatrix4 ( uniform_mview, 1, false, (float*)&matrix );
 			GL.Uniform1 ( uniform_diffuse, 0 );
 
 			GL.ActiveTexture ( TextureUnit.Texture0 + 0 );

@@ -69,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseHandler.cs" />
+    <Compile Include="Camera.cs" />
     <Compile Include="GpuBuffer.cs" />
     <Compile Include="GpuProgram.cs" />
     <Compile Include="GpuPrograms\GpuProgramAsset.cs" />
@@ -77,11 +78,14 @@
     <Compile Include="IndicesBuffer.cs" />
     <Compile Include="Mesh.cs" />
     <Compile Include="MeshPrimitive.cs" />
+    <Compile Include="Model.cs" />
     <Compile Include="PixelShaderSemantic.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RenderTarget.cs" />
     <Compile Include="Texture2D.cs" />
     <Compile Include="TextureFactory.cs" />
+    <Compile Include="Transform.cs" />
     <Compile Include="Tutorial.cs" />
     <Compile Include="VertexArrayObject.cs" />
     <Compile Include="VertexShaderSemantic.cs" />
