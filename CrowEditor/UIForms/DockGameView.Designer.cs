@@ -1,6 +1,6 @@
-﻿namespace CrowEditor
+﻿namespace CrowEditor.UIForms
 {
-	partial class Window
+	partial class DockGameView
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -30,7 +30,7 @@
 		{
 			this.components = new System.ComponentModel.Container ();
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.Text = "DockContent";
+			this.Text = "DockSceneView";
 		}
 
 		#endregion

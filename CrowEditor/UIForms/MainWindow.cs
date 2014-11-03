@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
 
-namespace CrowEditor
+namespace CrowEditor.UIForms
 {
 	public partial class MainWindow : Form
 	{
@@ -21,7 +21,7 @@ namespace CrowEditor
 			f2.Show ( dockPanel1, DockState.DockLeft );
 			var f3 = new Window ();
 			f3.Show ( dockPanel1, DockState.DockRight );
-			var f4 = new Window ();
+			var f4 = new DockSceneView ();
 			f4.Show ( dockPanel1, DockState.Document );
 		}
 	}

@@ -62,16 +62,28 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Window.cs">
+    <Compile Include="UIForms\DockGameView.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Window.Designer.cs">
+    <Compile Include="UIForms\DockGameView.Designer.cs">
+      <DependentUpon>DockGameView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UIForms\DockSceneView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UIForms\DockSceneView.Designer.cs">
+      <DependentUpon>DockSceneView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UIForms\Window.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UIForms\Window.Designer.cs">
       <DependentUpon>Window.cs</DependentUpon>
     </Compile>
-    <Compile Include="MainWindow.cs">
+    <Compile Include="UIForms\MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MainWindow.Designer.cs">
+    <Compile Include="UIForms\MainWindow.Designer.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
@@ -82,10 +94,14 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="MainWindow.resx">
+    <EmbeddedResource Include="UIForms\DockSceneView.resx">
+      <DependentUpon>DockSceneView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UIForms\MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\SharpDX.2.6.3\build\SharpDX.targets" Condition="Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

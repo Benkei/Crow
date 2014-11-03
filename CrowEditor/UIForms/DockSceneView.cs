@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
 
-namespace CrowEditor
+namespace CrowEditor.UIForms
 {
-	public partial class Window : DockContent
+	public partial class DockSceneView : DockContent
 	{
-		public Window ()
+		public DockSceneView ()
 		{
 			InitializeComponent ();
 		}
