@@ -73,11 +73,11 @@
   <ItemGroup>
     <Compile Include="GLHandler.cs" />
     <Compile Include="Camera.cs" />
-    <Compile Include="GpuBuffer.cs" />
-    <Compile Include="GpuProgram.cs" />
+    <Compile Include="GLBuffer.cs" />
+    <Compile Include="GLProgram.cs" />
     <Compile Include="GpuPrograms\GpuProgramAsset.cs" />
     <Compile Include="GpuPrograms\GpuProgramFactory.cs" />
-    <Compile Include="GpuShader.cs" />
+    <Compile Include="GLShader.cs" />
     <Compile Include="IndicesBuffer.cs" />
     <Compile Include="Mesh.cs" />
     <Compile Include="MeshPrimitive.cs" />

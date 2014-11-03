@@ -7,19 +7,19 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace CrowEngine
 {
-	class GpuShader : BaseHandler
+	class GLShader : BaseHandler
 	{
 		ShaderType m_Type;
 
 
-		public GpuShader ( ShaderType type, string sourceText )
+		public GLShader ( ShaderType type, string sourceText )
 			: this ( type )
 		{
 			SetSource ( sourceText );
 			Compile ();
 		}
 
-		public GpuShader ( ShaderType type )
+		public GLShader ( ShaderType type )
 		{
 			m_Handler = GL.CreateShader ( type );
 			m_Type = type;
@@ -54,6 +54,11 @@ namespace CrowEngine
 				var info = GL.GetShaderInfoLog ( m_Handler );
 				Console.WriteLine ( info );
 			}
+		}
+
+		public static void ReleaseShaderCompiler ()
+		{
+			GL.ReleaseShaderCompiler ();
 		}
 	}
 }

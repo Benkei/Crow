@@ -11,7 +11,7 @@ namespace CrowEngine.GpuPrograms
 {
 	class GpuProgramFactory
 	{
-		public static GpuProgram Load ( string filePath )
+		public static GLProgram Load ( string filePath )
 		{
 			GpuProgramAsset data;
 			using ( var reader = new StreamReader ( filePath, Encoding.UTF8 ) )
@@ -21,17 +21,17 @@ namespace CrowEngine.GpuPrograms
 
 			var folder = Path.GetDirectoryName ( filePath );
 
-			var vertex = new GpuShader (
+			var vertex = new GLShader (
 				ShaderType.VertexShader,
 				File.ReadAllText ( Path.Combine ( folder, data.Vertex.Path ), Encoding.ASCII )
 			);
 
-			var fragment = new GpuShader (
+			var fragment = new GLShader (
 				ShaderType.FragmentShader,
 				File.ReadAllText ( Path.Combine ( folder, data.Fragment.Path ), Encoding.ASCII )
 			);
 
-			var program = new GpuProgram ();
+			var program = new GLProgram ();
 			program.SetShader ( vertex );
 			program.SetShader ( fragment );
 

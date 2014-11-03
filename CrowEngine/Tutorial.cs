@@ -12,7 +12,7 @@ namespace CrowEngine
 		float time;
 		int uniform_mview;
 		int uniform_diffuse;
-		GpuProgram m_Program;
+		GLProgram m_Program;
 		Mesh m_Mesh;
 		Texture2D m_Texture;
 

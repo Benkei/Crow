@@ -12,7 +12,7 @@ namespace CrowEngine
 		public int m_Indices;
 		public IndicesBuffer m_Ibo;
 		public VertexArrayObject m_Vao;
-		public GpuBuffer m_Vbo;
+		public GLBuffer m_Vbo;
 
 		public Mesh ()
 		{
