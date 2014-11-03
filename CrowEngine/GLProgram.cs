@@ -73,6 +73,13 @@ namespace CrowEngine
 				return false;
 			}
 
+			DetachShader ( ref m_FragmentShader );
+			DetachShader ( ref m_VertexShader );
+			DetachShader ( ref m_GeometryShader );
+			DetachShader ( ref m_TessEvaluationShader );
+			DetachShader ( ref m_TessControlShader );
+			DetachShader ( ref m_ComputeShader );
+
 			int count, nameLength;
 
 			GL.GetProgram ( m_Handler, GetProgramParameterName.ActiveAttributes, out count );
@@ -121,7 +128,7 @@ namespace CrowEngine
 		{
 			GL.ValidateProgram ( m_Handler );
 		}
-		
+
 		public GLShader GetShader ( ShaderType type )
 		{
 			switch ( type )
@@ -199,5 +206,16 @@ namespace CrowEngine
 		{
 			return GL.GetUniformLocation ( m_Handler, name );
 		}
+
+
+		private void DetachShader ( ref GLShader shader )
+		{
+			if ( shader != null )
+			{
+				GL.DetachShader ( m_Handler, shader.Handler );
+				shader = null;
+			}
+		}
+
 	}
 }

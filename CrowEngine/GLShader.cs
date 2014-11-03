@@ -9,9 +9,6 @@ namespace CrowEngine
 {
 	class GLShader : BaseHandler
 	{
-		ShaderType m_Type;
-
-
 		public GLShader ( ShaderType type, string sourceText )
 			: this ( type )
 		{
@@ -22,7 +19,6 @@ namespace CrowEngine
 		public GLShader ( ShaderType type )
 		{
 			m_Handler = GL.CreateShader ( type );
-			m_Type = type;
 		}
 
 		public bool IsCompiled
@@ -37,12 +33,31 @@ namespace CrowEngine
 
 		public ShaderType Type
 		{
-			get { return m_Type; }
+			get
+			{
+				int type;
+				GL.GetShader ( m_Handler, ShaderParameter.ShaderType, out type );
+				return (ShaderType)type;
+			}
+		}
+
+		public string GetSource ()
+		{
+			int length;
+			GL.GetShader ( m_Handler, ShaderParameter.ShaderSourceLength, out length );
+			var sb = new StringBuilder ( length );
+			GL.GetShaderSource ( m_Handler, length, out length, sb );
+			return sb.ToString ();
 		}
 
 		public void SetSource ( string text )
 		{
 			GL.ShaderSource ( m_Handler, text );
+		}
+
+		public void SetBinarySource ( IntPtr data, int length )
+		{
+			GL.ShaderBinary ( 1, ref m_Handler, (BinaryFormat)0, data, length );
 		}
 
 		public void Compile ()
@@ -54,6 +69,11 @@ namespace CrowEngine
 				var info = GL.GetShaderInfoLog ( m_Handler );
 				Console.WriteLine ( info );
 			}
+		}
+
+		public void Delete ()
+		{
+			GL.DeleteShader ( m_Handler );
 		}
 
 		public static void ReleaseShaderCompiler ()
