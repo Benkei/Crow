@@ -7,7 +7,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace CrowEngine
 {
-	class GLBuffer : BaseHandler
+	class GLBuffer : GLHandler
 	{
 		//todo change this! it's a binding target
 		protected BufferTarget m_Type;

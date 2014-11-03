@@ -7,7 +7,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace CrowEngine
 {
-	class GLShader : BaseHandler
+	class GLShader : GLHandler
 	{
 		public GLShader ( ShaderType type, string sourceText )
 			: this ( type )

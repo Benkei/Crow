@@ -6,14 +6,7 @@ using System.Threading.Tasks;
 
 namespace CrowEngine
 {
-	public abstract class GLHandler
+	class Texture1D : Texture
 	{
-		protected int m_Handler;
-
-		public int Handler
-		{
-			get { return m_Handler; }
-			set { m_Handler = value; }
-		}
 	}
 }

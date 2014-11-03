@@ -7,7 +7,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace CrowEngine
 {
-	class GLProgram : BaseHandler
+	class GLProgram : GLHandler
 	{
 		private GLShader m_FragmentShader;
 		private GLShader m_VertexShader;
