@@ -39,6 +39,9 @@
     <Reference Include="LitJson">
       <HintPath>..\lib\LitJson.dll</HintPath>
     </Reference>
+    <Reference Include="Magick.NET-AnyCPU">
+      <HintPath>..\packages\Magick.NET-Q16-AnyCPU.7.0.0.0006\lib\net40-client\Magick.NET-AnyCPU.dll</HintPath>
+    </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\OpenTK.dll</HintPath>
@@ -101,7 +104,6 @@
       <DependentUpon>MainWindow.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\SharpDX.2.6.3\build\SharpDX.targets" Condition="Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
