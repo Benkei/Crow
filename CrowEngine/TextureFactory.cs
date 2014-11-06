@@ -32,7 +32,7 @@ namespace CrowEngine
 			//tex.MagFilter = TextureMagFilter.Nearest;
 			//tex.MinFilter = TextureMinFilter.Nearest;
 
-			Util.CheckError ();
+			Util.CheckGLError ();
 
 			return tex;
 		}

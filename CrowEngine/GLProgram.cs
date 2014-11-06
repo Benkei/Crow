@@ -27,9 +27,9 @@ namespace CrowEngine
 		{
 			get
 			{
-				int status;
-				GL.GetProgram ( m_Handler, GetProgramParameterName.LinkStatus, out status );
-				return status == 1;
+				int value;
+				GL.GetProgram ( m_Handler, GetProgramParameterName.LinkStatus, out value );
+				return value == 1;
 			}
 		}
 
@@ -37,9 +37,9 @@ namespace CrowEngine
 		{
 			get
 			{
-				int status;
-				GL.GetProgram ( m_Handler, GetProgramParameterName.ValidateStatus, out status );
-				return status == 1;
+				int value;
+				GL.GetProgram ( m_Handler, GetProgramParameterName.ValidateStatus, out value );
+				return value == 1;
 			}
 		}
 
@@ -47,9 +47,29 @@ namespace CrowEngine
 		{
 			get
 			{
-				int count;
-				GL.GetProgram ( m_Handler, GetProgramParameterName.AttachedShaders, out count );
-				return count;
+				int value;
+				GL.GetProgram ( m_Handler, GetProgramParameterName.AttachedShaders, out value );
+				return value;
+			}
+		}
+
+		public bool BinaryRetrievable
+		{
+			get
+			{
+				int value;
+				GL.GetProgram ( m_Handler, GetProgramParameterName.ProgramBinaryRetrievableHint, out value );
+				return value == 1;
+			}
+		}
+
+		public int BinaryLength
+		{
+			get
+			{
+				int value;
+				GL.GetProgram ( m_Handler, (GetProgramParameterName)All.ProgramBinaryLength, out value );
+				return value;
 			}
 		}
 
@@ -127,6 +147,21 @@ namespace CrowEngine
 		public void Validate ()
 		{
 			GL.ValidateProgram ( m_Handler );
+		}
+
+		public void GetBinary ( byte[] data, out int written, out BinaryFormat format )
+		{
+			GL.GetProgramBinary ( m_Handler, data.Length, out written, out format, data );
+		}
+
+		public void GetBinary ( IntPtr data, int length, out int written, out BinaryFormat format )
+		{
+			GL.GetProgramBinary ( m_Handler, length, out written, out format, data );
+		}
+
+		public void SetBinary ( IntPtr data, int length )
+		{
+			GL.ProgramBinary ( m_Handler, (BinaryFormat)0, data, length );
 		}
 
 		public GLShader GetShader ( ShaderType type )

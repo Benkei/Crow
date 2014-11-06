@@ -19,10 +19,14 @@ namespace CrowEngine
 		Model m_Cube;
 
 		public Tutorial ()
-			: base ( 512, 512, new GraphicsMode ( 32, 24, 0, 4 ) )
+			: base ( 512, 512,
+			new GraphicsMode ( 32, 24, 0, 4 ),
+			"Hello OpenTK!",
+			GameWindowFlags.Default,
+			DisplayDevice.Default,
+			4, 5,
+			GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug )
 		{
-			Title = "Hello OpenTK!";
-
 			var version = "GL " + GL.GetInteger ( GetPName.MajorVersion )
 				+ "." + GL.GetInteger ( GetPName.MinorVersion );
 			Console.WriteLine ( version );
@@ -35,9 +39,29 @@ namespace CrowEngine
 			Console.WriteLine ();
 		}
 
+		static void GLDebugCallback ( DebugSource source, DebugType type,
+			int id, DebugSeverity severity,
+			int length, IntPtr message,
+			IntPtr userParam )
+		{
+			var mes = System.Runtime.InteropServices.Marshal.PtrToStringUni ( message, length );
+			Console.WriteLine ( "0x{0}: {1}", id, mes );
+		}
+
 		protected override void OnLoad ( EventArgs e )
 		{
 			base.OnLoad ( e );
+
+			GL.DebugMessageCallback ( GLDebugCallback, IntPtr.Zero );
+			int i=0;
+			GL.DebugMessageControl (
+				DebugSourceControl.DontCare,
+				DebugTypeControl.DontCare,
+				DebugSeverityControl.DontCare,
+				0, ref i, true );
+			GL.Enable ( EnableCap.DebugOutput );
+
+			GL.ClearColor ( Color4.CornflowerBlue );
 
 			m_Texture = TextureFactory.Load ( "Assets/guid.JPG" );
 
@@ -56,9 +80,6 @@ namespace CrowEngine
 
 			m_Cube = new Model ();
 			m_Cube.Position = new SharpDX.Vector3 ( 0.0f, 0.0f, -3.0f );
-
-			GL.ClearColor ( Color4.CornflowerBlue );
-			GL.PointSize ( 5f );
 		}
 
 		protected override void OnUpdateFrame ( FrameEventArgs e )
@@ -77,10 +98,10 @@ namespace CrowEngine
 			GL.Viewport ( 0, 0, Width, Height );
 			GL.Clear ( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
 			GL.Enable ( EnableCap.DepthTest );
-			
+
 			m_Program.Use ();
 
-			var matrix = m_Cube.m_LocalMatrix;
+			var matrix = m_Cube.WorldMatrix;
 			matrix *= SharpDX.Matrix.PerspectiveFovRH ( 1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 40.0f );
 
 			GL.UniformMatrix4 ( uniform_mview, 1, false, (float*)&matrix );
@@ -98,6 +119,69 @@ namespace CrowEngine
 
 			GL.Flush ();
 			SwapBuffers ();
+		}
+	}
+
+	struct Rasterization
+	{
+		public bool RASTERIZER_DISCARD;
+		public bool MULTISAMPLE;
+		public bool SAMPLE_SHADING;
+
+		public Rasterization ( int x )
+			: this ()
+		{
+			float point;
+			GL.GetMultisample ( GetMultisamplePName.SamplePosition, 0, out point );
+
+			//GL.MinSampleShading()
+		}
+
+		struct Point
+		{
+			public float PointSize;
+
+			public Point ( int x )
+				: this ()
+			{
+				GL.Enable ( EnableCap.VertexProgramPointSize );
+
+				GL.PointParameter ( PointParameterName.PointDistanceAttenuation, 0f );
+			}
+		}
+
+		struct Line
+		{
+			public float LineWidth;
+			public bool LineSmooth;
+
+			public Line ( int x )
+				: this ()
+			{
+				//GL.Enable ( EnableCap.LineSmooth );
+			}
+		}
+
+		struct Polygon
+		{
+			public bool PolygonSmooth;
+			public bool CullFace;
+			public FrontFaceDirection Dir;
+			public CullFaceMode CullMode;
+
+			public bool PolygonOffsetFill;
+			public bool PolygonOffsetLine;
+			public bool PolygonOffsetPoint;
+
+			public Polygon ( int x )
+				: this ()
+			{
+				//GL.Enable ( EnableCap.CullFace );
+				//GL.FrontFace ( FrontFaceDirection.Cw );
+				//GL.CullFace ( CullFaceMode.Front );
+				//GL.Enable ( EnableCap.PolygonOffsetPoint );
+				//GL.PolygonOffset()
+			}
 		}
 	}
 }

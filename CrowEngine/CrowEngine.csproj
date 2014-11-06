@@ -69,6 +69,9 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="yeppp-clr">
+      <HintPath>..\lib\yeppp-clr.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GLHandler.cs" />
@@ -79,6 +82,7 @@
     <Compile Include="GpuPrograms\GpuProgramFactory.cs" />
     <Compile Include="GLShader.cs" />
     <Compile Include="IndicesBuffer.cs" />
+    <Compile Include="Mathf.cs" />
     <Compile Include="Mesh.cs" />
     <Compile Include="MeshPrimitive.cs" />
     <Compile Include="Model.cs" />
@@ -127,6 +131,9 @@
     <Content Include="Assets\guid.JPG">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Graphics\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
