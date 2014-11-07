@@ -10,7 +10,7 @@ namespace CrowEngine
 {
 	class MeshPrimitive
 	{
-		struct Vertex
+		public struct Vertex
 		{
 			public Vector3 Position;
 			public Vector2 UV;
@@ -87,6 +87,7 @@ namespace CrowEngine
 			mesh.m_Vbo.Bind ();
 			mesh.m_Vbo.Setup ( 8 * Utilities.SizeOf<Vertex> (), (IntPtr)v, BufferUsageHint.StaticDraw );
 
+			/*
 			// bind VBO to VAO
 			mesh.m_Vao = VertexArrayObject.Create ();
 			mesh.m_Vao.Bind ();
@@ -114,6 +115,7 @@ namespace CrowEngine
 				Utilities.SizeOf<Vertex> (), Utilities.SizeOf<Vector3> () + Utilities.SizeOf<Vector2> () );
 
 			GL.BindVertexArray ( 0 );
+			*/
 
 			return mesh;
 		}

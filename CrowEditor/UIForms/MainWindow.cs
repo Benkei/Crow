@@ -23,6 +23,12 @@ namespace CrowEditor.UIForms
 			f3.Show ( dockPanel1, DockState.DockRight );
 			var f4 = new DockSceneView ();
 			f4.Show ( dockPanel1, DockState.Document );
+			f4 = new DockSceneView ();
+			f4.Show ( dockPanel1, DockState.Document );
+			f4 = new DockSceneView ();
+			f4.Show ( dockPanel1, DockState.Document );
+			f4 = new DockSceneView ();
+			f4.Show ( dockPanel1, DockState.Document );
 		}
 	}
 }

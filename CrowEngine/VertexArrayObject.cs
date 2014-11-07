@@ -16,6 +16,11 @@ namespace CrowEngine
 			m_Handler = handler;
 		}
 
+		public bool IsValid
+		{
+			get { return m_Handler != 0; }
+		}
+
 		public void Bind ()
 		{
 			GL.BindVertexArray ( m_Handler );
