@@ -12,7 +12,7 @@
 
 using System;
 
-namespace LitJson
+namespace CrowSerialization.LitJson
 {
 	public class JsonException : ApplicationException
 	{

@@ -14,7 +14,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace LitJson
+namespace CrowSerialization.LitJson
 {
 	internal class FsmContext
 	{

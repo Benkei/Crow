@@ -17,7 +17,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 
-namespace LitJson
+namespace CrowSerialization.LitJson
 {
 	internal struct PropertyMetadata
 	{

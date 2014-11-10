@@ -14,7 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace LitJson
+namespace CrowSerialization.LitJson
 {
 	public enum JsonToken
 	{

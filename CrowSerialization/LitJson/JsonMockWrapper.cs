@@ -15,7 +15,7 @@ using System;
 using System.Collections;
 using System.Collections.Specialized;
 
-namespace LitJson
+namespace CrowSerialization.LitJson
 {
 	public class JsonMockWrapper : IJsonWrapper
 	{

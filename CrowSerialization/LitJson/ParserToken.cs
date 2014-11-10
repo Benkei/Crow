@@ -10,7 +10,7 @@
 
 #endregion Header
 
-namespace LitJson
+namespace CrowSerialization.LitJson
 {
 	internal enum ParserToken
 	{
