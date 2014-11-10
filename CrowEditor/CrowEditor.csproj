@@ -43,8 +43,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Magick.NET-AnyCPU">
-      <HintPath>..\packages\Magick.NET-Q16-AnyCPU.7.0.0.0006\lib\net40-client\Magick.NET-AnyCPU.dll</HintPath>
+    <Reference Include="Magick.NET-AnyCPU, Version=6.0.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Magick.NET-Q16-AnyCPU.7.0.0.0007\lib\net40-client\Magick.NET-AnyCPU.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -149,9 +150,9 @@
       <Project>{92d6679e-b2ff-4f47-98a6-0214f532b5ca}</Project>
       <Name>CrowEngine</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CrowLitJson\CrowLitJson.csproj">
+    <ProjectReference Include="..\CrowSerialization\CrowSerialization.csproj">
       <Project>{321f8d46-d0b6-4b4c-970f-efe588805c75}</Project>
-      <Name>CrowLitJson</Name>
+      <Name>CrowSerialization</Name>
     </ProjectReference>
     <ProjectReference Include="..\CrowSquish\CrowSquish.csproj">
       <Project>{378be53f-2d9d-4c86-b15c-6c7b617ff7c3}</Project>

@@ -1,4 +1,5 @@
 #region Header
+
 /**
  * JsonMapper.cs
  *   JSON to .Net object and object to JSON conversions.
@@ -6,8 +7,8 @@
  * The authors disclaim copyright to this source code. For more details, see
  * the COPYING file included with this distribution.
  **/
-#endregion
 
+#endregion Header
 
 using System;
 using System.Collections;
@@ -15,7 +16,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
-
 
 namespace LitJson
 {
@@ -26,13 +26,11 @@ namespace LitJson
 		public Type Type;
 	}
 
-
 	internal struct ArrayMetadata
 	{
 		private Type element_type;
 		private bool is_array;
 		private bool is_list;
-
 
 		public Type ElementType
 		{
@@ -60,14 +58,12 @@ namespace LitJson
 		}
 	}
 
-
 	internal struct ObjectMetadata
 	{
 		private Type element_type;
 		private bool is_dictionary;
 
 		private IDictionary<string, PropertyMetadata> properties;
-
 
 		public Type ElementType
 		{
@@ -95,19 +91,20 @@ namespace LitJson
 		}
 	}
 
-
 	internal delegate void ExporterFunc ( object obj, JsonWriter writer );
+
 	public delegate void ExporterFunc<T> ( T obj, JsonWriter writer );
 
 	internal delegate object ImporterFunc ( object input );
+
 	public delegate TValue ImporterFunc<TJson, TValue> ( TJson input );
 
 	public delegate IJsonWrapper WrapperFactory ();
 
-
 	public class JsonMapper
 	{
 		#region Fields
+
 		private static int max_nesting_depth;
 
 		private static IFormatProvider datetime_format;
@@ -117,6 +114,7 @@ namespace LitJson
 
 		private static IDictionary<Type,
 				IDictionary<Type, ImporterFunc>> base_importers_table;
+
 		private static IDictionary<Type,
 				IDictionary<Type, ImporterFunc>> custom_importers_table;
 
@@ -125,6 +123,7 @@ namespace LitJson
 
 		private static IDictionary<Type,
 				IDictionary<Type, MethodInfo>> conv_ops;
+
 		private static readonly object conv_ops_lock = new Object ();
 
 		private static IDictionary<Type, ObjectMetadata> object_metadata;
@@ -132,14 +131,16 @@ namespace LitJson
 
 		private static IDictionary<Type,
 				IList<PropertyMetadata>> type_properties;
+
 		private static readonly object type_properties_lock = new Object ();
 
 		private static JsonWriter static_writer;
 		private static readonly object static_writer_lock = new Object ();
-		#endregion
 
+		#endregion Fields
 
 		#region Constructors
+
 		static JsonMapper ()
 		{
 			max_nesting_depth = 100;
@@ -165,10 +166,11 @@ namespace LitJson
 			RegisterBaseExporters ();
 			RegisterBaseImporters ();
 		}
-		#endregion
 
+		#endregion Constructors
 
 		#region Private Methods
+
 		private static void AddArrayMetadata ( Type type )
 		{
 			if ( array_metadata.ContainsKey ( type ) )
@@ -362,7 +364,6 @@ namespace LitJson
 				reader.Token == JsonToken.String ||
 				reader.Token == JsonToken.Boolean )
 			{
-
 				Type json_type = reader.Value.GetType ();
 
 				if ( value_type.IsAssignableFrom ( json_type ) )
@@ -373,7 +374,6 @@ namespace LitJson
 					custom_importers_table[json_type].ContainsKey (
 						value_type ) )
 				{
-
 					ImporterFunc importer =
 						custom_importers_table[json_type][value_type];
 
@@ -385,7 +385,6 @@ namespace LitJson
 					base_importers_table[json_type].ContainsKey (
 						value_type ) )
 				{
-
 					ImporterFunc importer =
 						base_importers_table[json_type][value_type];
 
@@ -413,7 +412,6 @@ namespace LitJson
 
 			if ( reader.Token == JsonToken.ArrayStart )
 			{
-
 				AddArrayMetadata ( inst_type );
 				ArrayMetadata t_data = array_metadata[inst_type];
 
@@ -455,7 +453,6 @@ namespace LitJson
 				}
 				else
 					instance = list;
-
 			}
 			else if ( reader.Token == JsonToken.ObjectStart )
 			{
@@ -496,13 +493,11 @@ namespace LitJson
 							else
 								ReadValue ( prop_data.Type, reader );
 						}
-
 					}
 					else
 					{
 						if ( !t_data.IsDictionary )
 						{
-
 							if ( !reader.SkipNonMembers )
 							{
 								throw new JsonException ( String.Format (
@@ -521,9 +516,7 @@ namespace LitJson
 							property, ReadValue (
 								t_data.ElementType, reader ) );
 					}
-
 				}
-
 			}
 
 			return instance;
@@ -599,7 +592,6 @@ namespace LitJson
 					((IDictionary)instance)[property] = ReadValue (
 						factory, reader );
 				}
-
 			}
 
 			return instance;
@@ -735,7 +727,6 @@ namespace LitJson
 			};
 			RegisterImporter ( base_importers_table, typeof ( double ),
 							  typeof ( decimal ), importer );
-
 
 			importer = delegate ( object input )
 			{
@@ -924,8 +915,8 @@ namespace LitJson
 			}
 			writer.WriteObjectEnd ();
 		}
-		#endregion
 
+		#endregion Private Methods
 
 		public static string ToJson ( object obj )
 		{

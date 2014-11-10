@@ -7,8 +7,8 @@
     <ProjectGuid>{321F8D46-D0B6-4B4C-970F-EFE588805C75}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CrowLitJson</RootNamespace>
-    <AssemblyName>CrowLitJson</AssemblyName>
+    <RootNamespace>CrowSerialization</RootNamespace>
+    <AssemblyName>CrowSerialization</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -32,18 +32,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IJsonWrapper.cs" />
-    <Compile Include="JsonData.cs" />
-    <Compile Include="JsonException.cs" />
-    <Compile Include="JsonMapper.cs" />
-    <Compile Include="JsonMockWrapper.cs" />
-    <Compile Include="JsonReader.cs" />
-    <Compile Include="JsonWriter.cs" />
-    <Compile Include="Lexer.cs" />
-    <Compile Include="ParserToken.cs" />
+    <Compile Include="LitJson\IJsonWrapper.cs" />
+    <Compile Include="LitJson\JsonData.cs" />
+    <Compile Include="LitJson\JsonException.cs" />
+    <Compile Include="LitJson\JsonMapper.cs" />
+    <Compile Include="LitJson\JsonMockWrapper.cs" />
+    <Compile Include="LitJson\JsonReader.cs" />
+    <Compile Include="LitJson\JsonWriter.cs" />
+    <Compile Include="LitJson\Lexer.cs" />
+    <Compile Include="LitJson\ParserToken.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

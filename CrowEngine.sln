@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2013 for Windows Desktop
+# Visual Studio 2013
 VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrowEngine", "CrowEngine\CrowEngine.csproj", "{92D6679E-B2FF-4F47-98A6-0214F532B5CA}"
@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrowSquish", "CrowSquish\Cr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrowTests", "CrowTests\CrowTests.csproj", "{4EDB98C1-32BF-43EA-857D-CAC62C799081}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrowLitJson", "CrowLitJson\CrowLitJson.csproj", "{321F8D46-D0B6-4B4C-970F-EFE588805C75}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrowSerialization", "CrowSerialization\CrowSerialization.csproj", "{321F8D46-D0B6-4B4C-970F-EFE588805C75}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,4 +1,5 @@
 #region Header
+
 /**
  * JsonReader.cs
  *   Stream-like access to JSON text.
@@ -6,14 +7,12 @@
  * The authors disclaim copyright to this source code. For more details, see
  * the COPYING file included with this distribution.
  **/
-#endregion
 
+#endregion Header
 
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-
 
 namespace LitJson
 {
@@ -38,10 +37,10 @@ namespace LitJson
 		Null
 	}
 
-
 	public class JsonReader
 	{
 		#region Fields
+
 		private static IDictionary<int, IDictionary<int, int[]>> parse_table;
 
 		private Stack<int> automaton_stack;
@@ -58,10 +57,11 @@ namespace LitJson
 		private bool skip_non_members;
 		private object token_value;
 		private JsonToken token;
-		#endregion
 
+		#endregion Fields
 
 		#region Public Properties
+
 		public bool AllowComments
 		{
 			get { return lexer.AllowComments; }
@@ -99,10 +99,11 @@ namespace LitJson
 		{
 			get { return token_value; }
 		}
-		#endregion
 
+		#endregion Public Properties
 
 		#region Constructors
+
 		static JsonReader ()
 		{
 			PopulateParseTable ();
@@ -141,10 +142,11 @@ namespace LitJson
 			this.reader = reader;
 			reader_is_owned = owned;
 		}
-		#endregion
 
+		#endregion Constructors
 
 		#region Static Methods
+
 		private static void PopulateParseTable ()
 		{
 			// See section A.2. of the manual for details
@@ -262,17 +264,17 @@ namespace LitJson
 		{
 			parse_table.Add ( (int)rule, new Dictionary<int, int[]> () );
 		}
-		#endregion
 
+		#endregion Static Methods
 
 		#region Private Methods
+
 		private void ProcessNumber ( string number )
 		{
 			if ( number.IndexOf ( '.' ) != -1 ||
 				number.IndexOf ( 'e' ) != -1 ||
 				number.IndexOf ( 'E' ) != -1 )
 			{
-
 				double n_double;
 				if ( Double.TryParse ( number, out n_double ) )
 				{
@@ -321,25 +323,21 @@ namespace LitJson
 			{
 				token = JsonToken.ArrayStart;
 				parser_return = true;
-
 			}
 			else if ( current_symbol == ']' )
 			{
 				token = JsonToken.ArrayEnd;
 				parser_return = true;
-
 			}
 			else if ( current_symbol == '{' )
 			{
 				token = JsonToken.ObjectStart;
 				parser_return = true;
-
 			}
 			else if ( current_symbol == '}' )
 			{
 				token = JsonToken.ObjectEnd;
 				parser_return = true;
-
 			}
 			else if ( current_symbol == '"' )
 			{
@@ -348,7 +346,6 @@ namespace LitJson
 					parser_in_string = false;
 
 					parser_return = true;
-
 				}
 				else
 				{
@@ -357,44 +354,37 @@ namespace LitJson
 
 					parser_in_string = true;
 				}
-
 			}
 			else if ( current_symbol == (int)ParserToken.CharSeq )
 			{
 				token_value = lexer.StringValue;
-
 			}
 			else if ( current_symbol == (int)ParserToken.False )
 			{
 				token = JsonToken.Boolean;
 				token_value = false;
 				parser_return = true;
-
 			}
 			else if ( current_symbol == (int)ParserToken.Null )
 			{
 				token = JsonToken.Null;
 				parser_return = true;
-
 			}
 			else if ( current_symbol == (int)ParserToken.Number )
 			{
 				ProcessNumber ( lexer.StringValue );
 
 				parser_return = true;
-
 			}
 			else if ( current_symbol == (int)ParserToken.Pair )
 			{
 				token = JsonToken.PropertyName;
-
 			}
 			else if ( current_symbol == (int)ParserToken.True )
 			{
 				token = JsonToken.Boolean;
 				token_value = true;
 				parser_return = true;
-
 			}
 		}
 
@@ -416,8 +406,8 @@ namespace LitJson
 
 			return true;
 		}
-		#endregion
 
+		#endregion Private Methods
 
 		public void Close ()
 		{
@@ -460,7 +450,6 @@ namespace LitJson
 					return false;
 			}
 
-
 			int[] entry_symbols;
 
 			while ( true )
@@ -496,10 +485,8 @@ namespace LitJson
 
 				try
 				{
-
 					entry_symbols =
 						parse_table[current_symbol][current_input];
-
 				}
 				catch ( KeyNotFoundException e )
 				{
@@ -513,6 +500,5 @@ namespace LitJson
 					automaton_stack.Push ( entry_symbols[i] );
 			}
 		}
-
 	}
 }

@@ -1,4 +1,5 @@
 #region Header
+
 /**
  * JsonWriter.cs
  *   Stream-like facility to output JSON text.
@@ -6,15 +7,14 @@
  * The authors disclaim copyright to this source code. For more details, see
  * the COPYING file included with this distribution.
  **/
-#endregion
 
+#endregion Header
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-
 
 namespace LitJson
 {
@@ -39,6 +39,7 @@ namespace LitJson
 	public class JsonWriter
 	{
 		#region Fields
+
 		private static NumberFormatInfo number_format;
 
 		private WriterContext context;
@@ -51,10 +52,11 @@ namespace LitJson
 		private bool pretty_print;
 		private bool validate;
 		private TextWriter writer;
-		#endregion
 
+		#endregion Fields
 
 		#region Properties
+
 		public int IndentValue
 		{
 			get { return indent_value; }
@@ -81,10 +83,11 @@ namespace LitJson
 			get { return validate; }
 			set { validate = value; }
 		}
-		#endregion
 
+		#endregion Properties
 
 		#region Constructors
+
 		static JsonWriter ()
 		{
 			number_format = NumberFormatInfo.InvariantInfo;
@@ -112,10 +115,11 @@ namespace LitJson
 
 			Init ();
 		}
-		#endregion
 
+		#endregion Constructors
 
 		#region Private Methods
+
 		private void DoValidation ( Condition cond )
 		{
 			if ( !context.ExpectingValue )
@@ -201,7 +205,6 @@ namespace LitJson
 				indentation += indent_value;
 		}
 
-
 		private void Put ( string str )
 		{
 			if ( pretty_print && !context.ExpectingValue )
@@ -284,8 +287,8 @@ namespace LitJson
 			if ( pretty_print )
 				indentation -= indent_value;
 		}
-		#endregion
 
+		#endregion Private Methods
 
 		public override string ToString ()
 		{

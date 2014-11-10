@@ -1,4 +1,5 @@
 #region Header
+
 /**
  * Lexer.cs
  *   JSON lexer implementation based on a finite state machine.
@@ -6,14 +7,12 @@
  * The authors disclaim copyright to this source code. For more details, see
  * the COPYING file included with this distribution.
  **/
-#endregion
 
+#endregion Header
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
-
 
 namespace LitJson
 {
@@ -25,10 +24,10 @@ namespace LitJson
 		public int StateStack;
 	}
 
-
 	internal class Lexer
 	{
 		#region Fields
+
 		private delegate bool StateHandler ( FsmContext ctx );
 
 		private static int[] fsm_return_table;
@@ -46,10 +45,11 @@ namespace LitJson
 		private string string_value;
 		private int token;
 		private int unichar;
-		#endregion
 
+		#endregion Fields
 
 		#region Properties
+
 		public bool AllowComments
 		{
 			get { return allow_comments; }
@@ -76,10 +76,11 @@ namespace LitJson
 		{
 			get { return string_value; }
 		}
-		#endregion
 
+		#endregion Properties
 
 		#region Constructors
+
 		static Lexer ()
 		{
 			PopulateFsmTables ();
@@ -99,10 +100,11 @@ namespace LitJson
 			fsm_context = new FsmContext ();
 			fsm_context.L = this;
 		}
-		#endregion
 
+		#endregion Constructors
 
 		#region Static Methods
+
 		private static int HexValue ( int digit )
 		{
 			switch ( digit )
@@ -768,12 +770,10 @@ namespace LitJson
 
 			while ( ctx.L.GetChar () )
 			{
-
 				if ( ctx.L.input_char >= '0' && ctx.L.input_char <= '9' ||
 					ctx.L.input_char >= 'A' && ctx.L.input_char <= 'F' ||
 					ctx.L.input_char >= 'a' && ctx.L.input_char <= 'f' )
 				{
-
 					ctx.L.unichar += HexValue ( ctx.L.input_char ) * mult;
 
 					counter++;
@@ -905,8 +905,8 @@ namespace LitJson
 
 			return true;
 		}
-		#endregion
 
+		#endregion Static Methods
 
 		private bool GetChar ()
 		{

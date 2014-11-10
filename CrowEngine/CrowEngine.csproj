@@ -140,14 +140,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\lib\squish32.dll">
-      <Link>squish32.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\lib\squish64.dll">
-      <Link>squish64.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <Content Include="Assets\guid.JPG">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -156,13 +148,9 @@
     <Folder Include="Graphics\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CrowLitJson\CrowLitJson.csproj">
+    <ProjectReference Include="..\CrowSerialization\CrowSerialization.csproj">
       <Project>{321f8d46-d0b6-4b4c-970f-efe588805c75}</Project>
-      <Name>CrowLitJson</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CrowSquish\CrowSquish.csproj">
-      <Project>{378be53f-2d9d-4c86-b15c-6c7b617ff7c3}</Project>
-      <Name>CrowSquish</Name>
+      <Name>CrowSerialization</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

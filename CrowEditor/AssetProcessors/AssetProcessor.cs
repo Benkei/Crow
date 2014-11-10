@@ -29,7 +29,8 @@ namespace CrowEditor.AssetProcessors
 			var folder = Path.Combine ( root, sub );
 			var file = Path.Combine ( folder, _guid );
 
-			Directory.CreateDirectory ( folder );
+			if ( !Directory.Exists ( folder ) )
+				Directory.CreateDirectory ( folder );
 
 			var extension = Path.GetExtension ( filePath );
 

@@ -25,7 +25,7 @@ namespace CrowEditor.UIForms
 		{
 			base.OnLoad ( e );
 
-			if ( AssetDatabase.LoadProjectFile ( "D:/Projects/CrowEngine_ProjectTest/ProjectTest.proj" ) )
+			if ( AssetDatabase.LoadProjectFile ( "../../../Sample_ProjectTest/ProjectTest.proj" ) )
 			{
 				CrowEditorApp.m_LogicThread.JobScheduler.AddJob ( new AssetValidation () );
 			}
