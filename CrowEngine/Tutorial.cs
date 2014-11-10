@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
+using CrowEngine.Components;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
@@ -19,10 +20,12 @@ namespace CrowEngine
 		int uniform_mview;
 		int uniform_diffuse;
 		GLProgram m_Program;
-		Mesh m_Mesh;
 		Texture2D m_Texture;
 
-		Model m_Cube;
+		Camera m_MainCamera;
+
+		GameObject m_Camera;
+		GameObject m_Cube;
 
 		DebugProc m_DebugCallback;
 
@@ -80,6 +83,22 @@ namespace CrowEngine
 			Console.WriteLine ( "ID: {0};\nSource: {1};\nType: {2};\nSeverity: {3};\n  {4}", id, source, type, severity, mes );
 		}
 
+		protected override void OnLoad ( EventArgs e )
+		{
+			base.OnLoad ( e );
+
+			m_Camera = new GameObject ();
+			m_MainCamera = m_Camera.AddComponent<Camera> ();
+			m_MainCamera.FieldOfView = 60;
+			m_MainCamera.FarClipPlane = 40f;
+			m_MainCamera.NearClipPlane = 1f;
+			m_MainCamera.PixelScreenSize = new SharpDX.Rectangle ( 0, 0, ClientSize.Width, ClientSize.Height );
+
+			m_Cube = new GameObject ();
+			m_Cube.Transform.Position = new SharpDX.Vector3 ( 0.0f, 0.0f, 3.0f );
+			m_Cube.AddComponent<MeshRenderer> ();
+		}
+
 		protected override void OnUnload ( EventArgs e )
 		{
 			m_RunningThread = false;
@@ -95,11 +114,8 @@ namespace CrowEngine
 			base.OnUpdateFrame ( e );
 			time += (float)e.Time;
 
-			if ( m_Cube != null )
-			{
-				m_Cube.Rotation = SharpDX.Quaternion.RotationAxis ( SharpDX.Vector3.UnitY, 0.55f * time )
-					* SharpDX.Quaternion.RotationAxis ( SharpDX.Vector3.UnitX, 0.15f * time );
-			}
+			m_Cube.Transform.Rotation = SharpDX.Quaternion.RotationAxis ( SharpDX.Vector3.UnitY, 0.55f * time )
+				* SharpDX.Quaternion.RotationAxis ( SharpDX.Vector3.UnitX, 0.15f * time );
 		}
 
 		void ResourceThread ( object obj )
@@ -181,25 +197,28 @@ namespace CrowEngine
 			GL.Viewport ( 0, 0, Width, Height );
 			GL.Clear ( ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit );
 
-			if ( m_Program != null && m_Cube != null && m_Texture != null && m_Mesh != null )
+			if ( m_Program != null && m_Cube != null && m_Texture != null )
 			{
-				m_Program.Use ();
+				var mesh = m_Cube.GetComponent<MeshRenderer> ().Mesh;
+				if ( mesh != null )
+				{
+					m_Program.Use ();
 
-				var matrix = m_Cube.WorldMatrix;
-				matrix *= SharpDX.Matrix.PerspectiveFovRH ( 1.3f, ClientSize.Width / (float)ClientSize.Height, 1.0f, 40.0f );
+					var matrix = m_Cube.Transform.WorldMatrix * m_MainCamera.ViewMatrix * m_MainCamera.ProjectionMatrix;
 
-				GL.UniformMatrix4 ( uniform_mview, 1, false, (float*)&matrix );
-				GL.Uniform1 ( uniform_diffuse, 0 );
+					GL.UniformMatrix4 ( uniform_mview, 1, false, (float*)&matrix );
+					GL.Uniform1 ( uniform_diffuse, 0 );
 
-				GL.ActiveTexture ( TextureUnit.Texture0 + 0 );
-				GL.BindTexture ( TextureTarget.Texture2D, m_Texture.Handler );
+					GL.ActiveTexture ( TextureUnit.Texture0 + 0 );
+					GL.BindTexture ( TextureTarget.Texture2D, m_Texture.Handler );
 
-				m_Mesh.m_Ibo.Bind ();
+					mesh.CheckVao ();
+					mesh.m_Vao.Bind ();
 
-				m_Mesh.CheckVao ();
-				m_Mesh.m_Vao.Bind ();
+					mesh.m_Ibo.Bind ();
 
-				GL.DrawElements ( BeginMode.Triangles, m_Mesh.m_Indices, m_Mesh.m_Ibo.ElementType, 0 );
+					GL.DrawElements ( BeginMode.Triangles, mesh.m_Indices, mesh.m_Ibo.ElementType, 0 );
+				}
 			}
 		}
 
@@ -217,11 +236,10 @@ namespace CrowEngine
 				Console.WriteLine ( "Error binding attributes" );
 			}
 
-			m_Mesh = MeshPrimitive.CreateBox ();
+			var mesh = MeshPrimitive.CreateBox ();
 
-
-			m_Cube = new Model ();
-			m_Cube.Position = new SharpDX.Vector3 ( 0.0f, 0.0f, -3.0f );
+			var rendere = m_Cube.GetComponent<MeshRenderer> ();
+			rendere.Mesh = mesh;
 		}
 	}
 

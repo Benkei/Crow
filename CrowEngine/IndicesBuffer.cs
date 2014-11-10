@@ -7,7 +7,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace CrowEngine
 {
-	class IndicesBuffer : GLBuffer
+	public class IndicesBuffer : GLBuffer
 	{
 		private DrawElementsType m_ElementType;
 

@@ -9,7 +9,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace CrowEngine.GpuPrograms
 {
-	class GpuProgramFactory
+	public class GpuProgramFactory
 	{
 		public static GLProgram Load ( string filePath )
 		{

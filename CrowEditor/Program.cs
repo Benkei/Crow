@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using System.Windows.Forms;
 using CrowEditor.UIForms;
+using OpenTK.Graphics;
 
 namespace CrowEditor
 {
@@ -16,31 +14,28 @@ namespace CrowEditor
 		[STAThread]
 		static void Main ()
 		{
+			GraphicsContext.DirectRendering = false;
+			GraphicsContext.ShareContexts = false;
+
+			//TextWriterTraceListener writer = new TextWriterTraceListener ( System.Console.Out );
+			//Debug.Listeners.Add ( writer );
+
 			CrowEditorApp.Init ();
-
-			OpenTK.Graphics.GraphicsContext.ShareContexts = false;
-
-			Thread renderer = new Thread ( Renderer );
-			renderer.IsBackground = true;
-			renderer.Start ();
 
 			Application.EnableVisualStyles ();
 			Application.SetCompatibleTextRenderingDefault ( false );
 			using ( var window = new MainWindow () )
 			{
+				CrowEditorApp.m_MainForm = window;
+
+				window.Show ();
+
+				CrowEditorApp.Start ();
+
 				Application.Run ( window );
 			}
-		}
 
-
-		static void Renderer ()
-		{
-			while ( true )
-			{
-				CrowEditorApp.UpdateRenderView ();
-
-				Thread.Sleep ( 1 );
-			}
+			CrowEditorApp.Terminate ();
 		}
 	}
 }

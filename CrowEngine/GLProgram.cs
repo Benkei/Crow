@@ -7,7 +7,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace CrowEngine
 {
-	class GLProgram : GLHandler
+	public class GLProgram : GLHandler
 	{
 		private GLShader m_FragmentShader;
 		private GLShader m_VertexShader;
@@ -83,22 +83,28 @@ namespace CrowEngine
 			GL.UseProgram ( m_Handler );
 		}
 
-		public bool Link ()
+		public void Link ()
 		{
 			GL.LinkProgram ( m_Handler );
+		}
 
-			if ( !IsLinked )
-			{
-				Console.WriteLine ( GL.GetProgramInfoLog ( m_Handler ) );
-				return false;
-			}
-
+		public void DetachAllShaders ()
+		{
 			DetachShader ( ref m_FragmentShader );
 			DetachShader ( ref m_VertexShader );
 			DetachShader ( ref m_GeometryShader );
 			DetachShader ( ref m_TessEvaluationShader );
 			DetachShader ( ref m_TessControlShader );
 			DetachShader ( ref m_ComputeShader );
+		}
+
+		public void Reflection ()
+		{
+			if ( !IsLinked )
+			{
+				Console.WriteLine ( GL.GetProgramInfoLog ( m_Handler ) );
+				throw new InvalidOperationException ();
+			}
 
 			int count, nameLength;
 
@@ -141,7 +147,7 @@ namespace CrowEngine
 				Console.WriteLine ( "Uniform " + name + " " + type + " " + size );
 			}
 
-			return true;
+			Console.WriteLine ();
 		}
 
 		public void Validate ()

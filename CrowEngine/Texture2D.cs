@@ -8,7 +8,7 @@ using SharpDX;
 
 namespace CrowEngine
 {
-	enum TextureSwizzle
+	public enum TextureSwizzle
 	{
 		Zero = All.Zero,
 		One = All.One,
@@ -18,7 +18,7 @@ namespace CrowEngine
 		Alpha = All.Alpha,
 	}
 
-	enum ColorType
+	public enum ColorType
 	{
 		None = All.None,
 		SignedNormalized = All.SignedNormalized,
@@ -84,7 +84,7 @@ namespace CrowEngine
 	}
 
 
-	class Texture2D : Texture, ISamplerValues
+	public class Texture2D : Texture, ISamplerValues
 	{
 		public Texture2D ()
 		{
@@ -125,13 +125,7 @@ namespace CrowEngine
 
 		public int CountLevels
 		{
-			get
-			{
-				var count = 1 + (int)Math.Floor (
-					(float)Math.Log10 ( Math.Max ( Width ( 0 ), Height ( 0 ) ) ) / (float)Math.Log10 ( 2.0 )
-				);
-				return count;
-			}
+			get { return Util.CalculateMipmap ( Width ( 0 ), Height ( 0 ) ); }
 		}
 
 		public TextureSwizzle SwizzleR
@@ -451,6 +445,22 @@ namespace CrowEngine
 			GL.TexImage2D ( TextureTarget.Texture2D, level, internalformat, width, height, 0, format, PixelType.UnsignedByte, IntPtr.Zero );
 		}
 
+		public void SetupCompressed ( int width, int height, int level, PixelInternalFormat internalformat,
+			int dataSize, IntPtr data )
+		{
+			GL.CompressedTexImage2D ( TextureTarget.Texture2D, level, internalformat, width, height, 0, dataSize, data );
+		}
+
+		public void SetupCompressed ( int width, int height, int level, PixelInternalFormat internalformat )
+		{
+			GL.CompressedTexImage2D ( TextureTarget.Texture2D, level, internalformat, width, height, 0, 0, IntPtr.Zero );
+		}
+
+		public void SetDataBuffer ( SizedInternalFormat internalformat, GLBuffer buffer )
+		{
+			GL.TexBuffer ( TextureBufferTarget.TextureBuffer, internalformat, buffer.Handler );
+		}
+
 		public void SetData ( int xoffset, int yoffset,
 			int width, int height, int level, PixelFormat format,
 			PixelType type, IntPtr data )
@@ -464,6 +474,18 @@ namespace CrowEngine
 			GL.GetTexImage ( TextureTarget.Texture2D, level, format, type, data );
 		}
 
+		public void SetCompressedData ( int xoffset, int yoffset,
+			int width, int height, int level, PixelFormat format,
+			int dataSize, IntPtr data )
+		{
+			GL.CompressedTexSubImage2D ( TextureTarget.Texture2D, level, xoffset, yoffset, width, height, format, dataSize, data );
+		}
+
+		public void GetCompressedData ( int level, IntPtr data )
+		{
+			GL.GetCompressedTexImage ( TextureTarget.Texture2D, level, data );
+		}
+
 		// copy data from screen
 		public void Copy ( int xoffset, int yoffset,
 			int x, int y,
@@ -474,13 +496,8 @@ namespace CrowEngine
 
 		public void GenerateMipmap ( HintMode hint )
 		{
-			GL.Hint ( HintTarget.GenerateMipmapHint, hint );
+			//GL.Hint ( HintTarget.GenerateMipmapHint, hint );
 			GL.GenerateMipmap ( GenerateMipmapTarget.Texture2D );
-		}
-
-		public void SetDataBuffer ( SizedInternalFormat internalformat, GLBuffer buffer )
-		{
-			GL.TexBuffer ( TextureBufferTarget.TextureBuffer, internalformat, buffer.Handler );
 		}
 
 		//public void Invalidate ( int level )

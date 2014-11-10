@@ -76,7 +76,11 @@
 			this.glView.Size = new System.Drawing.Size(680, 455);
 			this.glView.TabIndex = 1;
 			this.glView.VSync = false;
-			this.glView.Paint += new System.Windows.Forms.PaintEventHandler(this.glView_Paint);
+			this.glView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.glView_KeyDown);
+			this.glView.KeyUp += new System.Windows.Forms.KeyEventHandler(this.glView_KeyUp);
+			this.glView.MouseDown += new System.Windows.Forms.MouseEventHandler(this.glView_MouseDown);
+			this.glView.MouseMove += new System.Windows.Forms.MouseEventHandler(this.glView_MouseMove);
+			this.glView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.glView_MouseUp);
 			// 
 			// DockSceneView
 			// 

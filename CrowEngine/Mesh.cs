@@ -8,7 +8,7 @@ using SharpDX;
 
 namespace CrowEngine
 {
-	class Mesh
+	public class Mesh
 	{
 		public int m_Indices;
 		public IndicesBuffer m_Ibo;

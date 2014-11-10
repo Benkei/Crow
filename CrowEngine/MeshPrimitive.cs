@@ -8,7 +8,7 @@ using SharpDX;
 
 namespace CrowEngine
 {
-	class MeshPrimitive
+	public class MeshPrimitive
 	{
 		public struct Vertex
 		{
@@ -38,7 +38,7 @@ namespace CrowEngine
 			v[6] = new Vertex ( new Vector3 ( 0.8f, 0.8f, 0.8f ), new Vector2 ( 0, 1 ), new Color ( 1f, 0f, 0f ) );
 			v[7] = new Vertex ( new Vector3 ( -0.8f, 0.8f, 0.8f ), new Vector2 ( 1, 1 ), new Color ( 0f, 0f, 1f ) );
 
-			byte* i = stackalloc byte[36];
+			ushort* i = stackalloc ushort[36];
 			i[0] = 0;
 			i[1] = 7;
 			i[2] = 3;
@@ -79,9 +79,9 @@ namespace CrowEngine
 			var mesh = new Mesh ();
 
 			mesh.m_Indices = 36;
-			mesh.m_Ibo = new IndicesBuffer ( DrawElementsType.UnsignedByte );
+			mesh.m_Ibo = new IndicesBuffer ( DrawElementsType.UnsignedShort );
 			mesh.m_Ibo.Bind ();
-			mesh.m_Ibo.Setup ( 36 * sizeof ( byte ), (IntPtr)i, BufferUsageHint.StaticDraw );
+			mesh.m_Ibo.Setup ( 36 * sizeof ( ushort ), (IntPtr)i, BufferUsageHint.StaticDraw );
 
 			mesh.m_Vbo = new GLBuffer ( BufferTarget.ArrayBuffer );
 			mesh.m_Vbo.Bind ();
