@@ -1,0 +1,13 @@
+{
+  "Assets" :
+  {
+    "Assets/fs.glsl"							: { "Guid" : "66dbfe377437403697e7a5609a892a2f" },
+    "Assets/vs.glsl"							: { "Guid" : "5260f965448d4ee1bc8bccce9142c1b7" },
+    "Assets/Simple.glfx"						: { "Guid" : "b57a2a4d43874132853bc3e229b83913" },
+    "Assets/guid.jpg"							: { "Guid" : "2a94e50ed5fa4c66a7718bdd3da73a35" },
+    "Assets/that_girl.tif"						: { "Guid" : "683141149547480F8CBDAAA5EF09F865" },
+    "Assets/that_girl__by_sijumon-d51muhd.jpg"	: { "Guid" : "27355EAEF62346F38480D8CE29832453" },
+    "Assets/unicorn_by_luran_v-d7m4951.jpg"		: { "Guid" : "596A3F785B744CC5BE144D33C1170849" }
+  }
+
+}
