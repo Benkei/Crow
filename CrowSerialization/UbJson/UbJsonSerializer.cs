@@ -74,17 +74,17 @@ namespace CrowSerialization.UbJson
 		}
 	}
 
-	class UbJsonSerializer
+	public class UbJsonSerializer
 	{
 		public void Serialize ( object obj, Stream stream )
 		{
-			var writer = new UbJsonWriter ( stream, Encoding.UTF8, true );
+			var writer = new UbjsonWriter ( stream, Encoding.UTF8, true );
 			WriteValue ( obj, writer, 0 );
 		}
 
 		public object Deserialize ( Type instanceType, Stream stream )
 		{
-			var reader = new UbJsonReader ( stream, Encoding.UTF8, true );
+			var reader = new UbjsonReader ( stream, Encoding.UTF8, true );
 
 			reader.Read ();
 
@@ -92,7 +92,7 @@ namespace CrowSerialization.UbJson
 		}
 
 
-		private object ReadValue ( object obj, Type objType, UbJsonReader reader )
+		private object ReadValue ( object obj, Type objType, UbjsonReader reader )
 		{
 			object instance = null;
 			if ( reader.CurrentTokenType == TokenType.Value )
@@ -301,7 +301,7 @@ namespace CrowSerialization.UbJson
 		}
 
 
-		private void WriteValue ( object obj, UbJsonWriter writer, int depth )
+		private void WriteValue ( object obj, UbjsonWriter writer, int depth )
 		{
 			if ( depth > 100 )
 				throw new Exception ( string.Format ( "Max allowed object depth reached while trying to export from type {0}", obj.GetType () ) );
@@ -314,11 +314,7 @@ namespace CrowSerialization.UbJson
 			{
 				case TypeCode.Boolean: writer.WriteValue ( (bool)obj ); break;
 				case TypeCode.Byte: writer.WriteValue ( (byte)obj ); break;
-				case TypeCode.Char:
-					if ( (char)obj <= byte.MaxValue )
-						goto case TypeCode.Byte;
-					else
-						goto case TypeCode.Int16;
+				case TypeCode.Char: writer.WriteValue ( (ushort)obj ); break;
 				case TypeCode.DateTime: writer.WriteValue ( ((DateTime)obj).ToBinary () ); break;
 				case TypeCode.Decimal: writer.WriteValue ( (decimal)obj ); break;
 				case TypeCode.Double: writer.WriteValue ( (double)obj ); break;
@@ -328,6 +324,7 @@ namespace CrowSerialization.UbJson
 				case TypeCode.Int64: writer.WriteValue ( (long)obj ); break;
 
 				case TypeCode.Object:
+					#region Object ser
 					if ( objType.IsEnum )
 					{
 						object underlyingValue = Convert.ChangeType ( obj, Enum.GetUnderlyingType ( objType ) );
@@ -352,49 +349,52 @@ namespace CrowSerialization.UbJson
 						}
 						break;
 					}
-					if ( obj is IList )
+					if ( objType.IsGenericType )
 					{
-						if ( ((IList)obj).IsReadOnly )
+						var genericType = objType.GetGenericTypeDefinition ();
+						if ( genericType == typeof ( IList<> ) )
 						{
-							break;
-						}
-						if ( objType.IsGenericType && objType.GetGenericTypeDefinition () == typeof ( IList<> ) )
-						{
+							if ( ((IList)obj).IsReadOnly ) break;
+
 							Type itemType = objType.GetGenericArguments ()[0];
+
 							if ( WriteListPrimitiveType ( (IList)obj, itemType, writer ) )
 							{
 								// was a primitive list type
 								break;
 							}
-						}
-						// write a normal array
-						writer.WriteToken ( Token.ArrayBegin );
-						writer.WriteToken ( Token.Count );
-						var list = (IList)obj;
-						writer.WriteLength ( list.Count );
-						for ( int i = 0; i < list.Count; i++ )
-						{
-							WriteValue ( list[i], writer, depth + 1 );
-						}
-						break;
-					}
-					if ( obj is IDictionary )
-					{
-						if ( ((IDictionary)obj).IsReadOnly )
-						{
+
+							// write a normal array
+							writer.WriteToken ( Token.ArrayBegin );
+							writer.WriteToken ( Token.Count );
+							var list = (IList)obj;
+							writer.WriteLength ( list.Count );
+							for ( int i = 0; i < list.Count; i++ )
+							{
+								WriteValue ( list[i], writer, depth + 1 );
+							}
 							break;
 						}
-						// todo add optimization case
-						// http://ubjson.org/type-reference/container-types/#optimized-format-example-object
-
-						writer.WriteToken ( Token.ObjectBegin );
-						foreach ( IDictionaryEnumerator pair in (IDictionary)obj )
+						if ( genericType == typeof ( IDictionary<,> ) )
 						{
-							writer.WriteProperty ( (string)pair.Key );
-							WriteValue ( pair.Value, writer, depth + 1 );
+							if ( ((IDictionary)obj).IsReadOnly ) break;
+
+							Type[] argumentType = objType.GetGenericArguments ();
+
+							if ( argumentType[0] != typeof ( string ) ) break;
+
+							// todo add optimization case
+							// http://ubjson.org/type-reference/container-types/#optimized-format-example-object
+
+							writer.WriteToken ( Token.ObjectBegin );
+							foreach ( IDictionaryEnumerator pair in (IDictionary)obj )
+							{
+								writer.WriteProperty ( (string)pair.Key );
+								WriteValue ( pair.Value, writer, depth + 1 );
+							}
+							writer.WriteToken ( Token.ObjectEnd );
+							break;
 						}
-						writer.WriteToken ( Token.ObjectEnd );
-						break;
 					}
 
 					// write as object
@@ -409,6 +409,7 @@ namespace CrowSerialization.UbJson
 						WriteValue ( info.GetValue ( obj ), writer, depth + 1 );
 					}
 					writer.WriteToken ( Token.ObjectEnd );
+					#endregion
 					break;
 
 				case TypeCode.SByte: writer.WriteValue ( (sbyte)obj ); break;
@@ -421,7 +422,7 @@ namespace CrowSerialization.UbJson
 		}
 
 
-		private bool WriteArrayPrimitiveType ( Array obj, Type objType, UbJsonWriter writer )
+		private bool WriteArrayPrimitiveType ( Array obj, Type objType, UbjsonWriter writer )
 		{
 			int i;
 			var eType = objType.GetElementType ();
@@ -454,7 +455,19 @@ namespace CrowSerialization.UbJson
 					}
 					return true;
 				case TypeCode.Char:
-					goto case TypeCode.Int16;
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Int16 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (char[])obj;
+						writer.WriteLength ( b.Length );
+						for ( i = 0; i < b.Length; i++ )
+						{
+							writer.Writer.Write ( b[i] );
+						}
+					}
+					return true;
 				case TypeCode.DateTime:
 					writer.WriteToken ( Token.ArrayBegin );
 					writer.WriteToken ( Token.Type );
@@ -503,11 +516,11 @@ namespace CrowSerialization.UbJson
 					writer.WriteToken ( Token.Int16 );
 					writer.WriteToken ( Token.Count );
 					{
-						var b = (char[])obj;
+						var b = (short[])obj;
 						writer.WriteLength ( b.Length );
 						for ( i = 0; i < b.Length; i++ )
 						{
-							writer.Writer.Write ( (short)b[i] );
+							writer.Writer.Write ( b[i] );
 						}
 					}
 					return true;
@@ -629,9 +642,223 @@ namespace CrowSerialization.UbJson
 			}
 		}
 
-		private bool WriteListPrimitiveType ( IList obj, Type itemType, UbJsonWriter writer )
+		private bool WriteListPrimitiveType ( IList obj, Type itemType, UbjsonWriter writer )
 		{
-			//IList<int> muh = new List<int> ();
+			int i;
+			switch ( Type.GetTypeCode ( itemType ) )
+			{
+				case TypeCode.Boolean:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<bool>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.WriteToken ( b[i] ? Token.True : Token.False );
+						}
+					}
+					return true;
+				case TypeCode.Byte:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Int8 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<byte>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Writer.Write ( b[i] );
+						}
+					}
+					return true;
+				case TypeCode.Char:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Int16 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<char>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Writer.Write ( b[i] );
+						}
+					}
+					return true;
+				case TypeCode.DateTime:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Int64 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<DateTime>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Writer.Write ( ((DateTime)b[i]).ToBinary () );
+						}
+					}
+					return true;
+				case TypeCode.Decimal:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Float128 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<decimal>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Writer.Write ( b[i] );
+						}
+					}
+					return true;
+				case TypeCode.Double:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Float64 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<double>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Writer.Write ( b[i] );
+						}
+					}
+					return true;
+				case TypeCode.Int16:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Int16 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<short>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Writer.Write ( b[i] );
+						}
+					}
+					return true;
+				case TypeCode.Int32:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Int32 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<int>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Writer.Write ( b[i] );
+						}
+					}
+					return true;
+				case TypeCode.Int64:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Int64 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<long>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Writer.Write ( b[i] );
+						}
+					}
+					return true;
+				case TypeCode.SByte:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Int8 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<sbyte>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Writer.Write ( b[i] );
+						}
+					}
+					return true;
+				case TypeCode.Single:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Float32 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<float>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Writer.Write ( b[i] );
+						}
+					}
+					return true;
+				case TypeCode.String:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.String );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<string>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Write ( b[i] );
+						}
+					}
+					return true;
+				case TypeCode.UInt16:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Int16 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<ushort>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Writer.Write ( b[i] );
+						}
+					}
+					return true;
+				case TypeCode.UInt32:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Int32 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<uint>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Writer.Write ( b[i] );
+						}
+					}
+					return true;
+				case TypeCode.UInt64:
+					writer.WriteToken ( Token.ArrayBegin );
+					writer.WriteToken ( Token.Type );
+					writer.WriteToken ( Token.Int64 );
+					writer.WriteToken ( Token.Count );
+					{
+						var b = (IList<ulong>)obj;
+						writer.WriteLength ( b.Count );
+						for ( i = 0; i < b.Count; i++ )
+						{
+							writer.Writer.Write ( b[i] );
+						}
+					}
+					return true;
+
+				default:
+					return false;
+			}
 			return false;
 		}
 
@@ -658,345 +885,7 @@ namespace CrowSerialization.UbJson
 	}
 
 
-	class UbJsonWriter
-	{
-		private const int LargeByteBufferSize = 256;
-		private BinaryWriter m_Writer;
-		private Encoding m_encoding;
-		private Encoder m_encoder;
-		private byte[] m_largeByteBuffer;
-		private int m_maxChars;
-
-		public UbJsonWriter ( Stream output, Encoding encoding, bool leaveOpen )
-		{
-			m_Writer = new BinaryWriter ( output, encoding, leaveOpen );
-			m_encoding = encoding;
-			m_encoder = encoding.GetEncoder ();
-		}
-
-		public BinaryWriter Writer
-		{
-			get { return m_Writer; }
-		}
 
 
-		public virtual void WriteToken ( Token value )
-		{
-			m_Writer.Write ( (byte)value );
-		}
-
-		public virtual void WriteProperty ( string name )
-		{
-			Write ( name );
-		}
-
-		public virtual void WriteValue ( bool value )
-		{
-			m_Writer.Write ( (byte)(value ? Token.True : Token.False) );
-		}
-		public virtual void WriteValue ( byte value )
-		{
-			m_Writer.Write ( (byte)Token.Int8 );
-			m_Writer.Write ( value );
-		}
-		public virtual void WriteValue ( char ch )
-		{
-			m_Writer.Write ( (byte)Token.Int16 );
-			m_Writer.Write ( (short)ch );
-		}
-		public virtual void WriteValue ( decimal value )
-		{
-			m_Writer.Write ( (byte)Token.Float128 );
-			m_Writer.Write ( value );
-		}
-		public virtual void WriteValue ( double value )
-		{
-			m_Writer.Write ( (byte)Token.Float64 );
-			m_Writer.Write ( value );
-		}
-		public virtual void WriteValue ( float value )
-		{
-			m_Writer.Write ( (byte)Token.Float32 );
-			m_Writer.Write ( value );
-		}
-		public virtual void WriteValue ( int value )
-		{
-			m_Writer.Write ( (byte)Token.Int32 );
-			m_Writer.Write ( value );
-		}
-		public virtual void WriteValue ( long value )
-		{
-			m_Writer.Write ( (byte)Token.Int64 );
-			m_Writer.Write ( value );
-		}
-		public virtual void WriteValue ( sbyte value )
-		{
-			m_Writer.Write ( (byte)Token.Int8 );
-			m_Writer.Write ( value );
-		}
-		public virtual void WriteValue ( short value )
-		{
-			m_Writer.Write ( (byte)Token.Int16 );
-			m_Writer.Write ( value );
-		}
-		public virtual void WriteValue ( string value )
-		{
-			if ( value == null )
-				throw new ArgumentNullException ( "value" );
-
-			m_Writer.Write ( (byte)Token.String );
-
-			Write ( value );
-		}
-		public virtual void WriteValue ( uint value )
-		{
-			m_Writer.Write ( (byte)Token.Int32 );
-			m_Writer.Write ( (int)value );
-		}
-		public virtual void WriteValue ( ulong value )
-		{
-			m_Writer.Write ( (byte)Token.Int64 );
-			m_Writer.Write ( (long)value );
-		}
-		public virtual void WriteValue ( ushort value )
-		{
-			m_Writer.Write ( (byte)Token.Int16 );
-			m_Writer.Write ( (short)value );
-		}
-
-		// writes: length token + string bytes
-		public unsafe virtual void Write ( string value )
-		{
-			if ( value == null )
-				throw new ArgumentNullException ( "value" );
-
-			int byteCount = m_encoding.GetByteCount ( value );
-			WriteLength ( byteCount );
-			if ( m_largeByteBuffer == null )
-			{
-				m_largeByteBuffer = new byte[LargeByteBufferSize];
-				m_maxChars = LargeByteBufferSize / m_encoding.GetMaxByteCount ( 1 );
-			}
-			if ( byteCount <= LargeByteBufferSize )
-			{
-				m_encoding.GetBytes ( value, 0, value.Length, m_largeByteBuffer, 0 );
-				m_Writer.Write ( m_largeByteBuffer, 0, byteCount );
-				return;
-			}
-
-			fixed ( char* ptr = value )
-			fixed ( byte* largeByteBuffer = m_largeByteBuffer )
-			{
-				int num = 0;
-				int num2;
-				for ( int i = value.Length; i > 0; i -= num2 )
-				{
-					num2 = (i > m_maxChars) ? m_maxChars : i;
-					int bytes;
-					bytes = m_encoder.GetBytes ( ptr + num, num2, largeByteBuffer, LargeByteBufferSize, num2 == i );
-					m_Writer.Write ( m_largeByteBuffer, 0, bytes );
-					num += num2;
-				}
-			}
-		}
-
-		// writes token (uint8, int16 or int32) based on the length value
-		public void WriteLength ( int length )
-		{
-			if ( length <= byte.MaxValue )
-			{
-				m_Writer.Write ( (byte)Token.Int8 );
-				m_Writer.Write ( (byte)length );
-			}
-			else if ( length <= short.MaxValue )
-			{
-				m_Writer.Write ( (byte)Token.Int16 );
-				m_Writer.Write ( (short)length );
-			}
-			else if ( length <= int.MaxValue )
-			{
-				m_Writer.Write ( (byte)Token.Int32 );
-				m_Writer.Write ( (int)length );
-			}
-		}
-	}
-
-
-	class UbJsonReader
-	{
-		private const int MaxCharBytesSize = 128;
-		private Decoder m_decoder;
-		private int m_maxCharsSize;
-		private byte[] m_charBytes;
-		private char[] m_charBuffer;
-		private StringBuilder stringBuilder;
-		private BinaryReader m_Reader;
-
-		public UbJsonReader ( Stream input, Encoding encoding, bool leaveOpen )
-		{
-			m_Reader = new BinaryReader ( input, encoding, leaveOpen );
-			m_decoder = encoding.GetDecoder ();
-			m_maxCharsSize = encoding.GetMaxCharCount ( 128 );
-		}
-
-
-		public TokenType CurrentTokenType
-		{
-			get;
-			private set;
-		}
-
-		public Token CurrentToken
-		{
-			get;
-			private set;
-		}
-
-
-		public bool Read ()
-		{
-			var token = (Token)m_Reader.ReadByte ();
-
-			switch ( token )
-			{
-				case Token.ArrayBegin:
-					CurrentTokenType = TokenType.ArrayBegin;
-					break;
-				case Token.ArrayEnd:
-					CurrentTokenType = TokenType.ArrayEnd;
-					break;
-				case Token.ObjectBegin:
-					CurrentTokenType = TokenType.ObjectBegin;
-					break;
-				case Token.ObjectEnd:
-					CurrentTokenType = TokenType.ObjectEnd;
-					break;
-
-				case Token.Type:
-					CurrentTokenType = TokenType.OptionType;
-					break;
-				case Token.Count:
-					CurrentTokenType = TokenType.OptionCount;
-					break;
-
-				default:
-					// is value
-					if ( CurrentTokenType == TokenType.OptionType || CurrentTokenType == TokenType.OptionCount )
-					{
-						CurrentTokenType = TokenType.OptionValue;
-					}
-					else if ( CurrentTokenType >= TokenType.ObjectBegin )
-					{
-						CurrentTokenType = TokenType.Property;
-					}
-					else if ( CurrentTokenType == TokenType.Property )
-					{
-						CurrentTokenType = TokenType.Value;
-					}
-					else
-					{
-						CurrentTokenType = TokenType.Property;
-					}
-					break;
-			}
-
-			CurrentToken = token;
-
-			return true;
-		}
-
-
-		public object ReadValue ()
-		{
-			return ReadValueByToken ( CurrentToken );
-		}
-
-		public object ReadValueByToken ( Token token )
-		{
-			switch ( token )
-			{
-				case Token.Null: return null;
-				case Token.NoOp: return null;
-				case Token.True: return true;
-				case Token.False: return false;
-				case Token.Int8: return m_Reader.ReadSByte ();
-				case Token.Int16: return m_Reader.ReadInt16 ();
-				case Token.Int32: return m_Reader.ReadInt32 ();
-				case Token.Int64: return m_Reader.ReadInt64 ();
-				case Token.Float32: return m_Reader.ReadSingle ();
-				case Token.Float64: return m_Reader.ReadDouble ();
-
-				case Token.String: return ReadString ();
-
-				case Token.ArrayBegin:
-				case Token.ArrayEnd:
-				case Token.ObjectBegin:
-				case Token.ObjectEnd:
-				case Token.Type:
-				case Token.Count:
-					throw new InvalidOperationException ();
-
-				case Token.Float128: return m_Reader.ReadDecimal ();
-			}
-			throw new NotImplementedException ();
-		}
-
-
-		public int ReadLength ()
-		{
-			Token type = (Token)m_Reader.ReadByte ();
-			switch ( type )
-			{
-				case Token.Int8: return m_Reader.ReadByte ();
-				case Token.Int16: return m_Reader.ReadInt16 ();
-				case Token.Int32: return m_Reader.ReadInt32 ();
-
-				default: throw new InvalidDataException ();
-			}
-		}
-
-		public string ReadString ()
-		{
-			int length = ReadLength ();
-			if ( length < 0 )
-				throw new IOException ();
-			if ( length == 0 )
-				return string.Empty;
-			if ( m_charBytes == null )
-				m_charBytes = new byte[MaxCharBytesSize];
-			if ( m_charBuffer == null )
-				m_charBuffer = new char[m_maxCharsSize];
-			if ( stringBuilder != null )
-			{
-				stringBuilder.Length = 0;
-				stringBuilder.EnsureCapacity ( length );
-			}
-			int offset = 0;
-			while ( true )
-			{
-				int count = (length - offset > MaxCharBytesSize) ? MaxCharBytesSize : (length - offset);
-				int readed = m_Reader.Read ( m_charBytes, 0, count );
-				if ( readed == 0 )
-					throw new EndOfStreamException ();
-				int chars = m_decoder.GetChars ( m_charBytes, 0, readed, m_charBuffer, 0 );
-				if ( offset == 0 && readed == length )
-				{
-					return new string ( m_charBuffer, 0, chars );
-				}
-				if ( stringBuilder == null )
-					stringBuilder = new StringBuilder ( length );
-				stringBuilder.Append ( m_charBuffer, 0, chars );
-				offset += readed;
-				if ( offset >= length )
-				{
-					var str = stringBuilder.ToString ();
-					stringBuilder.Length = 0;
-					return str;
-				}
-			}
-		}
-
-
-	}
 
 }

@@ -55,8 +55,13 @@
   <ItemGroup>
     <Compile Include="SquishTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SerializationTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CrowSerialization\CrowSerialization.csproj">
+      <Project>{321f8d46-d0b6-4b4c-970f-efe588805c75}</Project>
+      <Name>CrowSerialization</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CrowSquish\CrowSquish.csproj">
       <Project>{378be53f-2d9d-4c86-b15c-6c7b617ff7c3}</Project>
       <Name>CrowSquish</Name>

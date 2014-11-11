@@ -1,0 +1,3 @@
+[submodule "OpenTK"]
+	path = OpenTK
+	url = https://github.com/opentk/opentk.git
