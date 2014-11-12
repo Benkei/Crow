@@ -17,6 +17,7 @@ namespace CrowSerialization.UbJson
 		private StringBuilder stringBuilder;
 		private BinaryReader m_Reader;
 
+
 		public UbjsonReader ( Stream input, Encoding encoding, bool leaveOpen )
 		{
 			m_Reader = new BinaryReader ( input, encoding, leaveOpen );
@@ -25,12 +26,6 @@ namespace CrowSerialization.UbJson
 		}
 
 
-		public TokenType CurrentTokenType
-		{
-			get;
-			private set;
-		}
-
 		public Token CurrentToken
 		{
 			get;
@@ -38,56 +33,26 @@ namespace CrowSerialization.UbJson
 		}
 
 
-		public bool Read ()
+		public void Seek ( int offset )
 		{
-			var token = (Token)m_Reader.ReadByte ();
+			if ( offset != 0 )
+				m_Reader.BaseStream.Position += offset;
+		}
 
-			switch ( token )
-			{
-				case Token.ArrayBegin:
-					CurrentTokenType = TokenType.ArrayBegin;
-					break;
-				case Token.ArrayEnd:
-					CurrentTokenType = TokenType.ArrayEnd;
-					break;
-				case Token.ObjectBegin:
-					CurrentTokenType = TokenType.ObjectBegin;
-					break;
-				case Token.ObjectEnd:
-					CurrentTokenType = TokenType.ObjectEnd;
-					break;
+		public Token ReadToken ()
+		{
+			return CurrentToken = (Token)m_Reader.ReadByte ();
+		}
 
-				case Token.Type:
-					CurrentTokenType = TokenType.OptionType;
-					break;
-				case Token.Count:
-					CurrentTokenType = TokenType.OptionCount;
-					break;
+		public Token PeekToken ()
+		{
+			var value = m_Reader.PeekChar ();
+			return value < 0 ? Token.None : (Token)value;
+		}
 
-				default:
-					// is value
-					if ( CurrentTokenType == TokenType.OptionType || CurrentTokenType == TokenType.OptionCount )
-					{
-						CurrentTokenType = TokenType.OptionValue;
-					}
-					else if ( CurrentTokenType >= TokenType.ObjectBegin )
-					{
-						CurrentTokenType = TokenType.Property;
-					}
-					else if ( CurrentTokenType == TokenType.Property )
-					{
-						CurrentTokenType = TokenType.Value;
-					}
-					else
-					{
-						CurrentTokenType = TokenType.Property;
-					}
-					break;
-			}
+		public void Reset ()
+		{
 
-			CurrentToken = token;
-
-			return true;
 		}
 
 
@@ -101,7 +66,7 @@ namespace CrowSerialization.UbJson
 			switch ( token )
 			{
 				case Token.Null: return null;
-				case Token.NoOp: return null;
+				//case Token.NoOp: return null;
 				case Token.True: return true;
 				case Token.False: return false;
 				case Token.Int8: return m_Reader.ReadSByte ();
@@ -111,7 +76,9 @@ namespace CrowSerialization.UbJson
 				case Token.Float32: return m_Reader.ReadSingle ();
 				case Token.Float64: return m_Reader.ReadDouble ();
 
-				case Token.String: return ReadString ();
+				case Token.String:
+					ReadToken ();
+					return ReadString ();
 
 				case Token.ArrayBegin:
 				case Token.ArrayEnd:
@@ -129,14 +96,13 @@ namespace CrowSerialization.UbJson
 
 		public int ReadLength ()
 		{
-			Token type = (Token)m_Reader.ReadByte ();
-			switch ( type )
+			switch ( CurrentToken )
 			{
 				case Token.Int8: return m_Reader.ReadByte ();
 				case Token.Int16: return m_Reader.ReadInt16 ();
 				case Token.Int32: return m_Reader.ReadInt32 ();
 
-				default: throw new InvalidDataException ();
+				default: throw new InvalidOperationException ();
 			}
 		}
 
@@ -197,5 +163,6 @@ namespace CrowSerialization.UbJson
 			}
 			throw new FormatException ();
 		}
+
 	}
 }

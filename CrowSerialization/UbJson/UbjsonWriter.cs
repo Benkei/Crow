@@ -63,7 +63,7 @@ namespace CrowSerialization.UbJson
 			WriteToken ( Token.ArrayEnd );
 		}
 
-		public virtual void WriteProperty ( string name )
+		public virtual void WritePropertyName ( string name )
 		{
 			Write ( name );
 		}

@@ -19,7 +19,7 @@ namespace CrowSerialization.UbJson
 
 		// value token
 		Null = (byte)'Z', // 1 byte
-		NoOp = (byte)'N', // 1 byte
+		//NoOp = (byte)'N', // 1 byte
 
 		True = (byte)'T', // 1 byte
 		False = (byte)'F', // 1 byte
@@ -35,7 +35,7 @@ namespace CrowSerialization.UbJson
 
 		String = (byte)'S', // 1 byte + IntVL + string char
 
-		IntVL = (byte)'z', // int variable length; 2 - 10 bytes
+		//IntVL = (byte)'z', // int variable length; 2 - 10 bytes
 
 		// container token
 		ArrayBegin = (byte)'[', // 2+ bytes
@@ -52,29 +52,29 @@ namespace CrowSerialization.UbJson
 
 		// Custom --------------------------------------------------------
 		// value token type 
-		RefType = (byte)'!', // 1 byte + length token + string char; reflection type 
+		//RefType = (byte)'!', // 1 byte + length token + string char; reflection type 
 	}
 
-	static class UbJsonEx
-	{
-		public static void WriteToken ( this BinaryWriter writer, Token token )
-		{
-			writer.Write ( (byte)token );
-		}
+	//static class UbJsonEx
+	//{
+	//	public static void WriteToken ( this BinaryWriter writer, Token token )
+	//	{
+	//		writer.Write ( (byte)token );
+	//	}
 
-		public static void Write7BitEncodedInt ( this BinaryWriter writer, int value )
-		{
-			uint num = (uint)value;
-			while ( num >= 128u )
-			{
-				writer.Write ( (byte)(num | 128u) );
-				num >>= 7;
-			}
-			writer.Write ( (byte)num );
-		}
-	}
+	//	public static void Write7BitEncodedInt ( this BinaryWriter writer, int value )
+	//	{
+	//		uint num = (uint)value;
+	//		while ( num >= 128u )
+	//		{
+	//			writer.Write ( (byte)(num | 128u) );
+	//			num >>= 7;
+	//		}
+	//		writer.Write ( (byte)num );
+	//	}
+	//}
 
-	public class UbJsonSerializer
+	public class UbjsonSerializer
 	{
 		public void Serialize ( object obj, Stream stream )
 		{
@@ -85,121 +85,118 @@ namespace CrowSerialization.UbJson
 		public object Deserialize ( Type instanceType, Stream stream )
 		{
 			var reader = new UbjsonReader ( stream, Encoding.UTF8, true );
-
-			reader.Read ();
-
-			return ReadValue ( null, instanceType, reader );
+			return ReadValue ( instanceType, reader );
 		}
 
 
-		private object ReadValue ( object obj, Type objType, UbjsonReader reader )
+		private object ReadValue ( Type objType, UbjsonReader reader )
 		{
 			object instance = null;
-			if ( reader.CurrentTokenType == TokenType.Value )
+
+			reader.ReadToken ();
+
+			if ( reader.CurrentToken == Token.ObjectBegin || reader.CurrentToken == Token.ArrayBegin )
 			{
-				var value = reader.ReadValue ();
-				if ( objType.IsEnum )
-				{
-					value = Enum.ToObject ( objType, value );
-				}
-				return value;
-			}
-			if ( reader.CurrentTokenType == TokenType.Property )
-			{
-				return reader.ReadString ();
-			}
-			if ( reader.CurrentTokenType == TokenType.ObjectBegin || reader.CurrentTokenType == TokenType.ArrayBegin )
-			{
+				var bToken = reader.CurrentToken;
+
 				Token? valueType = null;
 				int? valueCount = null;
 
-				reader.Read ();
-				if ( reader.CurrentTokenType == TokenType.OptionType )
+				var t = reader.PeekToken ();
+				if ( t == Token.Type )
 				{
-					valueType = reader.CurrentToken;
-					// read next count
-					reader.Read ();
+					reader.Seek ( 1 );
+					valueType = reader.ReadToken ();
 				}
-				if ( reader.CurrentTokenType == TokenType.OptionCount )
+				t = reader.PeekToken ();
+				if ( t == Token.Count )
 				{
+					reader.Seek ( 1 );
+					reader.ReadToken ();
 					valueCount = reader.ReadLength ();
 				}
 
-				if ( reader.CurrentTokenType == TokenType.ObjectBegin )
+				if ( bToken == Token.ObjectBegin )
 				{
-					// todo add optimization case
+					// todo add optimization case for IDictionary<,>
 					// http://ubjson.org/type-reference/container-types/#optimized-format-example-object
 
-					#region Dict
-					if ( typeof ( IDictionary ).IsAssignableFrom ( objType ) )
+					#region target object is a IDictionary<,> (Key:Value pairs)
+					if ( objType.IsGenericType )
 					{
-						instance = obj != null ? obj : Activator.CreateInstance ( objType );
-						if ( ((IDictionary)instance).IsReadOnly )
+						var genericType = objType.GetGenericTypeDefinition ();
+						if ( genericType == typeof ( IDictionary<,> ) )
 						{
-							return null;
+							instance = Activator.CreateInstance ( objType );
+
+							if ( ((IDictionary)instance).IsReadOnly ) return null;
+
+							Type[] argumentType = objType.GetGenericArguments ();
+
+							if ( argumentType[0] != typeof ( string ) ) return null;
+
+							((IDictionary)instance).Clear ();
+
+							while ( true )
+							{
+								reader.ReadToken ();
+								var name = reader.ReadString ();
+
+								var value = ReadValue ( argumentType[1], reader );
+
+								value = Convert.ChangeType ( value, argumentType[1] );
+
+								((IDictionary)instance).Add ( name, value );
+
+								if ( reader.PeekToken () == Token.ObjectEnd )
+								{
+									reader.ReadToken ();
+									break;
+								}
+							}
+							return instance;
 						}
-
-						((IDictionary)instance).Clear ();
-
-						ObjectMetadata metadata;
-						ReflectionCache.GetObjectMetadata ( objType, out metadata );
-
-						while ( true )
-						{
-							var name = reader.ReadString ();
-
-							PropertyMetadata data;
-							if ( metadata.properties.TryGetValue ( name, out data ) )
-							{
-								var value = ReadValue ( data.GetValue ( instance ), data.Type, reader );
-								data.SetValue ( instance, value );
-							}
-							else
-							{
-								// todo add skip value
-							}
-
-							reader.Read ();
-							if ( reader.CurrentTokenType == TokenType.ObjectEnd )
-							{
-								break;
-							}
-						}
-
-						return instance;
 					}
 					#endregion
 
-					instance = obj != null ? obj : Activator.CreateInstance ( objType );
+
+					#region Handle Object
+					instance = Activator.CreateInstance ( objType );
+
+					ObjectMetadata metadata;
+					ReflectionCache.GetObjectMetadata ( objType, out metadata );
 
 					while ( true )
 					{
+						reader.ReadToken ();
 						var name = reader.ReadString ();
 
-						//PropertyMetadata data;
-						//if ( metadata.properties.TryGetValue ( name, out data ) )
-						//{
-						//	var value = ReadValue ( data.GetValue ( instance ), data.Type, reader );
-						//	data.SetValue ( instance, value );
-						//}
-						//else
-						//{
-						//	// todo add skip value
-						//}
-
-						reader.Read ();
-						if ( reader.CurrentTokenType == TokenType.ObjectEnd )
+						PropertyMetadata data;
+						if ( metadata.properties.TryGetValue ( name, out data ) )
 						{
+							var value = ReadValue ( data.Type, reader );
+							value = Convert.ChangeType ( value, data.Type );
+							data.SetValue ( instance, value );
+						}
+						else
+						{
+							// todo add skip value Read
+							ReadValue ( data.Type, reader );
+						}
+
+						if ( reader.PeekToken () == Token.ObjectEnd )
+						{
+							reader.ReadToken ();
 							break;
 						}
 					}
 
 					return instance;
+					#endregion
 				}
 				else
 				{
-					// array case
-
+					#region Handle Array
 					// Primitive case
 					if ( valueType.HasValue )
 					{
@@ -211,18 +208,17 @@ namespace CrowSerialization.UbJson
 						// fix size array
 						if ( objType.IsArray )
 						{
-							var element = objType.GetElementType ();
-							Array array = (Array)obj;
-							if ( array.Length != valueCount.Value )
-								array = Array.CreateInstance ( element, valueCount.Value );
+							var eleType = objType.GetElementType ();
+							Array array = Array.CreateInstance ( eleType, valueCount.Value );
 
-							if ( element.IsPrimitive )
+							var typeCode = Type.GetTypeCode ( eleType );
+							if ( typeCode != TypeCode.DBNull && typeCode == TypeCode.Object )
 							{
 								// todo fast generic
 								for ( int i = 0; i < array.Length; i++ )
 								{
 									var value = reader.ReadValueByToken ( valueType.Value );
-									value = Convert.ChangeType ( value, element );
+									value = Convert.ChangeType ( value, eleType );
 									array.SetValue ( value, i );
 								}
 							}
@@ -230,74 +226,75 @@ namespace CrowSerialization.UbJson
 							{
 								for ( int i = 0; i < array.Length; i++ )
 								{
-									var value = ReadValue ( array.GetValue ( i ), element, reader );
+									var value = ReadValue ( eleType, reader );
+									value = Convert.ChangeType ( value, eleType );
 									array.SetValue ( value, i );
 								}
 							}
 
 							return array;
 						}
-						// IList interface
-						if ( typeof ( IList ).IsAssignableFrom ( objType ) )
+						// IList<>
+						if ( objType.IsGenericType )
 						{
-							if ( ((IList)instance).IsReadOnly )
-							{
-								return null;
-							}
-							if ( objType.IsGenericType && objType.GetGenericTypeDefinition () == typeof ( IList<> ) )
-							{
-								// todo fast generic
-							}
-
-							if ( obj != null )
-							{
-								instance = obj;
-								((IList)instance).Clear ();
-							}
-							else
+							var genericType = objType.GetGenericTypeDefinition ();
+							if ( genericType == typeof ( IList<> ) )
 							{
 								instance = Activator.CreateInstance ( objType );
-							}
+								if ( ((IList)instance).IsReadOnly ) return null;
 
-							for ( int i = 0; i < valueCount.Value; i++ )
-							{
-								var value = ReadValue ( null, null, reader );
-								((IList)instance).Add ( value );
+								((IList)instance).Clear ();
+
+								Type itemType = objType.GetGenericArguments ()[0];
+
+								// todo fast generic
+								for ( int i = 0; i < valueCount.Value; i++ )
+								{
+									var value = reader.ReadValueByToken ( valueType.Value );
+									value = Convert.ChangeType ( value, itemType );
+									((IList)instance).Add ( value );
+								}
+								return instance;
 							}
 						}
 					}
+					#endregion
+				}
+
+				return null;
+			}
+
+			if ( reader.CurrentToken == Token.Type || reader.CurrentToken == Token.Count )
+			{
+				throw new InvalidDataException ();
+			}
 
 
+			instance = reader.ReadValue ();
+			if ( objType.IsEnum )
+			{
+				if ( reader.CurrentToken == Token.Int8 || reader.CurrentToken == Token.Int16
+					|| reader.CurrentToken == Token.Int32 || reader.CurrentToken == Token.Int64 )
+				{
+					instance = Enum.ToObject ( objType, instance );
+				}
+				else
+				{
+					return Enum.ToObject ( objType, 0 );
 				}
 			}
-
-
-			switch ( reader.CurrentTokenType )
+			else if ( objType == typeof ( DateTime ) )
 			{
-				case TokenType.Value: return reader.ReadValue ();
-				case TokenType.Property: return reader.ReadString ();
-
-				case TokenType.ObjectBegin:
-					break;
-				case TokenType.ObjectEnd:
-					break;
-
-				case TokenType.ArrayBegin:
-					break;
-				case TokenType.ArrayEnd:
-					break;
-
-				case TokenType.OptionType:
-					break;
-				case TokenType.OptionCount:
-					break;
-				case TokenType.OptionValue:
-					break;
-				default:
-					break;
+				if ( instance is long )
+				{
+					instance = DateTime.FromBinary ( (long)instance );
+				}
+				else
+				{
+					instance = default ( DateTime );
+				}
 			}
-
-			return null;
+			return instance;
 		}
 
 
@@ -305,6 +302,12 @@ namespace CrowSerialization.UbJson
 		{
 			if ( depth > 100 )
 				throw new Exception ( string.Format ( "Max allowed object depth reached while trying to export from type {0}", obj.GetType () ) );
+
+			if ( obj == null )
+			{
+				writer.WriteToken ( Token.Null );
+				return;
+			}
 
 			var objType = obj.GetType ();
 
@@ -314,7 +317,7 @@ namespace CrowSerialization.UbJson
 			{
 				case TypeCode.Boolean: writer.WriteValue ( (bool)obj ); break;
 				case TypeCode.Byte: writer.WriteValue ( (byte)obj ); break;
-				case TypeCode.Char: writer.WriteValue ( (ushort)obj ); break;
+				case TypeCode.Char: writer.WriteValue ( (char)obj ); break;
 				case TypeCode.DateTime: writer.WriteValue ( ((DateTime)obj).ToBinary () ); break;
 				case TypeCode.Decimal: writer.WriteValue ( (decimal)obj ); break;
 				case TypeCode.Double: writer.WriteValue ( (double)obj ); break;
@@ -389,7 +392,7 @@ namespace CrowSerialization.UbJson
 							writer.WriteToken ( Token.ObjectBegin );
 							foreach ( IDictionaryEnumerator pair in (IDictionary)obj )
 							{
-								writer.WriteProperty ( (string)pair.Key );
+								writer.WritePropertyName ( (string)pair.Key );
 								WriteValue ( pair.Value, writer, depth + 1 );
 							}
 							writer.WriteToken ( Token.ObjectEnd );
@@ -405,7 +408,7 @@ namespace CrowSerialization.UbJson
 					writer.WriteToken ( Token.ObjectBegin );
 					foreach ( var info in meta.Values )
 					{
-						writer.WriteProperty ( info.Info.Name );
+						writer.WritePropertyName ( info.Info.Name );
 						WriteValue ( info.GetValue ( obj ), writer, depth + 1 );
 					}
 					writer.WriteToken ( Token.ObjectEnd );
@@ -859,29 +862,8 @@ namespace CrowSerialization.UbJson
 				default:
 					return false;
 			}
-			return false;
 		}
 
-	}
-
-
-	enum TokenType : byte
-	{
-		None,
-
-		Value,
-
-		Property,
-
-		ObjectBegin,
-		ObjectEnd,
-
-		ArrayBegin,
-		ArrayEnd,
-
-		OptionType,
-		OptionCount,
-		OptionValue,
 	}
 
 

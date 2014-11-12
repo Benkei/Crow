@@ -14,7 +14,22 @@ namespace CrowTests
 			public string Muh = "Ich bins";
 			public int Alter = 23123;
 			public float Size = 234f;
+
+			public Subclass SubData = new Subclass ();
 		}
+
+		class Subclass
+		{
+			public Subclass Parent;
+			public decimal Values = 2341253240984982374;
+			public char Muh = 'X';
+			public DateTime Time = new DateTime ( 2000, 10, 22, 10, 30, 54 );
+			public List<string> Names = new List<string> () { "kutsi", "kevin", "gott", "jesus" };
+			public Dictionary<string, int> Prios = new Dictionary<string, int> () { { "Muh", 23 }, { "Nyan", 5845 } };
+		}
+
+
+
 
 		[TestMethod]
 		public void TestMethod1 ()
@@ -25,7 +40,7 @@ namespace CrowTests
 			//var genericType = objType.GetGenericTypeDefinition ();
 			//var itemTypes = objType.GetGenericArguments ();
 
-			var ser = new UbJsonSerializer ();
+			var ser = new UbjsonSerializer ();
 
 			var obj = new TestStruct ();
 
@@ -35,7 +50,11 @@ namespace CrowTests
 
 			mem.Position = 0;
 
-			var serObj = ser.Deserialize ( typeof ( TestStruct ), mem );
+			var serObj = (TestStruct)ser.Deserialize ( typeof ( TestStruct ), mem );
+
+			Assert.AreEqual ( obj.Alter, serObj.Alter );
+			Assert.AreEqual ( obj.Muh, serObj.Muh );
+			Assert.AreEqual ( obj.Size, serObj.Size );
 		}
 	}
 }
