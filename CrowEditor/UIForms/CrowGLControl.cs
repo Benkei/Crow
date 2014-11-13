@@ -27,11 +27,12 @@ namespace CrowEditor
 
 		public bool IsReady
 		{
-			get { return m_IsReady && !IsDisposed && m_Context != null && !m_Context.IsDisposed; }
+			get { return m_IsReady && !IsDisposed && m_Context != null && !m_Context.IsDisposed && IsHandleCreated; }
 		}
 
 		public void GLRepaint ()
 		{
+			System.Threading.Thread.MemoryBarrier ();
 			IsDirty = true;
 		}
 
@@ -46,6 +47,7 @@ namespace CrowEditor
 				m_Context = Context;
 				_WindowInfo = WindowInfo;
 				m_IsReady = true;
+				IsDirty = true;
 			}
 		}
 
@@ -56,6 +58,7 @@ namespace CrowEditor
 				m_IsReady = false;
 				m_Context = null;
 				_WindowInfo = null;
+				IsDirty = false;
 			}
 			base.OnHandleDestroyed ( e );
 		}
@@ -63,19 +66,19 @@ namespace CrowEditor
 		protected override void OnPaint ( System.Windows.Forms.PaintEventArgs e )
 		{
 			base.OnPaint ( e );
-			IsDirty = true;
+			GLRepaint ();
 		}
 
 		private void InitializeComponent ()
 		{
-			this.SuspendLayout();
+			this.SuspendLayout ();
 			// 
 			// CrowGLControl
 			// 
 			this.AllowDrop = true;
-			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+			this.AutoScaleDimensions = new System.Drawing.SizeF ( 6F, 13F );
 			this.Name = "CrowGLControl";
-			this.ResumeLayout(false);
+			this.ResumeLayout ( false );
 
 		}
 	}

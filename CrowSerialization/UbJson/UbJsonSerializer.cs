@@ -82,6 +82,10 @@ namespace CrowSerialization.UbJson
 			WriteValue ( obj, writer, 0 );
 		}
 
+		public T Deserialize<T> ( Stream stream )
+		{
+			return (T)Deserialize ( typeof ( T ), stream );
+		}
 		public object Deserialize ( Type instanceType, Stream stream )
 		{
 			var reader = new UbjsonReader ( stream, Encoding.UTF8, true );
@@ -124,8 +128,7 @@ namespace CrowSerialization.UbJson
 					#region target object is a IDictionary<,> (Key:Value pairs)
 					if ( objType.IsGenericType )
 					{
-						var genericType = objType.GetGenericTypeDefinition ();
-						if ( genericType == typeof ( IDictionary<,> ) )
+						if ( HasGenericInterface ( objType, typeof ( IDictionary<,> ) ) )
 						{
 							instance = Activator.CreateInstance ( objType );
 
@@ -134,8 +137,6 @@ namespace CrowSerialization.UbJson
 							Type[] argumentType = objType.GetGenericArguments ();
 
 							if ( argumentType[0] != typeof ( string ) ) return null;
-
-							((IDictionary)instance).Clear ();
 
 							while ( true )
 							{
@@ -180,8 +181,7 @@ namespace CrowSerialization.UbJson
 						}
 						else
 						{
-							// todo add skip value Read
-							ReadValue ( data.Type, reader );
+							SkipReadValue ( reader );
 						}
 
 						if ( reader.PeekToken () == Token.ObjectEnd )
@@ -198,66 +198,60 @@ namespace CrowSerialization.UbJson
 				{
 					#region Handle Array
 					// Primitive case
-					if ( valueType.HasValue )
+					//if ( valueType.HasValue )
+					//{
+					//	if ( !valueCount.HasValue )
+					//	{
+					//		throw new System.IO.InvalidDataException ();
+					//	}
+
+					// fix size array
+					if ( objType.IsArray )
 					{
-						if ( !valueCount.HasValue )
+						var itemType = objType.GetElementType ();
+						Array array = Array.CreateInstance ( itemType, valueCount.Value );
+
+						//var typeCode = Type.GetTypeCode ( eleType );
+						//if ( typeCode != TypeCode.DBNull && typeCode == TypeCode.Object )
+						//{
+						//	// todo fast generic
+						//	for ( int i = 0; i < array.Length; i++ )
+						//	{
+						//		var value = reader.ReadValueByToken ( valueType.Value );
+						//		value = Convert.ChangeType ( value, eleType );
+						//		array.SetValue ( value, i );
+						//	}
+						//}
+						//else
+						//{
+						for ( int i = 0; i < array.Length; i++ )
 						{
-							throw new System.IO.InvalidDataException ();
+							var value = ReadValue ( itemType, reader );
+							value = Convert.ChangeType ( value, itemType );
+							array.SetValue ( value, i );
 						}
+						//}
 
-						// fix size array
-						if ( objType.IsArray )
-						{
-							var eleType = objType.GetElementType ();
-							Array array = Array.CreateInstance ( eleType, valueCount.Value );
-
-							var typeCode = Type.GetTypeCode ( eleType );
-							if ( typeCode != TypeCode.DBNull && typeCode == TypeCode.Object )
-							{
-								// todo fast generic
-								for ( int i = 0; i < array.Length; i++ )
-								{
-									var value = reader.ReadValueByToken ( valueType.Value );
-									value = Convert.ChangeType ( value, eleType );
-									array.SetValue ( value, i );
-								}
-							}
-							else
-							{
-								for ( int i = 0; i < array.Length; i++ )
-								{
-									var value = ReadValue ( eleType, reader );
-									value = Convert.ChangeType ( value, eleType );
-									array.SetValue ( value, i );
-								}
-							}
-
-							return array;
-						}
-						// IList<>
-						if ( objType.IsGenericType )
-						{
-							var genericType = objType.GetGenericTypeDefinition ();
-							if ( genericType == typeof ( IList<> ) )
-							{
-								instance = Activator.CreateInstance ( objType );
-								if ( ((IList)instance).IsReadOnly ) return null;
-
-								((IList)instance).Clear ();
-
-								Type itemType = objType.GetGenericArguments ()[0];
-
-								// todo fast generic
-								for ( int i = 0; i < valueCount.Value; i++ )
-								{
-									var value = reader.ReadValueByToken ( valueType.Value );
-									value = Convert.ChangeType ( value, itemType );
-									((IList)instance).Add ( value );
-								}
-								return instance;
-							}
-						}
+						return array;
 					}
+					// IList<>
+					if ( objType.IsGenericType && HasGenericInterface ( objType, typeof ( IList<> ) ) )
+					{
+						instance = Activator.CreateInstance ( objType );
+						if ( ((IList)instance).IsReadOnly ) return null;
+
+						Type itemType = objType.GetGenericArguments ()[0];
+
+						// todo fast generic
+						for ( int i = 0; i < valueCount.Value; i++ )
+						{
+							var value = ReadValue ( itemType, reader ); ;
+							value = Convert.ChangeType ( value, itemType );
+							((IList)instance).Add ( value );
+						}
+						return instance;
+					}
+					//}
 					#endregion
 				}
 
@@ -297,7 +291,6 @@ namespace CrowSerialization.UbJson
 			return instance;
 		}
 
-
 		private void WriteValue ( object obj, UbjsonWriter writer, int depth )
 		{
 			if ( depth > 100 )
@@ -336,11 +329,13 @@ namespace CrowSerialization.UbJson
 					}
 					if ( objType.IsArray )
 					{
+						/*
 						if ( WriteArrayPrimitiveType ( (Array)obj, objType, writer ) )
 						{
 							// was a primitive array type
 							break;
 						}
+						*/
 						// write a normal object array
 						writer.WriteToken ( Token.ArrayBegin );
 						writer.WriteToken ( Token.Count );
@@ -354,18 +349,18 @@ namespace CrowSerialization.UbJson
 					}
 					if ( objType.IsGenericType )
 					{
-						var genericType = objType.GetGenericTypeDefinition ();
-						if ( genericType == typeof ( IList<> ) )
+						if ( HasGenericInterface ( objType, typeof ( IList<> ) ) )
 						{
 							if ( ((IList)obj).IsReadOnly ) break;
 
 							Type itemType = objType.GetGenericArguments ()[0];
-
+							/*
 							if ( WriteListPrimitiveType ( (IList)obj, itemType, writer ) )
 							{
 								// was a primitive list type
 								break;
 							}
+							*/
 
 							// write a normal array
 							writer.WriteToken ( Token.ArrayBegin );
@@ -378,7 +373,7 @@ namespace CrowSerialization.UbJson
 							}
 							break;
 						}
-						if ( genericType == typeof ( IDictionary<,> ) )
+						if ( HasGenericInterface ( objType, typeof ( IDictionary<,> ) ) )
 						{
 							if ( ((IDictionary)obj).IsReadOnly ) break;
 
@@ -390,7 +385,7 @@ namespace CrowSerialization.UbJson
 							// http://ubjson.org/type-reference/container-types/#optimized-format-example-object
 
 							writer.WriteToken ( Token.ObjectBegin );
-							foreach ( IDictionaryEnumerator pair in (IDictionary)obj )
+							foreach ( DictionaryEntry pair in (IDictionary)obj )
 							{
 								writer.WritePropertyName ( (string)pair.Key );
 								WriteValue ( pair.Value, writer, depth + 1 );
@@ -421,6 +416,65 @@ namespace CrowSerialization.UbJson
 				case TypeCode.UInt16: writer.WriteValue ( (ushort)obj ); break;
 				case TypeCode.UInt32: writer.WriteValue ( (uint)obj ); break;
 				case TypeCode.UInt64: writer.WriteValue ( (ulong)obj ); break;
+			}
+		}
+
+
+		private void SkipReadValue ( UbjsonReader reader )
+		{
+			reader.ReadToken ();
+
+			if ( reader.CurrentToken == Token.ObjectBegin || reader.CurrentToken == Token.ArrayBegin )
+			{
+				var bToken = reader.CurrentToken;
+
+				Token? valueType = null;
+				int? valueCount = null;
+
+				var t = reader.PeekToken ();
+				if ( t == Token.Type )
+				{
+					reader.Seek ( 1 );
+					valueType = reader.ReadToken ();
+				}
+				t = reader.PeekToken ();
+				if ( t == Token.Count )
+				{
+					reader.Seek ( 1 );
+					reader.ReadToken ();
+					valueCount = reader.ReadLength ();
+				}
+
+				if ( bToken == Token.ObjectBegin )
+				{
+					// todo add optimization case for IDictionary<,>
+					// http://ubjson.org/type-reference/container-types/#optimized-format-example-object
+
+					while ( true )
+					{
+						reader.ReadToken ();
+						reader.SkipPropertyName ();
+
+						SkipReadValue ( reader );
+
+						if ( reader.PeekToken () == Token.ObjectEnd )
+						{
+							reader.ReadToken ();
+							break;
+						}
+					}
+				}
+				else
+				{
+					for ( int i = valueCount.Value - 1; i >= 0; i-- )
+					{
+						SkipReadValue ( reader );
+					}
+				}
+			}
+			else
+			{
+				reader.SkipRead ();
 			}
 		}
 
@@ -864,6 +918,18 @@ namespace CrowSerialization.UbJson
 			}
 		}
 
+
+		private static bool HasGenericInterface ( Type type, Type genericInterfaceType )
+		{
+			foreach ( Type item in type.GetInterfaces () )
+			{
+				if ( item.IsGenericType && item.GetGenericTypeDefinition () == genericInterfaceType )
+				{
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 
 

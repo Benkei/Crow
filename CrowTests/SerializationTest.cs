@@ -9,7 +9,7 @@ namespace CrowTests
 	[TestClass]
 	public class SerializationTest
 	{
-		class TestStruct
+		class MainClass
 		{
 			public string Muh = "Ich bins";
 			public int Alter = 23123;
@@ -28,11 +28,8 @@ namespace CrowTests
 			public Dictionary<string, int> Prios = new Dictionary<string, int> () { { "Muh", 23 }, { "Nyan", 5845 } };
 		}
 
-
-
-
 		[TestMethod]
-		public void TestMethod1 ()
+		public void TestReadWrite ()
 		{
 			//var dict = new Dictionary<string, int> ();
 			//Type objType = dict.GetType ();
@@ -42,7 +39,7 @@ namespace CrowTests
 
 			var ser = new UbjsonSerializer ();
 
-			var obj = new TestStruct ();
+			var obj = new MainClass ();
 
 			var mem = new MemoryStream ();
 
@@ -50,11 +47,50 @@ namespace CrowTests
 
 			mem.Position = 0;
 
-			var serObj = (TestStruct)ser.Deserialize ( typeof ( TestStruct ), mem );
+			var serObj = (MainClass)ser.Deserialize ( typeof ( MainClass ), mem );
 
 			Assert.AreEqual ( obj.Alter, serObj.Alter );
 			Assert.AreEqual ( obj.Muh, serObj.Muh );
 			Assert.AreEqual ( obj.Size, serObj.Size );
 		}
+
+
+		class Verion0
+		{
+			public string HeyDuDa = ";sdasdagsv";
+			public int Sasd = 34;
+			public Subclass Muh = new Subclass ();
+			public double MOffu = 45345;
+			public string DiePost = "sdkjlfnvkdjn";
+		}
+		class Verion1
+		{
+			public string HeyDuDa;
+			public int Sasd;
+			public double MOffu;
+			public string DiePost;
+		}
+
+
+		[TestMethod]
+		public void TestSkip ()
+		{
+			var mem = new MemoryStream ();
+			var ser = new UbjsonSerializer ();
+
+			var ver0 = new Verion0 ();
+
+			ser.Serialize ( ver0, mem );
+
+			mem.Position = 0;
+
+			var ver1 = ser.Deserialize<Verion1> ( mem );
+
+			Assert.AreEqual ( ver0.HeyDuDa, ver1.HeyDuDa );
+			Assert.AreEqual ( ver0.Sasd, ver1.Sasd );
+			Assert.AreEqual ( ver0.MOffu, ver1.MOffu );
+			Assert.AreEqual ( ver0.DiePost, ver1.DiePost );
+		}
+
 	}
 }

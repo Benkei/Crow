@@ -56,6 +56,47 @@ namespace CrowSerialization.UbJson
 		}
 
 
+		public string ReadString ()
+		{
+			int length = ReadLength ();
+			if ( length < 0 )
+				throw new IOException ();
+			if ( length == 0 )
+				return string.Empty;
+			if ( m_charBytes == null )
+				m_charBytes = new byte[MaxCharBytesSize];
+			if ( m_charBuffer == null )
+				m_charBuffer = new char[m_maxCharsSize];
+			if ( stringBuilder != null )
+			{
+				stringBuilder.Length = 0;
+				stringBuilder.EnsureCapacity ( length );
+			}
+			int offset = 0;
+			while ( true )
+			{
+				int count = (length - offset > MaxCharBytesSize) ? MaxCharBytesSize : (length - offset);
+				int readed = m_Reader.Read ( m_charBytes, 0, count );
+				if ( readed == 0 )
+					throw new EndOfStreamException ();
+				int chars = m_decoder.GetChars ( m_charBytes, 0, readed, m_charBuffer, 0 );
+				if ( offset == 0 && readed == length )
+				{
+					return new string ( m_charBuffer, 0, chars );
+				}
+				if ( stringBuilder == null )
+					stringBuilder = new StringBuilder ( length );
+				stringBuilder.Append ( m_charBuffer, 0, chars );
+				offset += readed;
+				if ( offset >= length )
+				{
+					var str = stringBuilder.ToString ();
+					stringBuilder.Length = 0;
+					return str;
+				}
+			}
+		}
+
 		public object ReadValue ()
 		{
 			return ReadValueByToken ( CurrentToken );
@@ -106,47 +147,6 @@ namespace CrowSerialization.UbJson
 			}
 		}
 
-		public string ReadString ()
-		{
-			int length = ReadLength ();
-			if ( length < 0 )
-				throw new IOException ();
-			if ( length == 0 )
-				return string.Empty;
-			if ( m_charBytes == null )
-				m_charBytes = new byte[MaxCharBytesSize];
-			if ( m_charBuffer == null )
-				m_charBuffer = new char[m_maxCharsSize];
-			if ( stringBuilder != null )
-			{
-				stringBuilder.Length = 0;
-				stringBuilder.EnsureCapacity ( length );
-			}
-			int offset = 0;
-			while ( true )
-			{
-				int count = (length - offset > MaxCharBytesSize) ? MaxCharBytesSize : (length - offset);
-				int readed = m_Reader.Read ( m_charBytes, 0, count );
-				if ( readed == 0 )
-					throw new EndOfStreamException ();
-				int chars = m_decoder.GetChars ( m_charBytes, 0, readed, m_charBuffer, 0 );
-				if ( offset == 0 && readed == length )
-				{
-					return new string ( m_charBuffer, 0, chars );
-				}
-				if ( stringBuilder == null )
-					stringBuilder = new StringBuilder ( length );
-				stringBuilder.Append ( m_charBuffer, 0, chars );
-				offset += readed;
-				if ( offset >= length )
-				{
-					var str = stringBuilder.ToString ();
-					stringBuilder.Length = 0;
-					return str;
-				}
-			}
-		}
-
 		public long ReadIntEncoded ()
 		{
 			long value = 0;
@@ -164,5 +164,47 @@ namespace CrowSerialization.UbJson
 			throw new FormatException ();
 		}
 
+
+		public void SkipPropertyName ()
+		{
+			Seek ( ReadLength () );
+		}
+
+		public void SkipRead ()
+		{
+			SkipReadByToken ( CurrentToken );
+		}
+
+		public void SkipReadByToken ( Token token )
+		{
+			switch ( token )
+			{
+				case Token.Null: return;
+				//case Token.NoOp: return null;
+				case Token.True: return;
+				case Token.False: return;
+				case Token.Int8: Seek ( 1 ); return;
+				case Token.Int16: Seek ( 2 ); return;
+				case Token.Int32: Seek ( 4 ); return;
+				case Token.Int64: Seek ( 8 ); return;
+				case Token.Float32: Seek ( 4 ); return;
+				case Token.Float64: Seek ( 8 ); return;
+				case Token.Float128: Seek ( 16 ); return;
+
+				case Token.String:
+					ReadToken ();
+					SkipPropertyName ();
+					return;
+
+				case Token.ArrayBegin:
+				case Token.ArrayEnd:
+				case Token.ObjectBegin:
+				case Token.ObjectEnd:
+				case Token.Type:
+				case Token.Count:
+					throw new InvalidOperationException ();
+			}
+			throw new NotImplementedException ();
+		}
 	}
 }
