@@ -37,7 +37,7 @@ namespace CrowSerialization.UbJson
 		// used for key : value pair objects
 		public virtual void WriteObjectBegin ( Token type, int count )
 		{
-			WriteToken ( Token.ObjectBegin );
+			WriteToken ( Token.Object );
 			WriteToken ( Token.Type );
 			WriteToken ( type ); // todo: need type validation
 			WriteToken ( Token.Count );
@@ -46,12 +46,12 @@ namespace CrowSerialization.UbJson
 
 		public virtual void WriteObjectEnd ()
 		{
-			WriteToken ( Token.ObjectEnd );
+			WriteToken ( Token.End );
 		}
 
 		public virtual void WriteArrayBegin ( Token type, int count )
 		{
-			WriteToken ( Token.ArrayBegin );
+			WriteToken ( Token.Array );
 			WriteToken ( Token.Type );
 			WriteToken ( type ); // todo: need type validation
 			WriteToken ( Token.Count );
@@ -60,7 +60,7 @@ namespace CrowSerialization.UbJson
 
 		public virtual void WriteArrayEnd ()
 		{
-			WriteToken ( Token.ArrayEnd );
+			WriteToken ( Token.End );
 		}
 
 		public virtual void WritePropertyName ( string name )

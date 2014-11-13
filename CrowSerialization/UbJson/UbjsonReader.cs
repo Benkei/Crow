@@ -121,10 +121,9 @@ namespace CrowSerialization.UbJson
 					ReadToken ();
 					return ReadString ();
 
-				case Token.ArrayBegin:
-				case Token.ArrayEnd:
-				case Token.ObjectBegin:
-				case Token.ObjectEnd:
+				case Token.Array:
+				case Token.Object:
+				case Token.End:
 				case Token.Type:
 				case Token.Count:
 					throw new InvalidOperationException ();
@@ -196,10 +195,9 @@ namespace CrowSerialization.UbJson
 					SkipPropertyName ();
 					return;
 
-				case Token.ArrayBegin:
-				case Token.ArrayEnd:
-				case Token.ObjectBegin:
-				case Token.ObjectEnd:
+				case Token.Array:
+				case Token.Object:
+				case Token.End:
 				case Token.Type:
 				case Token.Count:
 					throw new InvalidOperationException ();

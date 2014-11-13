@@ -10,11 +10,12 @@ namespace CrowSerialization
 {
 	internal struct ObjectMetadata
 	{
-		public Type element_type;
-		public bool is_dictionary;
+		public Type KeyType;
+		public Type ValueType; // IList and IDict.
+		public bool IsDictionary;
+		public bool IsList;
 
-		public Dictionary<string, PropertyMetadata> properties;
-
+		public Dictionary<string, PropertyMetadata> Properties;
 	}
 
 	internal struct PropertyMetadata
@@ -51,14 +52,8 @@ namespace CrowSerialization
 	{
 		const BindingFlags Bindings = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
 
-		private static Dictionary<Type, ObjectMetadata> m_ObjectMetadata = new Dictionary<Type, ObjectMetadata> ();
+		private static readonly Dictionary<Type, ObjectMetadata> m_ObjectMetadata = new Dictionary<Type, ObjectMetadata> ();
 
-		public static void GetTypeProperties ( Type type, out Dictionary<string, PropertyMetadata> propList )
-		{
-			ObjectMetadata metadata;
-			GetObjectMetadata ( type, out metadata );
-			propList = metadata.properties;
-		}
 
 		public static void GetObjectMetadata ( Type type, out ObjectMetadata metadata )
 		{
@@ -67,15 +62,47 @@ namespace CrowSerialization
 				if ( m_ObjectMetadata.TryGetValue ( type, out metadata ) )
 					return;
 
+				metadata = new ObjectMetadata ();
+
+				if ( type.IsGenericType )
+				{
+					foreach ( Type item in type.GetInterfaces () )
+					{
+						if ( item.IsGenericType )
+						{
+							var gType = item.GetGenericTypeDefinition ();
+							var aType = item.GetGenericArguments ();
+							if ( gType == typeof ( IDictionary<,> ) )
+							{
+								metadata.IsDictionary = true;
+								metadata.KeyType = aType[0];
+								metadata.ValueType = aType[1];
+							}
+							if ( gType == typeof ( IList<> ) )
+							{
+								metadata.IsList = true;
+								metadata.ValueType = aType[0];
+							}
+						}
+					}
+					if ( metadata.IsDictionary && metadata.IsList )
+					{
+						metadata.IsDictionary = false;
+						metadata.IsList = false;
+						metadata.KeyType = null;
+						metadata.ValueType = null;
+					}
+					else
+					{
+						m_ObjectMetadata.Add ( type, metadata );
+						return;
+					}
+				}
+
 				var fields = type.GetFields ( Bindings );
 				var props = type.GetProperties ( Bindings );
 
-				metadata = new ObjectMetadata ();
-
-				//if ( typeof ( IDictionary ).IsAssignableFrom ( type ) )
-				//	data.IsDictionary = true;
-
-				metadata.properties = new Dictionary<string, PropertyMetadata> ( fields.Length + props.Length );
+				metadata.Properties = new Dictionary<string, PropertyMetadata> ( fields.Length + props.Length );
 
 				PropertyMetadata data = new PropertyMetadata ();
 				data.IsField = true;
@@ -84,7 +111,7 @@ namespace CrowSerialization
 					data.Info = item;
 					data.Type = item.FieldType;
 
-					metadata.properties.Add ( item.Name, data );
+					metadata.Properties.Add ( item.Name, data );
 				}
 
 				data.IsField = false;
@@ -95,7 +122,7 @@ namespace CrowSerialization
 						data.Info = item;
 						data.Type = item.PropertyType;
 
-						metadata.properties.Add ( item.Name, data );
+						metadata.Properties.Add ( item.Name, data );
 					}
 				}
 
