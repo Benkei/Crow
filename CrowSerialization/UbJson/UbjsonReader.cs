@@ -20,6 +20,9 @@ namespace CrowSerialization.UbJson
 
 		public UbjsonReader ( Stream input, Encoding encoding, bool leaveOpen )
 		{
+			if ( !input.CanSeek )
+				throw new System.IO.IOException ();
+
 			m_Reader = new BinaryReader ( input, encoding, leaveOpen );
 			m_decoder = encoding.GetDecoder ();
 			m_maxCharsSize = encoding.GetMaxCharCount ( 128 );
@@ -48,6 +51,18 @@ namespace CrowSerialization.UbJson
 		{
 			var value = m_Reader.PeekChar ();
 			return value < 0 ? Token.None : (Token)value;
+		}
+
+		public bool PeekReadToken ( Token isToken )
+		{
+			var value = (Token)m_Reader.PeekChar ();
+			if ( value == isToken )
+			{
+				CurrentToken = value;
+				m_Reader.BaseStream.Position += 1;
+				return true;
+			}
+			return false;
 		}
 
 		public void Reset ()
