@@ -125,6 +125,19 @@ namespace CrowEditor
 			return IntPtr.Size == 8;
 		}
 
+
+		public static void LoadLibrary ( string name )
+		{
+			string dllPath = Environment.CurrentDirectory + (IntPtr.Size == 8 ? "\\lib64\\" : "\\lib\\") + name;
+			IntPtr hmod = LoadLibraryW ( dllPath );
+			if ( hmod == IntPtr.Zero )
+				throw new System.ComponentModel.Win32Exception ( Marshal.GetLastWin32Error (), dllPath );
+		}
+
+
+		[DllImport ( "kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true )]
+		internal static extern IntPtr LoadLibraryW ( string lpFileName );
+
 		[DllImport ( "shell32.dll", CharSet = CharSet.Auto, EntryPoint = "SHFileOperation" )]
 		public static extern int SHFileOperation_x86 ( ref SHFILEOPSTRUCT_x86 FileOp );
 		[DllImport ( "shell32.dll", CharSet = CharSet.Auto, EntryPoint = "SHFileOperation" )]
