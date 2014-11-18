@@ -43,6 +43,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FreeImageNET">
+      <HintPath>..\lib\FreeImageNET.dll</HintPath>
+    </Reference>
     <Reference Include="Magick.NET-AnyCPU, Version=6.0.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Magick.NET-Q16-AnyCPU.7.0.0.0007\lib\net40-client\Magick.NET-AnyCPU.dll</HintPath>
@@ -167,6 +170,14 @@
     <None Include="..\lib\squish64.dll">
       <Link>squish64.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="..\lib64\FreeImage.dll">
+      <Link>lib64\FreeImage.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\lib\FreeImage.dll">
+      <Link>lib\FreeImage.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Content Include="Assets\guid.JPG">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

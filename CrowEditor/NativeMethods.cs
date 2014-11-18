@@ -136,7 +136,7 @@ namespace CrowEditor
 
 
 		[DllImport ( "kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true )]
-		internal static extern IntPtr LoadLibraryW ( string lpFileName );
+		private static extern IntPtr LoadLibraryW ( string lpFileName );
 
 		[DllImport ( "shell32.dll", CharSet = CharSet.Auto, EntryPoint = "SHFileOperation" )]
 		public static extern int SHFileOperation_x86 ( ref SHFILEOPSTRUCT_x86 FileOp );

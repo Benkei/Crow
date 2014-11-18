@@ -14,6 +14,8 @@ namespace CrowEditor
 		[STAThread]
 		static void Main ()
 		{
+			NativeMethods.LoadLibrary ( "FreeImage.dll" );
+
 			GraphicsContext.DirectRendering = false;
 			GraphicsContext.ShareContexts = false;
 
