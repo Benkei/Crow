@@ -1,46 +1,44 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SharpDX;
 
-namespace CrowEngine.Components
+namespace CrowEngine
 {
 	public class Transform : Object, ICollection<Transform>
 	{
-		Transform			m_Parent;
-		List<Transform>		m_Children;
-		HashSet<Transform>	m_ChildrenToUpdate;
+		private Transform m_Parent;
+		private List<Transform> m_Children;
+		private HashSet<Transform> m_ChildrenToUpdate;
 
-		Matrix				m_WorldMatrix	= Matrix.Identity;
-		Vector3				m_WorldScale	= Vector3.One;
-		Vector3				m_WorldPosition;
-		Quaternion			m_WorldRotation	= Quaternion.Identity;
+		private Matrix m_WorldMatrix = Matrix.Identity;
+		private Vector3 m_WorldScale = Vector3.One;
+		private Vector3 m_WorldPosition;
+		private Quaternion m_WorldRotation = Quaternion.Identity;
 
-		Matrix				m_LocalMatrix	= Matrix.Identity;
-		Vector3				m_LocalScale	= Vector3.One;
-		Vector3				m_LocalPosition;
-		Quaternion			m_LocalRotation	= Quaternion.Identity;
+		private Matrix m_LocalMatrix = Matrix.Identity;
+		private Vector3 m_LocalScale = Vector3.One;
+		private Vector3 m_LocalPosition;
+		private Quaternion m_LocalRotation = Quaternion.Identity;
 
 		//SceneManager		m_SceneManager;
 
 		/// <summary>
 		/// need a world transform update
 		/// </summary>
-		bool m_NeedParentUpdate;
-		bool m_NeedChildUpdate;
-		bool m_NeedMatrixUpdate;
-		bool m_NeedLocalMatrixUpdate;
-		bool m_ParentNotified;
+		private bool m_NeedParentUpdate;
 
+		private bool m_NeedChildUpdate;
+		private bool m_NeedMatrixUpdate;
+		private bool m_NeedLocalMatrixUpdate;
+		private bool m_ParentNotified;
 
 		public GameObject GameObject
 		{
 			get;
 			private set;
 		}
+
 		public Transform Root
 		{
 			get
@@ -55,6 +53,7 @@ namespace CrowEngine.Components
 				return last;
 			}
 		}
+
 		public Transform Parent
 		{
 			get { return m_Parent; }
@@ -73,15 +72,18 @@ namespace CrowEngine.Components
 				}
 			}
 		}
+
 		public int Count
 		{
 			get { return (m_Children != null) ? m_Children.Count : 0; }
 		}
+
 		public override string Name
 		{
 			get;
 			set;
 		}
+
 		//public SceneManager SceneManager
 		//{
 		//	get { CheckDestroyed (); return m_SceneManager; }
@@ -91,7 +93,6 @@ namespace CrowEngine.Components
 		{
 			get { return false; }
 		}
-
 
 		/// <summary>
 		/// get/set the world matrix
@@ -116,6 +117,7 @@ namespace CrowEngine.Components
 				return m_WorldMatrix;
 			}
 		}
+
 		/// <summary>
 		/// get/set the world positon
 		/// </summary>
@@ -136,8 +138,9 @@ namespace CrowEngine.Components
 				LocalPosition = value;
 			}
 		}
+
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		public Vector3 EulerAngles
 		{
@@ -157,6 +160,7 @@ namespace CrowEngine.Components
 				Rotation = rotation;
 			}
 		}
+
 		/// <summary>
 		/// get/set the world rotation
 		/// </summary>
@@ -178,6 +182,7 @@ namespace CrowEngine.Components
 				LocalRotation = value;
 			}
 		}
+
 		/// <summary>
 		/// get the world scale of the node
 		/// </summary>
@@ -213,8 +218,9 @@ namespace CrowEngine.Components
 				return m_LocalMatrix;
 			}
 		}
+
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		public Vector3 LocalPosition
 		{
@@ -225,8 +231,9 @@ namespace CrowEngine.Components
 				NeedUpdate ();
 			}
 		}
+
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		public Vector3 LocalEulerAngles
 		{
@@ -245,8 +252,9 @@ namespace CrowEngine.Components
 				LocalRotation = rotation;
 			}
 		}
+
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		public Quaternion LocalRotation
 		{
@@ -257,8 +265,9 @@ namespace CrowEngine.Components
 				NeedUpdate ();
 			}
 		}
+
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		public Vector3 LocalScale
 		{
@@ -270,7 +279,6 @@ namespace CrowEngine.Components
 			}
 		}
 
-
 		public Vector3 Right
 		{
 			get
@@ -281,6 +289,7 @@ namespace CrowEngine.Components
 				return direction;
 			}
 		}
+
 		public Vector3 Up
 		{
 			get
@@ -291,6 +300,7 @@ namespace CrowEngine.Components
 				return direction;
 			}
 		}
+
 		public Vector3 Forward
 		{
 			get
@@ -307,28 +317,22 @@ namespace CrowEngine.Components
 		/// </summary>
 		public bool HasChanged { get; set; }
 
-
 		public Transform this[int index]
 		{
 			get
 			{
-				if ( m_Children == null || index <= 0 || index >= m_Children.Count )
+				if ( m_Children == null || index < 0 || index >= m_Children.Count )
 					throw new ArgumentOutOfRangeException ( "index" );
 
 				return m_Children[index];
 			}
 		}
 
-
-
 		//internal Transform ( SceneManager sceneManager, string name )
 		//{
 		//	m_SceneManager = sceneManager;
 		//	Name = name;
 		//}
-
-
-
 
 		public void AddChild ( Transform child )
 		{
@@ -386,7 +390,6 @@ namespace CrowEngine.Components
 			return string.Format ( "Transform of node '{0}'", Name );
 		}
 
-
 		void ICollection<Transform>.Add ( Transform child )
 		{
 			AddChild ( child );
@@ -433,8 +436,7 @@ namespace CrowEngine.Components
 			base.DestroyObject ();
 		}
 
-
-		void RemoveChildAt ( int index )
+		private void RemoveChildAt ( int index )
 		{
 			var child = m_Children[index];
 			child.m_Parent = null;
@@ -443,7 +445,7 @@ namespace CrowEngine.Components
 			cancelUpdate ( child );
 		}
 
-		void UpdateFromParent ()
+		private void UpdateFromParent ()
 		{
 			if ( m_Parent != null )
 			{
@@ -458,7 +460,6 @@ namespace CrowEngine.Components
 				// Scale own position by parent scale, NB just combine
 				// as equivalent axes, no shearing
 				Vector3.Multiply ( ref parentScale, ref m_LocalScale, out m_WorldScale );
-
 
 				// Change position vector based on parent's orientation & scale
 				Vector3.Multiply ( ref parentScale, ref m_LocalPosition, out m_WorldPosition );
@@ -477,7 +478,7 @@ namespace CrowEngine.Components
 			m_NeedParentUpdate = false;
 		}
 
-		void NeedUpdate ( bool forceParentUpdate = false )
+		private void NeedUpdate ( bool forceParentUpdate = false )
 		{
 			HasChanged = true;
 			m_NeedParentUpdate = true;
@@ -496,7 +497,7 @@ namespace CrowEngine.Components
 			if ( m_ChildrenToUpdate != null ) m_ChildrenToUpdate.Clear ();
 		}
 
-		void requestUpdate ( Transform child, bool forceParentUpdate )
+		private void requestUpdate ( Transform child, bool forceParentUpdate )
 		{
 			// If we're already going to update everything this doesn't matter
 			if ( m_NeedChildUpdate )
@@ -514,7 +515,7 @@ namespace CrowEngine.Components
 			}
 		}
 
-		void cancelUpdate ( Transform child )
+		private void cancelUpdate ( Transform child )
 		{
 			if ( m_ChildrenToUpdate != null ) m_ChildrenToUpdate.Remove ( child );
 
@@ -525,7 +526,6 @@ namespace CrowEngine.Components
 				m_ParentNotified = false;
 			}
 		}
-
 
 		/// <summary>
 		/// Update the node and here childs
@@ -552,7 +552,7 @@ namespace CrowEngine.Components
 
 			if ( m_NeedChildUpdate || parentHasChanged )
 			{
-				for ( int i=0, len=m_Children.Count; i < len; ++i )
+				for ( int i = 0, len = m_Children.Count; i < len; ++i )
 				{
 					m_Children[i].Update ( true, true );
 				}
@@ -576,11 +576,12 @@ namespace CrowEngine.Components
 
 		public struct Enumerator : IEnumerator<Transform>
 		{
-			int m_Index;
-			List<Transform> m_Transforms;
-			Transform m_Current;
+			private int m_Index;
+			private List<Transform> m_Transforms;
+			private Transform m_Current;
 
 			public Transform Current { get { return m_Current; } }
+
 			object IEnumerator.Current { get { return m_Current; } }
 
 			internal Enumerator ( List<Transform> transforms )
@@ -615,7 +616,12 @@ namespace CrowEngine.Components
 			}
 		}
 
-		public IEnumerator<Transform> GetEnumerator ()
+		public Enumerator GetEnumerator ()
+		{
+			return new Enumerator ( m_Children );
+		}
+
+		IEnumerator<Transform> IEnumerable<Transform>.GetEnumerator ()
 		{
 			return new Enumerator ( m_Children );
 		}
@@ -625,6 +631,6 @@ namespace CrowEngine.Components
 			return new Enumerator ( m_Children );
 		}
 
-		#endregion
+		#endregion IEnumerable<Transform> Member
 	}
 }

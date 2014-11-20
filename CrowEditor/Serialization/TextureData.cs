@@ -14,11 +14,6 @@ namespace CrowEditor.Serialization
 		public int LevelCount;
 		public PixelInternalFormat Format;
 		public int DataSize;
-		public JsonBinary Data;
-	}
-
-	struct JsonBinary
-	{
 		public byte[] Data;
 	}
 }

@@ -109,28 +109,24 @@ namespace CrowSerialization.LitJson
 
 		private static IFormatProvider datetime_format;
 
-		private static IDictionary<Type, ExporterFunc> base_exporters_table;
-		private static IDictionary<Type, ExporterFunc> custom_exporters_table;
+		private static readonly IDictionary<Type, ExporterFunc> base_exporters_table;
+		private static readonly IDictionary<Type, ExporterFunc> custom_exporters_table;
 
-		private static IDictionary<Type,
-				IDictionary<Type, ImporterFunc>> base_importers_table;
+		private static readonly IDictionary<Type, IDictionary<Type, ImporterFunc>> base_importers_table;
 
-		private static IDictionary<Type,
-				IDictionary<Type, ImporterFunc>> custom_importers_table;
+		private static readonly IDictionary<Type, IDictionary<Type, ImporterFunc>> custom_importers_table;
 
-		private static IDictionary<Type, ArrayMetadata> array_metadata;
+		private static readonly IDictionary<Type, ArrayMetadata> array_metadata;
 		private static readonly object array_metadata_lock = new Object ();
 
-		private static IDictionary<Type,
-				IDictionary<Type, MethodInfo>> conv_ops;
+		private static readonly IDictionary<Type, IDictionary<Type, Func<object, object>>> conv_ops;
 
 		private static readonly object conv_ops_lock = new Object ();
 
-		private static IDictionary<Type, ObjectMetadata> object_metadata;
+		private static readonly IDictionary<Type, ObjectMetadata> object_metadata;
 		private static readonly object object_metadata_lock = new Object ();
 
-		private static IDictionary<Type,
-				IList<PropertyMetadata>> type_properties;
+		private static readonly IDictionary<Type, IList<PropertyMetadata>> type_properties;
 
 		private static readonly object type_properties_lock = new Object ();
 
@@ -146,7 +142,7 @@ namespace CrowSerialization.LitJson
 			max_nesting_depth = 100;
 
 			array_metadata = new Dictionary<Type, ArrayMetadata> ();
-			conv_ops = new Dictionary<Type, IDictionary<Type, MethodInfo>> ();
+			conv_ops = new Dictionary<Type, IDictionary<Type, Func<object, object>>> ();
 			object_metadata = new Dictionary<Type, ObjectMetadata> ();
 			type_properties = new Dictionary<Type,
 							IList<PropertyMetadata>> ();
@@ -307,25 +303,25 @@ namespace CrowSerialization.LitJson
 			}
 		}
 
-		private static MethodInfo GetConvOp ( Type t1, Type t2 )
+		private static Func<object, object> GetConvOp ( Type t1, Type t2 )
 		{
 			lock ( conv_ops_lock )
 			{
 				if ( !conv_ops.ContainsKey ( t1 ) )
-					conv_ops.Add ( t1, new Dictionary<Type, MethodInfo> () );
+					conv_ops.Add ( t1, new Dictionary<Type, Func<object, object>> () );
 			}
 
 			if ( conv_ops[t1].ContainsKey ( t2 ) )
 				return conv_ops[t1][t2];
 
-			MethodInfo op = t1.GetMethod (
-				"op_Implicit", new Type[] { t2 } );
+			MethodInfo op = t1.GetMethod ( "op_Implicit", new Type[] { t2 } );
+			var callback = (Func<object, object>)op.CreateDelegate ( typeof ( Func<object, object> ) );
 
 			lock ( conv_ops_lock )
 			{
 				try
 				{
-					conv_ops[t1].Add ( t2, op );
+					conv_ops[t1].Add ( t2, callback );
 				}
 				catch ( ArgumentException )
 				{
@@ -333,10 +329,10 @@ namespace CrowSerialization.LitJson
 				}
 			}
 
-			return op;
+			return callback;
 		}
 
-		private static object ReadValue ( Type inst_type, JsonReader reader )
+		private static object ReadValue_ ( Type inst_type, JsonReader reader )
 		{
 			reader.Read ();
 
@@ -396,11 +392,10 @@ namespace CrowSerialization.LitJson
 					return Enum.ToObject ( value_type, reader.Value );
 
 				// Try using an implicit conversion operator
-				MethodInfo conv_op = GetConvOp ( value_type, json_type );
+				var conv_op = GetConvOp ( value_type, json_type );
 
 				if ( conv_op != null )
-					return conv_op.Invoke ( null,
-										   new object[] { reader.Value } );
+					return conv_op ( reader.Value );
 
 				// No luck
 				throw new JsonException ( String.Format (
@@ -517,6 +512,204 @@ namespace CrowSerialization.LitJson
 								t_data.ElementType, reader ) );
 					}
 				}
+			}
+
+			return instance;
+		}
+
+		private static object ReadValue ( Type inst_type, JsonReader reader )
+		{
+			reader.Read ();
+
+			Type underlying_type = Nullable.GetUnderlyingType ( inst_type );
+			Type value_type = underlying_type ?? inst_type;
+
+			object instance = null;
+
+			switch ( reader.Token )
+			{
+				//case JsonToken.None:
+				//	break;
+
+				case JsonToken.ObjectStart:
+					#region MyRegion
+					{
+						AddObjectMetadata ( value_type );
+						ObjectMetadata t_data = object_metadata[value_type];
+
+						instance = Activator.CreateInstance ( value_type );
+
+						while ( true )
+						{
+							reader.Read ();
+
+							if ( reader.Token == JsonToken.ObjectEnd )
+								break;
+
+							string property = (string)reader.Value;
+
+							PropertyMetadata prop_data;
+							if ( t_data.Properties.TryGetValue ( property, out prop_data ) )
+							{
+								if ( prop_data.IsField )
+								{
+									((FieldInfo)prop_data.Info).SetValue (
+										instance, ReadValue ( prop_data.Type, reader ) );
+								}
+								else
+								{
+									PropertyInfo p_info = (PropertyInfo)prop_data.Info;
+
+									if ( p_info.CanWrite )
+										p_info.SetValue (
+											instance,
+											ReadValue ( prop_data.Type, reader ),
+											null );
+									else
+										ReadValue ( prop_data.Type, reader );
+								}
+							}
+							else
+							{
+								if ( !t_data.IsDictionary )
+								{
+									if ( !reader.SkipNonMembers )
+									{
+										throw new JsonException ( String.Format (
+												"The type {0} doesn't have the " +
+												"property '{1}'",
+												inst_type, property ) );
+									}
+									else
+									{
+										ReadSkip ( reader );
+										continue;
+									}
+								}
+
+								((IDictionary)instance).Add ( property, ReadValue ( t_data.ElementType, reader ) );
+							}
+						}
+					}
+					#endregion
+					break;
+
+				//case JsonToken.PropertyName:
+				//	break;
+				//case JsonToken.ObjectEnd:
+				//	break;
+
+				case JsonToken.ArrayStart:
+					#region MyRegion
+					{
+						AddArrayMetadata ( inst_type );
+						ArrayMetadata t_data = array_metadata[inst_type];
+
+						if ( !t_data.IsArray && !t_data.IsList )
+							throw new JsonException ( String.Format (
+									"Type {0} can't act as an array",
+									inst_type ) );
+
+						IList list;
+						Type elem_type;
+
+						if ( !t_data.IsArray )
+						{
+							list = (IList)Activator.CreateInstance ( inst_type );
+							elem_type = t_data.ElementType;
+						}
+						else
+						{
+							list = new ArrayList ();
+							elem_type = inst_type.GetElementType ();
+						}
+
+						while ( true )
+						{
+							object item = ReadValue ( elem_type, reader );
+							if ( item == null && reader.Token == JsonToken.ArrayEnd )
+								break;
+
+							list.Add ( item );
+						}
+
+						if ( t_data.IsArray )
+						{
+							int n = list.Count;
+							instance = Array.CreateInstance ( elem_type, n );
+
+							for ( int i = 0; i < n; i++ )
+								((Array)instance).SetValue ( list[i], i );
+						}
+						else
+							instance = list;
+					}
+					#endregion
+					break;
+				case JsonToken.ArrayEnd: return null;
+
+				case JsonToken.Int:
+				case JsonToken.Long:
+				case JsonToken.Double:
+				case JsonToken.String:
+				case JsonToken.Boolean:
+					#region MyRegion
+					Type json_type = reader.Value.GetType ();
+
+					if ( value_type.IsAssignableFrom ( json_type ) )
+						return reader.Value;
+
+					// Maybe it's an enum
+					if ( value_type.IsEnum )
+						return Enum.ToObject ( value_type, reader.Value );
+
+					if ( reader.Token == JsonToken.String && value_type == typeof ( byte[] ) )
+						return Convert.FromBase64String ( (string)reader.Value );
+
+					ImporterFunc importer;
+
+					// If there's a custom importer that fits, use it
+					if ( custom_importers_table.ContainsKey ( json_type ) &&
+						custom_importers_table[json_type].TryGetValue ( value_type, out importer ) )
+					{
+						return importer ( reader.Value );
+					}
+
+					// Maybe there's a base importer that works
+					if ( base_importers_table.ContainsKey ( json_type ) &&
+						base_importers_table[json_type].TryGetValue ( value_type, out importer ) )
+					{
+						return importer ( reader.Value );
+					}
+
+					try
+					{
+						return Convert.ChangeType ( reader.Value, value_type, CultureInfo.InvariantCulture );
+					}
+					catch ( Exception )
+					{
+						// Try using an implicit conversion operator
+						var conv_op = GetConvOp ( value_type, json_type );
+
+						if ( conv_op != null )
+							return conv_op ( reader.Value );
+					}
+
+					// No luck
+					throw new JsonException ( String.Format (
+							"Can't assign value '{0}' (type {1}) to type {2}",
+							reader.Value, json_type, inst_type ) );
+
+					#endregion
+
+				case JsonToken.Null:
+					if ( inst_type.IsClass || underlying_type != null )
+					{
+						return null;
+					}
+
+					throw new JsonException (
+						String.Format ( "Can't assign null to an instance of type {0}", inst_type ) );
 			}
 
 			return instance;
@@ -760,9 +953,7 @@ namespace CrowSerialization.LitJson
 			table[json_type][value_type] = importer;
 		}
 
-		private static void WriteValue ( object obj, JsonWriter writer,
-										bool writer_is_private,
-										int depth )
+		private static void WriteValue_ ( object obj, JsonWriter writer, bool writer_is_private, int depth )
 		{
 			if ( depth > max_nesting_depth )
 				throw new JsonException (
@@ -867,6 +1058,158 @@ namespace CrowSerialization.LitJson
 			if ( base_exporters_table.ContainsKey ( obj_type ) )
 			{
 				ExporterFunc exporter = base_exporters_table[obj_type];
+				exporter ( obj, writer );
+
+				return;
+			}
+
+			// Last option, let's see if it's an enum
+			if ( obj is Enum )
+			{
+				Type e_type = Enum.GetUnderlyingType ( obj_type );
+
+				if ( e_type == typeof ( long )
+					|| e_type == typeof ( uint )
+					|| e_type == typeof ( ulong ) )
+					writer.Write ( (ulong)obj );
+				else
+					writer.Write ( (int)obj );
+
+				return;
+			}
+
+			// Okay, so it looks like the input should be exported as an
+			// object
+			AddTypeProperties ( obj_type );
+			IList<PropertyMetadata> props = type_properties[obj_type];
+
+			writer.WriteObjectStart ();
+			foreach ( PropertyMetadata p_data in props )
+			{
+				if ( p_data.IsField )
+				{
+					writer.WritePropertyName ( p_data.Info.Name );
+					WriteValue ( ((FieldInfo)p_data.Info).GetValue ( obj ),
+								writer, writer_is_private, depth + 1 );
+				}
+				else
+				{
+					PropertyInfo p_info = (PropertyInfo)p_data.Info;
+
+					if ( p_info.CanRead )
+					{
+						writer.WritePropertyName ( p_data.Info.Name );
+						WriteValue ( p_info.GetValue ( obj, null ),
+									writer, writer_is_private, depth + 1 );
+					}
+				}
+			}
+			writer.WriteObjectEnd ();
+		}
+
+		private static void WriteValue ( object obj, JsonWriter writer, bool writer_is_private, int depth )
+		{
+			if ( depth > max_nesting_depth )
+				throw new JsonException (
+					String.Format ( "Max allowed object depth reached while trying to export from type {0}", obj.GetType () ) );
+
+			if ( obj == null )
+			{
+				writer.Write ( null );
+				return;
+			}
+
+			Type obj_type = obj.GetType ();
+
+			switch ( Type.GetTypeCode ( obj_type ) )
+			{
+				case TypeCode.Empty: break;
+				case TypeCode.Object: break;
+				case TypeCode.DBNull: break;
+				case TypeCode.Boolean: writer.Write ( (bool)obj ); return;
+
+				case TypeCode.Char: writer.Write ( (char)obj ); return;
+				case TypeCode.SByte: writer.Write ( (sbyte)obj ); return;
+				case TypeCode.Byte: writer.Write ( (byte)obj ); return;
+				case TypeCode.Int16: writer.Write ( (short)obj ); return;
+				case TypeCode.UInt16: writer.Write ( (ushort)obj ); return;
+				case TypeCode.Int32: writer.Write ( (int)obj ); return;
+				case TypeCode.UInt32: writer.Write ( (uint)obj ); return;
+				case TypeCode.Int64: writer.Write ( (long)obj ); return;
+				case TypeCode.UInt64: writer.Write ( (ulong)obj ); return;
+
+				case TypeCode.Single: writer.Write ( (float)obj ); return;
+				case TypeCode.Double: writer.Write ( (double)obj ); return;
+				case TypeCode.Decimal: writer.Write ( (decimal)obj ); return;
+
+				case TypeCode.DateTime: writer.Write ( ((DateTime)obj).ToString ( CultureInfo.InvariantCulture ) ); return;
+				case TypeCode.String: writer.Write ( (string)obj ); return;
+			}
+
+			if ( obj is IJsonWrapper )
+			{
+				if ( writer_is_private )
+					writer.TextWriter.Write ( ((IJsonWrapper)obj).ToJson () );
+				else
+					((IJsonWrapper)obj).ToJson ( writer );
+
+				return;
+			}
+
+			if ( obj is byte[] )
+			{
+				writer.Write ( Convert.ToBase64String ( (byte[])obj ) );
+
+				return;
+			}
+
+			if ( obj is Array )
+			{
+				writer.WriteArrayStart ();
+				foreach ( object elem in (Array)obj )
+					WriteValue ( elem, writer, writer_is_private, depth + 1 );
+				writer.WriteArrayEnd ();
+
+				return;
+			}
+
+			if ( obj is IList )
+			{
+				writer.WriteArrayStart ();
+				foreach ( object elem in (IList)obj )
+					WriteValue ( elem, writer, writer_is_private, depth + 1 );
+				writer.WriteArrayEnd ();
+
+				return;
+			}
+
+			if ( obj is IDictionary )
+			{
+				writer.WriteObjectStart ();
+				foreach ( DictionaryEntry entry in (IDictionary)obj )
+				{
+					writer.WritePropertyName ( (string)entry.Key );
+					WriteValue ( entry.Value, writer, writer_is_private,
+								depth + 1 );
+				}
+				writer.WriteObjectEnd ();
+
+				return;
+			}
+
+			ExporterFunc exporter;
+
+			// See if there's a custom exporter for the object
+			if ( custom_exporters_table.TryGetValue ( obj_type, out exporter ) )
+			{
+				exporter ( obj, writer );
+
+				return;
+			}
+
+			// If not, maybe there's a base exporter
+			if ( base_exporters_table.TryGetValue ( obj_type, out exporter ) )
+			{
 				exporter ( obj, writer );
 
 				return;
