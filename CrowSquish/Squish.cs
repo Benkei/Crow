@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CrowSquish
 {
-	public static class Squish
+	public static partial class Squish
 	{
 		/*! @brief Compresses a 4x4 block of pixels.
 

@@ -35,6 +35,7 @@ namespace CrowEditor.AssetProcessors
 		{
 			var watch = System.Diagnostics.Stopwatch.StartNew ();
 			var root = Path.Combine ( AssetDatabase.m_RootProjektFolder, m_filePath );
+			Console.Write ( root );
 			using ( var img = new MagickImage ( root ) )
 			{
 				PixelInternalFormat internPixelFormat = PixelInternalFormat.CompressedRgbS3tcDxt1Ext;
@@ -65,7 +66,9 @@ namespace CrowEditor.AssetProcessors
 
 				fixed ( byte* x = b )
 				{
-					CrowSquish.Squish.CompressImage ( (IntPtr)x, img.Width, img.Height, global, compFlags );
+					var w = System.Diagnostics.Stopwatch.StartNew ();
+					CrowSquish.Squish.CompressImageParallel ( (IntPtr)x, img.Width, img.Height, global, compFlags );
+					Console.Write ( w.Elapsed.TotalMilliseconds.ToString ( " 0.0ms" ) );
 				}
 
 				//bitmap.UnlockBits ( lockdata );
@@ -116,8 +119,8 @@ namespace CrowEditor.AssetProcessors
 
 				CrowEditorApp.m_GLRenderThread.List.Add ( tex );
 			}
-			Console.Write ( watch.Elapsed.TotalMilliseconds.ToString ( "0.0 ms " ) );
-			Console.WriteLine ( root );
+			Console.Write ( watch.Elapsed.TotalMilliseconds.ToString ( " 0.0ms" ) );
+			Console.WriteLine ();
 		}
 
 		/*
