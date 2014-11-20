@@ -14,14 +14,6 @@ namespace CrowEditor.Serialization
 		{
 			JsonMapper.RegisterExporter<Guid> ( ( obj, writer ) => writer.Write ( obj.ToString ( "N" ) ) );
 			JsonMapper.RegisterImporter<string, Guid> ( ( input ) => Guid.Parse ( input ) );
-
-			JsonMapper.RegisterExporter<DateTime> ( ( obj, writer ) => writer.Write ( obj.Ticks ) );
-			JsonMapper.RegisterImporter<long, DateTime> ( ( input ) => new DateTime ( input ) );
-
-			JsonMapper.RegisterExporter<JsonBinary> (
-				( obj, writer ) => writer.Write ( Convert.ToBase64String ( obj.Data ) ) );
-			JsonMapper.RegisterImporter<string, JsonBinary> (
-				( input ) => new JsonBinary () { Data = Convert.FromBase64String ( input ) } );
 		}
 
 		public static T Load<T> ( string filePath )
