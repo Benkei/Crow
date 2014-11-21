@@ -52,8 +52,8 @@ namespace CrowEditor.AssetProcessors
 				int baseHeight = img.BaseHeight;
 				if ( NearPowerOfTwo )
 				{
-					baseWidth = OpenTK.Functions.NextPowerOfTwo ( img.BaseWidth );
-					baseHeight = OpenTK.Functions.NextPowerOfTwo ( img.BaseHeight );
+					baseWidth = OpenTK.MathHelper.NextPowerOfTwo ( img.BaseWidth );
+					baseHeight = OpenTK.MathHelper.NextPowerOfTwo ( img.BaseHeight );
 				}
 
 				int i;
