@@ -118,18 +118,6 @@
     <Compile Include="VertexShaderSemantic.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\TestAssets\fs.glsl">
-      <Link>Assets\fs.glsl</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\TestAssets\Simple.gfx">
-      <Link>Assets\Simple.gfx</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\TestAssets\vs.glsl">
-      <Link>Assets\vs.glsl</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -153,12 +141,6 @@
       <Project>{321f8d46-d0b6-4b4c-970f-efe588805c75}</Project>
       <Name>CrowSerialization</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\TestAssets\guid.JPG">
-      <Link>Assets\guid.JPG</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

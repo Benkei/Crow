@@ -63,15 +63,9 @@
       <Link>Assets\vs.glsl</Link>
     <None Include="..\TestAssets\fs.glsl">
       <Link>Assets\fs.glsl</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\TestAssets\Simple.gfx">
-      <Link>Assets\Simple.gfx</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\TestAssets\vs.glsl">
+    <None Include="..\Sample_ProjectTest\Assets\vs.glsl">
       <Link>Assets\vs.glsl</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="App.config" />
     <None Include="packages.config" />
@@ -115,13 +109,11 @@
       <Link>Assets\test_0.jpg</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\TestAssets\test_1.jpg">
-      <Link>Assets\test_1.jpg</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="..\Sample_ProjectTest\Assets\peppers.tiff">
+      <Link>Assets\peppers.tiff</Link>
     </Content>
-    <Content Include="..\TestAssets\test_2.jpg">
-      <Link>Assets\test_2.jpg</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="..\Sample_ProjectTest\Assets\Tiffany.tiff">
+      <Link>Assets\Tiffany.tiff</Link>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
