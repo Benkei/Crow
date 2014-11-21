@@ -101,6 +101,23 @@
     </Content>
     <Content Include="..\Sample_ProjectTest\Assets\Tiffany.tiff">
       <Link>Assets\Tiffany.tiff</Link>
+    <None Include="..\TestAssets\fs.glsl">
+      <Link>Assets\fs.glsl</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\TestAssets\Simple.gfx">
+      <Link>Assets\Simple.gfx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\TestAssets\vs.glsl">
+      <Link>Assets\vs.glsl</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\TestAssets\guid.JPG">
+      <Link>Assets\guid.JPG</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <Choose>
