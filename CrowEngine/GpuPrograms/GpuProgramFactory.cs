@@ -39,9 +39,9 @@ namespace CrowEngine.GpuPrograms
 			{
 				foreach ( var item in data.Vertex.SemanticInput )
 				{
-					program.BindAttributeLocation ( 
+					program.BindAttributeLocation (
 						item.Value,
-						(int)(VertexShaderSemanticInput)Enum.Parse ( typeof ( VertexShaderSemanticInput ), item.Key ) 
+						(int)(VertexShaderSemanticInput)Enum.Parse ( typeof ( VertexShaderSemanticInput ), item.Key )
 					);
 				}
 			}
@@ -50,5 +50,59 @@ namespace CrowEngine.GpuPrograms
 
 			return program;
 		}
+
+
+		private static void ShaderParser ( string shaderRootPath, StringBuilder shaderSource )
+		{
+			//System.Text.RegularExpressions.Regex
+		}
+
+
+
+		//		std::string Shader::PreprocessIncludes( const std::string&amp; source, const boost::filesystem::path&amp; filename, int level /*= 0 */ )
+		//{
+		//	PrintIndent();
+		//	if(level > 32)
+		//		LogAndThrow(ShaderException,"header inclusion depth limit reached, might be caused by cyclic header inclusion");
+		//	using namespace std;
+
+		//	static const boost::regex re("^[ ]*#[ ]*include[ ]+[\"<](.*)[\">].*");
+		//	stringstream input;
+		//	stringstream output;
+		//	input << source;
+
+		//	size_t line_number = 1;
+		//	boost::smatch matches;
+
+		//	string line;
+		//	while(std::getline(input,line))
+		//	{
+		//		if (boost::regex_search(line, matches, re))
+		//		{
+		//			std::string include_file = matches[1];
+		//			std::string include_string;
+
+		//			try
+		//			{
+		//				include_string = Core::FileIO::LoadTextFile(include_file);
+		//			} 
+		//			catch (Core::FileIO::FileNotFoundException&amp; e)
+		//			{
+		//				stringstream str;
+		//				str <<  filename.file_string() <<"(" << line_number << ") : fatal error: cannot open include file " << e.File();
+		//				LogAndThrow(ShaderException,str.str())
+		//			}
+		//			output << PreprocessIncludes(include_string, include_file, level + 1) << endl;
+		//		}
+		//		else
+		//		{
+		//			output << "#line "<< line_number << " \"" << filename << "\""  << endl;
+		//			output <<  line << endl;
+		//		}
+		//		++line_number;
+		//	}
+		//	PrintUnindent();
+		//	return output.str();
+		//}
 	}
 }

@@ -85,23 +85,22 @@
       <Link>squish64.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="..\TestAssets\fs.glsl">
+    <None Include="..\Sample_ProjectTest\Assets\fs.glsl">
       <Link>Assets\fs.glsl</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\TestAssets\Simple.gfx">
-      <Link>Assets\Simple.gfx</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\TestAssets\vs.glsl">
+    <None Include="..\Sample_ProjectTest\Assets\vs.glsl">
       <Link>Assets\vs.glsl</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\TestAssets\guid.JPG">
-      <Link>Assets\guid.JPG</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="..\Sample_ProjectTest\Assets\lena.tiff">
+      <Link>Assets\lena.tiff</Link>
+    </Content>
+    <Content Include="..\Sample_ProjectTest\Assets\peppers.tiff">
+      <Link>Assets\peppers.tiff</Link>
+    </Content>
+    <Content Include="..\Sample_ProjectTest\Assets\Tiffany.tiff">
+      <Link>Assets\Tiffany.tiff</Link>
     </Content>
   </ItemGroup>
   <Choose>
