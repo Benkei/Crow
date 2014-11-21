@@ -61,6 +61,7 @@
     </None>
     <None Include="..\Sample_ProjectTest\Assets\vs.glsl">
       <Link>Assets\vs.glsl</Link>
+    </None>
     <None Include="..\TestAssets\fs.glsl">
       <Link>Assets\fs.glsl</Link>
     </None>
@@ -89,6 +90,7 @@
     </Content>
     <Content Include="..\Sample_ProjectTest\Assets\Tiffany.tiff">
       <Link>Assets\Tiffany.tiff</Link>
+    </Content>
     <Content Include="..\Sample_ProjectTest\Assets\that_girl.tif">
       <Link>Assets\that_girl.tif</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

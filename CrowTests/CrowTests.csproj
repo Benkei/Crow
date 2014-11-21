@@ -101,6 +101,7 @@
     </Content>
     <Content Include="..\Sample_ProjectTest\Assets\Tiffany.tiff">
       <Link>Assets\Tiffany.tiff</Link>
+    </Content>
     <None Include="..\TestAssets\fs.glsl">
       <Link>Assets\fs.glsl</Link>
     </None>
