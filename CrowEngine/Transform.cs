@@ -441,6 +441,8 @@ namespace CrowEngine
 			var child = m_Children[index];
 			child.m_Parent = null;
 			m_Children.RemoveAt ( index );
+			if ( m_ChildrenToUpdate != null )
+				m_ChildrenToUpdate.Remove ( child );
 			//SceneManager.AddRootNode ( child );
 			cancelUpdate ( child );
 		}
@@ -494,7 +496,8 @@ namespace CrowEngine
 			}
 
 			// all children will be updated
-			if ( m_ChildrenToUpdate != null ) m_ChildrenToUpdate.Clear ();
+			if ( m_ChildrenToUpdate != null )
+				m_ChildrenToUpdate.Clear ();
 		}
 
 		private void requestUpdate ( Transform child, bool forceParentUpdate )
@@ -505,7 +508,8 @@ namespace CrowEngine
 				return;
 			}
 
-			if ( m_ChildrenToUpdate == null ) m_ChildrenToUpdate = new HashSet<Transform> ();
+			if ( m_ChildrenToUpdate == null )
+				m_ChildrenToUpdate = new HashSet<Transform> ();
 			m_ChildrenToUpdate.Add ( child );
 			// Request selective update of me, if we didn't do it before
 			if ( m_Parent != null && (!m_ParentNotified || forceParentUpdate) )
@@ -517,10 +521,12 @@ namespace CrowEngine
 
 		private void cancelUpdate ( Transform child )
 		{
-			if ( m_ChildrenToUpdate != null ) m_ChildrenToUpdate.Remove ( child );
+			if ( m_ChildrenToUpdate != null )
+				m_ChildrenToUpdate.Remove ( child );
 
 			// Propogate this up if we're done
-			if ( (m_ChildrenToUpdate != null && m_ChildrenToUpdate.Count == 0) && m_Parent != null && !m_NeedChildUpdate )
+			if ( (m_ChildrenToUpdate != null && m_ChildrenToUpdate.Count == 0)
+				&& m_Parent != null && !m_NeedChildUpdate )
 			{
 				m_Parent.cancelUpdate ( this );
 				m_ParentNotified = false;

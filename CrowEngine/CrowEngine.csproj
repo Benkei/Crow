@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{92D6679E-B2FF-4F47-98A6-0214F532B5CA}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CrowEngine</RootNamespace>
     <AssemblyName>CrowEngine</AssemblyName>
@@ -59,7 +59,7 @@
   <ItemGroup>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\lib\OpenTK.dll</HintPath>
+      <HintPath>..\libdebug\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX">
       <HintPath>$(SharpDXPackageBinDir)\SharpDX.dll</HintPath>
@@ -85,6 +85,7 @@
     <Compile Include="Components\IUpdate.cs" />
     <Compile Include="Components\Light.cs" />
     <Compile Include="Components\MeshRenderer.cs" />
+    <Compile Include="Material.cs" />
     <Compile Include="RectTransform.cs" />
     <Compile Include="Components\Renderer.cs" />
     <Compile Include="GameObject.cs" />
@@ -100,7 +101,6 @@
     <Compile Include="MeshPrimitive.cs" />
     <Compile Include="Object.cs" />
     <Compile Include="PixelShaderSemantic.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RenderBuffer.cs" />
     <Compile Include="Sampler.cs" />
@@ -111,22 +111,26 @@
     <Compile Include="Texture3D.cs" />
     <Compile Include="TextureFactory.cs" />
     <Compile Include="Transform.cs" />
-    <Compile Include="Tutorial.cs" />
+    <Compile Include="UI\Canvas.cs" />
+    <Compile Include="UI\CanvasRenderer.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="VertexArrayObject.cs" />
     <Compile Include="VertexShaderSemantic.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\TestAssets\fs.glsl">
+      <Link>Assets\fs.glsl</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\TestAssets\Simple.gfx">
+      <Link>Assets\Simple.gfx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\TestAssets\vs.glsl">
+      <Link>Assets\vs.glsl</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="App.config" />
-    <None Include="Assets\fs.glsl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Assets\Simple.gfx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Assets\vs.glsl">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -142,11 +146,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Assets\guid.JPG">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Graphics\" />
   </ItemGroup>
   <ItemGroup>
@@ -154,6 +153,12 @@
       <Project>{321f8d46-d0b6-4b4c-970f-efe588805c75}</Project>
       <Name>CrowSerialization</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\TestAssets\guid.JPG">
+      <Link>Assets\guid.JPG</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

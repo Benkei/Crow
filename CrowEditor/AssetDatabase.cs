@@ -24,7 +24,7 @@ namespace CrowEditor
 			m_PathToGuid.Clear ();
 			foreach ( var item in m_ProjektFile.Assets )
 			{
-				m_PathToGuid.Add ( item.Key, item.Value.Guid );
+				m_PathToGuid.Add ( item.Key.Trim (), item.Value.Guid );
 			}
 
 

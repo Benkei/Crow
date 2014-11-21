@@ -159,6 +159,18 @@ namespace CrowEditor.UIForms
 				Console.WriteLine ( "Tex idx " + idx );
 				glView.GLRepaint ();
 			}
+			if ( e.KeyCode == Keys.B )
+			{
+				var idx = CrowEditorApp.m_GLRenderThread.texutreIdx;
+				idx--;
+				if ( idx < 0 )
+				{
+					idx = CrowEditorApp.m_GLRenderThread.List.Count - 1;
+				}
+				CrowEditorApp.m_GLRenderThread.texutreIdx = idx;
+				Console.WriteLine ( "Tex idx " + idx );
+				glView.GLRepaint ();
+			}
 		}
 
 		private void glView_KeyUp ( object sender, KeyEventArgs e )

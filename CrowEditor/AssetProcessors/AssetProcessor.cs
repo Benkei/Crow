@@ -27,18 +27,20 @@ namespace CrowEditor.AssetProcessors
 			var sub = _guid.Substring ( 0, 2 );
 
 			var folder = Path.Combine ( root, sub );
-			var file = Path.Combine ( folder, _guid );
+			var metaFile = Path.Combine ( folder, _guid );
 
 			if ( !Directory.Exists ( folder ) )
 				Directory.CreateDirectory ( folder );
 
 			var extension = Path.GetExtension ( filePath );
+			var sourceFile = Path.Combine ( AssetDatabase.m_RootProjektFolder, filePath );
 
 			Type type;
 			if ( m_Processors.TryGetValue ( extension, out type ) )
 			{
 				var processor = (BaseProcessor)Activator.CreateInstance ( type );
-				processor.Start ( filePath, guid );
+				processor.Setup ( sourceFile, metaFile );
+				processor.Run ();
 			}
 		}
 	}

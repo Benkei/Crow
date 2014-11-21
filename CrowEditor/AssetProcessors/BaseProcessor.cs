@@ -8,6 +8,8 @@ namespace CrowEditor.AssetProcessors
 {
 	public abstract class BaseProcessor
 	{
-		public abstract void Start ( string filePath, Guid guid );
+		public abstract void Setup ( string sourceFilePath, string metaFilePath );
+
+		public abstract void Run ();
 	}
 }

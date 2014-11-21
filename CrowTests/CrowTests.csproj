@@ -56,8 +56,17 @@
     <Compile Include="SquishTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SerializationTest.cs" />
+    <Compile Include="TextureProcessorTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CrowEditor\CrowEditor.csproj">
+      <Project>{3a4be6c3-5632-4767-8453-5025dc51b72e}</Project>
+      <Name>CrowEditor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CrowEngine\CrowEngine.csproj">
+      <Project>{92d6679e-b2ff-4f47-98a6-0214f532b5ca}</Project>
+      <Name>CrowEngine</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CrowSerialization\CrowSerialization.csproj">
       <Project>{321f8d46-d0b6-4b4c-970f-efe588805c75}</Project>
       <Name>CrowSerialization</Name>
@@ -76,6 +85,24 @@
       <Link>squish64.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="..\TestAssets\fs.glsl">
+      <Link>Assets\fs.glsl</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\TestAssets\Simple.gfx">
+      <Link>Assets\Simple.gfx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\TestAssets\vs.glsl">
+      <Link>Assets\vs.glsl</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\TestAssets\guid.JPG">
+      <Link>Assets\guid.JPG</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

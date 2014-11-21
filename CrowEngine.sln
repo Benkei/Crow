@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrowSerialization", "CrowSe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrowEditor2", "CrowEditor2\CrowEditor2.csproj", "{AD3C5820-2CB1-478A-9AFC-B1B43D0564F6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrowTestConsole", "CrowTestConsole\CrowTestConsole.csproj", "{CB7D6B63-4BD3-49C4-A322-1258F8301FB1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{AD3C5820-2CB1-478A-9AFC-B1B43D0564F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD3C5820-2CB1-478A-9AFC-B1B43D0564F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD3C5820-2CB1-478A-9AFC-B1B43D0564F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB7D6B63-4BD3-49C4-A322-1258F8301FB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB7D6B63-4BD3-49C4-A322-1258F8301FB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB7D6B63-4BD3-49C4-A322-1258F8301FB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB7D6B63-4BD3-49C4-A322-1258F8301FB1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

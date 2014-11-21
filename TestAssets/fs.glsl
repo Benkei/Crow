@@ -9,5 +9,5 @@ uniform sampler2D diffuse;
 void main()
 {
 	vec4 col = texture ( diffuse, uv );
-	outputColor = color * vec4 ( col.rgb, 1.0 );
+	outputColor = vec4 ( col.rgb, 1.0 );
 }

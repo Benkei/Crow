@@ -432,40 +432,40 @@ namespace CrowEngine
 			GL.BindTexture ( TextureTarget.Texture2D, m_Handler );
 		}
 
-		public void Setup ( int width, int height, int level,
+		public void SetDebugName ( string name )
+		{
+			if ( name == null )
+				GL.ObjectLabel ( ObjectLabelIdentifier.Texture, m_Handler, 0, null );
+			else
+				GL.ObjectLabel ( ObjectLabelIdentifier.Texture, m_Handler, name.Length, name );
+		}
+
+		public void SetData ( int level,
+			int width, int height,
+			PixelInternalFormat internalformat, PixelFormat format )
+		{
+			GL.TexImage2D ( TextureTarget.Texture2D, level, internalformat, width, height, 0, format, PixelType.UnsignedByte, IntPtr.Zero );
+		}
+
+		public void SetData ( int level,
+			int width, int height,
 			PixelInternalFormat internalformat, PixelFormat format,
 			PixelType type, IntPtr data )
 		{
 			GL.TexImage2D ( TextureTarget.Texture2D, level, internalformat, width, height, 0, format, type, data );
 		}
 
-		public void Setup ( int width, int height, int level,
-			PixelInternalFormat internalformat, PixelFormat format )
+		public void SetData ( int level,
+			int xoffset, int yoffset,
+			int width, int height, PixelFormat format,
+			PixelType type, IntPtr data )
 		{
-			GL.TexImage2D ( TextureTarget.Texture2D, level, internalformat, width, height, 0, format, PixelType.UnsignedByte, IntPtr.Zero );
-		}
-
-		public void SetupCompressed ( int width, int height, int level, PixelInternalFormat internalformat,
-			int dataSize, IntPtr data )
-		{
-			GL.CompressedTexImage2D ( TextureTarget.Texture2D, level, internalformat, width, height, 0, dataSize, data );
-		}
-
-		public void SetupCompressed ( int width, int height, int level, PixelInternalFormat internalformat )
-		{
-			GL.CompressedTexImage2D ( TextureTarget.Texture2D, level, internalformat, width, height, 0, 0, IntPtr.Zero );
+			GL.TexSubImage2D ( TextureTarget.Texture2D, level, xoffset, yoffset, width, height, format, type, data );
 		}
 
 		public void SetDataBuffer ( SizedInternalFormat internalformat, GLBuffer buffer )
 		{
 			GL.TexBuffer ( TextureBufferTarget.TextureBuffer, internalformat, buffer.Handler );
-		}
-
-		public void SetData ( int xoffset, int yoffset,
-			int width, int height, int level, PixelFormat format,
-			PixelType type, IntPtr data )
-		{
-			GL.TexSubImage2D ( TextureTarget.Texture2D, level, xoffset, yoffset, width, height, format, type, data );
 		}
 
 		public void GetData ( int level, PixelFormat format,
@@ -474,8 +474,17 @@ namespace CrowEngine
 			GL.GetTexImage ( TextureTarget.Texture2D, level, format, type, data );
 		}
 
-		public void SetCompressedData ( int xoffset, int yoffset,
-			int width, int height, int level, PixelFormat format,
+
+		public void SetCompressedData ( int level,
+			int width, int height, PixelInternalFormat internalformat,
+			int dataSize, IntPtr data )
+		{
+			GL.CompressedTexImage2D ( TextureTarget.Texture2D, level, internalformat, width, height, 0, dataSize, data );
+		}
+
+		public void SetCompressedData ( int level,
+			int xoffset, int yoffset,
+			int width, int height, PixelFormat format,
 			int dataSize, IntPtr data )
 		{
 			GL.CompressedTexSubImage2D ( TextureTarget.Texture2D, level, xoffset, yoffset, width, height, format, dataSize, data );
@@ -487,9 +496,10 @@ namespace CrowEngine
 		}
 
 		// copy data from screen
-		public void Copy ( int xoffset, int yoffset,
+		public void Copy ( int level,
+			int xoffset, int yoffset,
 			int x, int y,
-			int width, int height, int level )
+			int width, int height )
 		{
 			GL.CopyTexSubImage2D ( TextureTarget.Texture2D, level, xoffset, yoffset, x, y, width, height );
 		}

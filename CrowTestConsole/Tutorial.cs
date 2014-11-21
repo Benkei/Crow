@@ -1,12 +1,14 @@
-﻿using System;
+﻿
+//#define Multythread
+
+using System;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
 using System.Threading;
 using CrowEngine.Components;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+
 
 namespace CrowEngine
 {
@@ -52,6 +54,7 @@ namespace CrowEngine
 			// cache callback
 			m_DebugCallback = GLDebugCallback;
 
+#if Multythread
 			using ( var waitReady = new EventWaitHandle ( false, EventResetMode.ManualReset ) )
 			{
 				Context.MakeCurrent ( null );
@@ -72,6 +75,7 @@ namespace CrowEngine
 				waitReady.WaitOne ();
 			}
 			Debug.WriteLine ( "All thread started" );
+#endif
 		}
 
 		void GLDebugCallback ( DebugSource source, DebugType type,
@@ -97,14 +101,28 @@ namespace CrowEngine
 			m_Cube = new GameObject ();
 			m_Cube.Transform.Position = new SharpDX.Vector3 ( 0.0f, 0.0f, 3.0f );
 			m_Cube.AddComponent<MeshRenderer> ();
+
+#if !Multythread
+			GL.Enable ( EnableCap.DebugOutput );
+			GL.DebugMessageCallback ( m_DebugCallback, IntPtr.Zero );
+			
+			VSync = VSyncMode.Adaptive;
+
+			GL.Enable ( EnableCap.DepthTest );
+			GL.ClearColor ( Color4.CornflowerBlue );
+
+			LoadAssets ();
+#endif
 		}
 
 		protected override void OnUnload ( EventArgs e )
 		{
 			m_RunningThread = false;
 
+#if Multythread
 			m_RenderingThread.Join ( 1000 * 15 );
-			m_ResourceThread.Join ( 1000 * 15 );
+			m_ResourceThread.Join ( 1000 * 15 ); 
+#endif
 
 			base.OnUnload ( e );
 		}
@@ -116,6 +134,15 @@ namespace CrowEngine
 
 			m_Cube.Transform.Rotation = SharpDX.Quaternion.RotationAxis ( SharpDX.Vector3.UnitY, 0.55f * time )
 				* SharpDX.Quaternion.RotationAxis ( SharpDX.Vector3.UnitX, 0.15f * time );
+		}
+
+		protected override void OnRenderFrame ( FrameEventArgs e )
+		{
+			base.OnRenderFrame ( e );
+#if !Multythread
+			Render ( e.Time );
+			SwapBuffers ();
+#endif
 		}
 
 		void ResourceThread ( object obj )
@@ -224,7 +251,17 @@ namespace CrowEngine
 
 		private void LoadAssets ()
 		{
-			m_Texture = TextureFactory.Load ( "Assets/guid.JPG" );
+			var muh = new CrowEditor.AssetProcessors.TextureProcessor ();
+			//muh.Setup ( "Assets/guid.jpg", "Assets/guid.meta" );
+			//muh.Setup ( "Assets/that_girl.tif", "Assets/that_girl.meta" );
+			//muh.Setup ( "Assets/test_0.jpg", "Assets/test_0.meta" );
+			muh.Setup ( "Assets/test_1.jpg", "Assets/test_1.meta" );
+			//muh.Setup ( "Assets/test_2.jpg", "Assets/test_2.meta" );
+			muh.NearPowerOfTwo = true;
+			muh.Execute ();
+			m_Texture = muh.tex;
+
+			//m_Texture = TextureFactory.Load ( "Assets/guid.JPG" );
 
 			m_Program = GpuPrograms.GpuProgramFactory.Load ( "Assets/Simple.gfx" );
 

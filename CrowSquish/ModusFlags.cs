@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace CrowSquish
 {
+	[Flags]
 	public enum ModusFlags
 	{
 		//! Use DXT1 compression.

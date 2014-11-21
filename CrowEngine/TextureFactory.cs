@@ -21,8 +21,8 @@ namespace CrowEngine
 
 			Texture2D tex = new Texture2D ();
 			tex.Bind ();
-			tex.Setup (
-				bmp_data.Width, bmp_data.Height, 0,
+			tex.SetData (
+				0, bmp_data.Width, bmp_data.Height,
 				PixelInternalFormat.CompressedRgbS3tcDxt1Ext, PixelFormat.Rgb, PixelType.UnsignedByte, bmp_data.Scan0 );
 
 			bitmap.UnlockBits ( bmp_data );
@@ -54,8 +54,8 @@ namespace CrowEngine
 
 			Texture2D tex = new Texture2D ();
 			tex.Bind ();
-			tex.Setup (
-				bmp_data.Width, bmp_data.Height, 0,
+			tex.SetData (
+				0, bmp_data.Width, bmp_data.Height,
 				PixelInternalFormat.CompressedRgbS3tcDxt1Ext, PixelFormat.Rgb, PixelType.UnsignedByte, bmp_data.Scan0 );
 
 			bitmap.UnlockBits ( bmp_data );

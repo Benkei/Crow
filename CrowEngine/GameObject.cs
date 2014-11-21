@@ -64,7 +64,7 @@ namespace CrowEngine
 		}
 
 
-		internal GameObject ()
+		public GameObject ()
 		{
 			m_Transform = new Transform ();
 
@@ -179,7 +179,7 @@ namespace CrowEngine
 			base.DestroyObject ();
 		}
 
-		internal T AddComponent<T> ()
+		public T AddComponent<T> ()
 			where T : Component, new ()
 		{
 			if ( m_Components == null ) { m_Components = new List<Component> (); }
