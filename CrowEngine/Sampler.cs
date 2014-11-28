@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CrowEngine.Mathematics;
 using OpenTK.Graphics.OpenGL4;
-using SharpDX;
 
 namespace CrowEngine
 {

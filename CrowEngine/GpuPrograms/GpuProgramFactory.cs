@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using CrowSerialization.LitJson;
 using OpenTK.Graphics.OpenGL4;
 
@@ -21,15 +18,32 @@ namespace CrowEngine.GpuPrograms
 
 			var folder = Path.GetDirectoryName ( filePath );
 
-			var vertex = new GLShader (
-				ShaderType.VertexShader,
-				File.ReadAllText ( Path.Combine ( folder, data.Vertex.Path ), Encoding.ASCII )
-			);
+			CrowGlslOptimizer.Context ctx = new CrowGlslOptimizer.Context ( CrowGlslOptimizer.Target.OpenGL );
+			var s = ctx.Optimize ( CrowGlslOptimizer.ShaderType.Vertex, File.ReadAllText ( Path.Combine ( folder, data.Vertex.Path ), Encoding.ASCII ), CrowGlslOptimizer.Options.None );
 
-			var fragment = new GLShader (
-				ShaderType.FragmentShader,
-				File.ReadAllText ( Path.Combine ( folder, data.Fragment.Path ), Encoding.ASCII )
-			);
+			Console.WriteLine ( "VertexShader" );
+			Console.WriteLine ( "Raw" );
+			Console.WriteLine ( s.RawOutput );
+			Console.WriteLine ( "Opt" );
+			Console.WriteLine ( s.Output );
+
+			var vertex = new GLShader ( ShaderType.VertexShader, s.Output );
+
+			s.Dispose ();
+
+			s = ctx.Optimize ( CrowGlslOptimizer.ShaderType.Fragment, File.ReadAllText ( Path.Combine ( folder, data.Fragment.Path ), Encoding.ASCII ), CrowGlslOptimizer.Options.None );
+
+			Console.WriteLine ( "FragmentShader" );
+			Console.WriteLine ( "Raw" );
+			Console.WriteLine ( s.RawOutput );
+			Console.WriteLine ( "Opt" );
+			Console.WriteLine ( s.Output );
+
+			var fragment = new GLShader ( ShaderType.FragmentShader, s.Output );
+
+			s.Dispose ();
+
+			ctx.Dispose ();
 
 			var program = new GLProgram ();
 			program.SetShader ( vertex );

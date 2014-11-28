@@ -153,7 +153,7 @@ namespace CrowEditor.AssetProcessors
 				tex.MinFilter = TextureMinFilter.Nearest;
 
 				//tex.Delete ();
-				CrowEditorApp.m_GLRenderThread.List.Add ( tex );
+				//CrowEditorApp.m_GLRenderThread.List.Add ( tex );
 			}
 			Console.Write ( watch.Elapsed.TotalMilliseconds.ToString ( " 0.0ms" ) );
 			Console.WriteLine ();

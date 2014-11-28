@@ -4,9 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CrowEngine.UI
+namespace CrowGlslOptimizer
 {
-	class Canvas
+	public enum Precision : byte
 	{
+		High = 0,
+		Medium,
+		Low,
+		Count
 	}
 }

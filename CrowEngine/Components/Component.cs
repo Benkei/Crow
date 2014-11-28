@@ -34,12 +34,12 @@ namespace CrowEngine.Components
 
 		internal override void DestroyObject ()
 		{
+			base.DestroyObject ();
 			if ( m_GameObject != null )
 			{
 				m_GameObject.RemoveComponent ( this );
 				m_GameObject = null;
 			}
-			base.DestroyObject ();
 		}
 	}
 }

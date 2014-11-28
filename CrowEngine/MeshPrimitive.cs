@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CrowEngine.Mathematics;
 using OpenTK.Graphics.OpenGL4;
-using SharpDX;
 
 namespace CrowEngine
 {
@@ -85,7 +85,7 @@ namespace CrowEngine
 
 			mesh.m_Vbo = new GLBuffer ( BufferTarget.ArrayBuffer );
 			mesh.m_Vbo.Bind ();
-			mesh.m_Vbo.Setup ( 8 * Utilities.SizeOf<Vertex> (), (IntPtr)v, BufferUsageHint.StaticDraw );
+			mesh.m_Vbo.Setup ( 8 * SizeOf<Vertex>.Value, (IntPtr)v, BufferUsageHint.StaticDraw );
 
 			/*
 			// bind VBO to VAO

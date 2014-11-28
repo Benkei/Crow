@@ -2,8 +2,8 @@
 using System.Windows.Forms;
 using CrowEngine;
 using CrowEngine.Components;
+using CrowEngine.Mathematics;
 using OpenTK.Graphics.OpenGL4;
-using SharpDX;
 using WeifenLuo.WinFormsUI.Docking;
 
 namespace CrowEditor.UIForms
@@ -12,7 +12,7 @@ namespace CrowEditor.UIForms
 	{
 		GameObject m_Camera;
 		Camera m_MainCamera;
-		Vector2 m_MousePoint;
+		CrowEngine.Mathematics.Vector2 m_MousePoint;
 		bool m_RotateCamera;
 
 		bool[] keys = new bool[256];
@@ -27,14 +27,14 @@ namespace CrowEditor.UIForms
 			CrowEditorApp.m_GLRenderThread.RegisterRenderView ( this );
 
 			m_Camera = new GameObject ();
-			m_Camera.Transform.Position = new SharpDX.Vector3 ( 0, 0, -3 );
+			m_Camera.Transform.Position = new Vector3 ( 0, 0, -3 );
 
 			m_MainCamera = m_Camera.AddComponent<Camera> ();
 			m_MainCamera.FieldOfView = 75;
 			m_MainCamera.FarClipPlane = 40f;
 			m_MainCamera.NearClipPlane = 1f;
 			m_MainCamera.Aspect = 1f;
-			m_MainCamera.PixelScreenSize = new SharpDX.Rectangle ( 0, 0, ClientSize.Width, ClientSize.Height );
+			m_MainCamera.PixelScreenSize = new Rectangle ( 0, 0, ClientSize.Width, ClientSize.Height );
 		}
 
 		CrowGLControl GLRenderView.GLControl
@@ -47,7 +47,7 @@ namespace CrowEditor.UIForms
 			int w = glView.Width;
 			int h = glView.Height;
 
-			m_MainCamera.PixelScreenSize = new SharpDX.Rectangle ( 0, 0, w, h );
+			m_MainCamera.PixelScreenSize = new Rectangle ( 0, 0, w, h );
 
 			int uniform_mview = CrowEditorApp.m_GLRenderThread.uniform_mview;
 			int uniform_diffuse = CrowEditorApp.m_GLRenderThread.uniform_diffuse;

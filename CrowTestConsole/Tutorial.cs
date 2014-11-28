@@ -5,10 +5,13 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using CrowEngine.Components;
+using CrowEngine.Mathematics;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 
+using Vector3 = CrowEngine.Mathematics.Vector3;
+using Quaternion = CrowEngine.Mathematics.Quaternion;
 
 namespace CrowEngine
 {
@@ -96,10 +99,10 @@ namespace CrowEngine
 			m_MainCamera.FieldOfView = 60;
 			m_MainCamera.FarClipPlane = 40f;
 			m_MainCamera.NearClipPlane = 1f;
-			m_MainCamera.PixelScreenSize = new SharpDX.Rectangle ( 0, 0, ClientSize.Width, ClientSize.Height );
+			m_MainCamera.PixelScreenSize = new Rectangle ( 0, 0, ClientSize.Width, ClientSize.Height );
 
 			m_Cube = new GameObject ();
-			m_Cube.Transform.Position = new SharpDX.Vector3 ( 0.0f, 0.0f, 3.0f );
+			m_Cube.Transform.Position = new Vector3 ( 0.0f, 0.0f, 3.0f );
 			m_Cube.AddComponent<MeshRenderer> ();
 
 #if !Multythread
@@ -109,7 +112,7 @@ namespace CrowEngine
 			VSync = VSyncMode.Adaptive;
 
 			GL.Enable ( EnableCap.DepthTest );
-			GL.ClearColor ( Color4.CornflowerBlue );
+			GL.ClearColor ( OpenTK.Graphics.Color4.CornflowerBlue );
 
 			LoadAssets ();
 #endif
@@ -132,8 +135,8 @@ namespace CrowEngine
 			base.OnUpdateFrame ( e );
 			time += (float)e.Time;
 
-			m_Cube.Transform.Rotation = SharpDX.Quaternion.RotationAxis ( SharpDX.Vector3.UnitY, 0.55f * time )
-				* SharpDX.Quaternion.RotationAxis ( SharpDX.Vector3.UnitX, 0.15f * time );
+			m_Cube.Transform.Rotation = Quaternion.RotationAxis ( Vector3.UnitY, 0.55f * time )
+				* Quaternion.RotationAxis ( Vector3.UnitX, 0.15f * time );
 		}
 
 		protected override void OnRenderFrame ( FrameEventArgs e )
@@ -204,7 +207,7 @@ namespace CrowEngine
 			GL.DebugMessageCallback ( m_DebugCallback, IntPtr.Zero );
 
 			GL.Enable ( EnableCap.DepthTest );
-			GL.ClearColor ( Color4.CornflowerBlue );
+			GL.ClearColor ( OpenTK.Graphics.Color4.CornflowerBlue );
 
 			while ( m_RunningThread )
 			{
@@ -255,7 +258,7 @@ namespace CrowEngine
 			//muh.Setup ( "Assets/guid.jpg", "Assets/guid.meta" );
 			//muh.Setup ( "Assets/that_girl.tif", "Assets/that_girl.meta" );
 			//muh.Setup ( "Assets/test_0.jpg", "Assets/test_0.meta" );
-			muh.Setup ( "Assets/test_1.jpg", "Assets/test_1.meta" );
+			muh.Setup ( "Assets/lena.tiff", "Assets/lena.meta" );
 			//muh.Setup ( "Assets/test_2.jpg", "Assets/test_2.meta" );
 			muh.NearPowerOfTwo = true;
 			muh.Execute ();

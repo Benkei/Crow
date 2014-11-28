@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CrowEngine.Mathematics;
 using OpenTK.Graphics.OpenGL4;
-using SharpDX;
 
 namespace CrowEngine
 {
@@ -35,21 +35,21 @@ namespace CrowEngine
 				3,
 				VertexAttribPointerType.Float,
 				false,
-				Utilities.SizeOf<MeshPrimitive.Vertex> (), 0 );
+				SizeOf<MeshPrimitive.Vertex>.Value, 0 );
 			// UV 2 float
 			GL.EnableVertexAttribArray ( (int)VertexShaderSemanticInput.TEXCOORD );
 			GL.VertexAttribPointer ( (int)VertexShaderSemanticInput.TEXCOORD,
 				2,
 				VertexAttribPointerType.Float,
 				true,
-				Utilities.SizeOf<MeshPrimitive.Vertex> (), Utilities.SizeOf<Vector3> () );
+				SizeOf<MeshPrimitive.Vertex>.Value, SizeOf<Vector3>.Value );
 			// Color 4 byte
 			GL.EnableVertexAttribArray ( (int)VertexShaderSemanticInput.COLOR );
 			GL.VertexAttribPointer ( (int)VertexShaderSemanticInput.COLOR,
 				4,
 				VertexAttribPointerType.UnsignedByte,
 				true,
-				Utilities.SizeOf<MeshPrimitive.Vertex> (), Utilities.SizeOf<Vector3> () + Utilities.SizeOf<Vector2> () );
+				SizeOf<MeshPrimitive.Vertex>.Value, SizeOf<Vector3>.Value + SizeOf<Vector2>.Value );
 
 			GL.BindVertexArray ( 0 );
 		}

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CrowEngine
 {
-	class Material
+	public class Material
 	{
 		Dictionary<string, Variable> m_VariableMap = new Dictionary<string, Variable> ();
 

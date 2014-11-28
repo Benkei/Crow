@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CrowEngine.Components;
 
-namespace CrowEngine.UI
+namespace CrowEngine.Components.UI
 {
-	class CanvasRenderer
+	public class CanvasRenderer : Behavior
 	{
 	}
 }

@@ -27,7 +27,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <NuGetPackageImportStamp>8cfce304</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>56c69cef</NuGetPackageImportStamp>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -61,9 +61,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\libdebug\OpenTK.dll</HintPath>
     </Reference>
-    <Reference Include="SharpDX">
-      <HintPath>$(SharpDXPackageBinDir)\SharpDX.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -86,6 +83,45 @@
     <Compile Include="Components\Light.cs" />
     <Compile Include="Components\MeshRenderer.cs" />
     <Compile Include="Material.cs" />
+    <Compile Include="Mathematics\AngleSingle.cs" />
+    <Compile Include="Mathematics\Bool4.cs" />
+    <Compile Include="Mathematics\BoundingBox.cs" />
+    <Compile Include="Mathematics\BoundingFrustum.cs" />
+    <Compile Include="Mathematics\BoundingSphere.cs" />
+    <Compile Include="Mathematics\Collision.cs" />
+    <Compile Include="Mathematics\Color.cs" />
+    <Compile Include="Mathematics\Color.Palette.cs" />
+    <Compile Include="Mathematics\Color3.cs" />
+    <Compile Include="Mathematics\Color4.cs" />
+    <Compile Include="Mathematics\ColorBGRA.cs" />
+    <Compile Include="Mathematics\Enums.cs" />
+    <Compile Include="Mathematics\FrustumCameraParams.cs" />
+    <Compile Include="Mathematics\Half.cs" />
+    <Compile Include="Mathematics\Half2.cs" />
+    <Compile Include="Mathematics\Half3.cs" />
+    <Compile Include="Mathematics\Half4.cs" />
+    <Compile Include="Mathematics\HalfUtils.cs" />
+    <Compile Include="Mathematics\Int3.cs" />
+    <Compile Include="Mathematics\Int4.cs" />
+    <Compile Include="Mathematics\MathUtil.cs" />
+    <Compile Include="Mathematics\Matrix.cs" />
+    <Compile Include="Mathematics\Matrix3x2.cs" />
+    <Compile Include="Mathematics\Matrix3x3.cs" />
+    <Compile Include="Mathematics\Matrix5x4.cs" />
+    <Compile Include="Mathematics\OrientedBoundingBox.cs" />
+    <Compile Include="Mathematics\Plane.cs" />
+    <Compile Include="Mathematics\Point.cs" />
+    <Compile Include="Mathematics\Quaternion.cs" />
+    <Compile Include="Mathematics\RandomUtil.cs" />
+    <Compile Include="Mathematics\Ray.cs" />
+    <Compile Include="Mathematics\Rectangle.cs" />
+    <Compile Include="Mathematics\RectangleF.cs" />
+    <Compile Include="Mathematics\Vector2.cs" />
+    <Compile Include="Mathematics\Vector3.cs" />
+    <Compile Include="Mathematics\Vector4.cs" />
+    <Compile Include="Mathematics\Viewport.cs" />
+    <Compile Include="Mathematics\ViewportF.cs" />
+    <Compile Include="ObjectPool.cs" />
     <Compile Include="RectTransform.cs" />
     <Compile Include="Components\Renderer.cs" />
     <Compile Include="GameObject.cs" />
@@ -105,21 +141,24 @@
     <Compile Include="RenderBuffer.cs" />
     <Compile Include="Sampler.cs" />
     <Compile Include="SceneGraph.cs" />
+    <Compile Include="SizeOf.cs" />
     <Compile Include="Texture.cs" />
     <Compile Include="Texture1D.cs" />
     <Compile Include="Texture2D.cs" />
     <Compile Include="Texture3D.cs" />
     <Compile Include="TextureFactory.cs" />
     <Compile Include="Transform.cs" />
-    <Compile Include="UI\Canvas.cs" />
-    <Compile Include="UI\CanvasRenderer.cs" />
+    <Compile Include="Components\UI\BaseGraphic.cs" />
+    <Compile Include="Components\UI\Canvas.cs" />
+    <Compile Include="Components\UI\CanvasRenderer.cs" />
+    <Compile Include="Components\UI\RenderMode.cs" />
+    <Compile Include="Components\UI\Vertex.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="VertexArrayObject.cs" />
     <Compile Include="VertexShaderSemantic.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -137,19 +176,16 @@
     <Folder Include="Graphics\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CrowGlslOptimizer\CrowGlslOptimizer.csproj">
+      <Project>{4ff67086-c46d-4937-9bd3-28839009b29b}</Project>
+      <Name>CrowGlslOptimizer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CrowSerialization\CrowSerialization.csproj">
       <Project>{321f8d46-d0b6-4b4c-970f-efe588805c75}</Project>
       <Name>CrowSerialization</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>Dieses Projekt verweist auf mindestens ein NuGet-Paket, das auf diesem Computer fehlt. Aktivieren Sie die Wiederherstellung von NuGet-Paketen, um die fehlende Datei herunterzuladen. Weitere Informationen finden Sie unter "http://go.microsoft.com/fwlink/?LinkID=322105". Die fehlende Datei ist "{0}".</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpDX.2.6.3\build\SharpDX.targets'))" />
-  </Target>
-  <Import Project="..\packages\SharpDX.2.6.3\build\SharpDX.targets" Condition="Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

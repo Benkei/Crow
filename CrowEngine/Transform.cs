@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using SharpDX;
+using CrowEngine.Mathematics;
 
-namespace CrowEngine
+namespace CrowEngine.Components
 {
-	public class Transform : Object, ICollection<Transform>
+	public class Transform : Component, ICollection<Transform>, IDisposable
 	{
 		private Transform m_Parent;
 		private List<Transform> m_Children;
@@ -33,11 +33,6 @@ namespace CrowEngine
 		private bool m_NeedLocalMatrixUpdate;
 		private bool m_ParentNotified;
 
-		public GameObject GameObject
-		{
-			get;
-			private set;
-		}
 
 		public Transform Root
 		{
@@ -341,22 +336,25 @@ namespace CrowEngine
 			//if ( child.SceneManager != SceneManager )
 			//	throw new ArgumentException ( "Given child is created form a another SceneManager!", "child" );
 
-			if ( m_Children == null ) { m_Children = new List<Transform> (); }
-			m_Children.Add ( child );
+			if ( child.m_Parent == this )
+				return;
+
+			if ( m_Children == null )
+				m_Children = new List<Transform> ();
+
 			if ( child.m_Parent != null )
-			{
 				child.m_Parent.RemoveChild ( child );
-			}
 			else
 			{
 				//SceneManager.RemoveRootNode ( child );
 			}
+			m_Children.Add ( child );
 			child.m_Parent = this;
 		}
 
 		public bool RemoveChild ( Transform child )
 		{
-			if ( child != null && m_Children != null )
+			if ( child != null && m_Children != null && child.m_Parent == this )
 			{
 				//if ( child.SceneManager != SceneManager )
 				//	throw new ArgumentException ( "Given child is created form a another SceneManager!", "child" );
@@ -369,6 +367,18 @@ namespace CrowEngine
 				}
 			}
 			return false;
+		}
+
+		public void RemoveChildAt ( int index )
+		{
+			if ( m_Children == null || index < 0 || index >= m_Children.Count )
+				throw new ArgumentOutOfRangeException ();
+
+			var child = m_Children[index];
+			child.m_Parent = null;
+			m_Children.RemoveAt ( index );
+			//SceneManager.AddRootNode ( child );
+			cancelUpdate ( child );
 		}
 
 		public void DetachAllChilds ()
@@ -388,6 +398,23 @@ namespace CrowEngine
 		public override string ToString ()
 		{
 			return string.Format ( "Transform of node '{0}'", Name );
+		}
+
+		public void Dispose ()
+		{
+			if ( m_Parent != null )
+			{
+				Parent = null;
+			}
+			if ( m_Children != null )
+			{
+				for ( int i = m_Children.Count - 1; i >= 0; i-- )
+				{
+					var child = m_Children[i];
+					RemoveChildAt ( i );
+					child.Dispose ();
+				}
+			}
 		}
 
 		void ICollection<Transform>.Add ( Transform child )
@@ -415,15 +442,10 @@ namespace CrowEngine
 
 		internal override void DestroyObject ()
 		{
+			base.DestroyObject ();
 			if ( m_Parent != null )
 			{
 				Parent = null;
-			}
-			if ( GameObject != null )
-			{
-				var tmp = GameObject;
-				GameObject = null;
-				tmp.DestroyObject ();
 			}
 			if ( m_Children != null )
 			{
@@ -433,18 +455,6 @@ namespace CrowEngine
 					child.DestroyObject ();
 				}
 			}
-			base.DestroyObject ();
-		}
-
-		private void RemoveChildAt ( int index )
-		{
-			var child = m_Children[index];
-			child.m_Parent = null;
-			m_Children.RemoveAt ( index );
-			if ( m_ChildrenToUpdate != null )
-				m_ChildrenToUpdate.Remove ( child );
-			//SceneManager.AddRootNode ( child );
-			cancelUpdate ( child );
 		}
 
 		private void UpdateFromParent ()
