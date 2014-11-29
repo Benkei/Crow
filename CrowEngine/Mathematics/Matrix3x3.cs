@@ -263,12 +263,12 @@ namespace CrowEngine.Mathematics
 					case 0: return M11;
 					case 1: return M12;
 					case 2: return M13;
-					case 4: return M21;
-					case 5: return M22;
-					case 6: return M23;
-					case 8: return M31;
-					case 9: return M32;
-					case 10: return M33;
+					case 3: return M21;
+					case 4: return M22;
+					case 5: return M23;
+					case 6: return M31;
+					case 7: return M32;
+					case 8: return M33;
 				}
 
 				throw new ArgumentOutOfRangeException ( "index", "Indices for Matrix3x3 run from 0 to 8, inclusive." );
@@ -281,12 +281,12 @@ namespace CrowEngine.Mathematics
 					case 0: M11 = value; break;
 					case 1: M12 = value; break;
 					case 2: M13 = value; break;
-					case 4: M21 = value; break;
-					case 5: M22 = value; break;
-					case 6: M23 = value; break;
-					case 8: M31 = value; break;
-					case 9: M32 = value; break;
-					case 10: M33 = value; break;
+					case 3: M21 = value; break;
+					case 4: M22 = value; break;
+					case 5: M23 = value; break;
+					case 6: M31 = value; break;
+					case 7: M32 = value; break;
+					case 8: M33 = value; break;
 					default: throw new ArgumentOutOfRangeException ( "index", "Indices for Matrix3x3 run from 0 to 8, inclusive." );
 				}
 			}
@@ -1173,8 +1173,8 @@ namespace CrowEngine.Mathematics
 			//Adapted from the row echelon code.
 			result = value;
 			int lead = 0;
-			int rowcount = 3;
-			int columncount = 3;
+			const int rowcount = 3;
+			const int columncount = 3;
 
 			for ( int r = 0; r < rowcount; ++r )
 			{
@@ -1254,8 +1254,8 @@ namespace CrowEngine.Mathematics
 			Matrix3x3.Transpose ( ref temp, out result );
 
 			int lead = 0;
-			int rowcount = 3;
-			int columncount = 3;
+			const int rowcount = 3;
+			const int columncount = 3;
 
 			for ( int r = 0; r < rowcount; ++r )
 			{
@@ -1331,8 +1331,8 @@ namespace CrowEngine.Mathematics
 
 			result = value;
 			int lead = 0;
-			int rowcount = 3;
-			int columncount = 3;
+			const int rowcount = 3;
+			const int columncount = 3;
 
 			for ( int r = 0; r < rowcount; ++r )
 			{
@@ -2150,73 +2150,5 @@ namespace CrowEngine.Mathematics
 			var strongValue = (Matrix3x3)value;
 			return Equals ( ref strongValue );
 		}
-
-#if SlimDX1xInterop
-/* Enable if SlimDX has,or ever gets, 3x3 matrices
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="SharpDX.Matrix3x3"/> to <see cref="SlimDX.Matrix3x3"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator SlimDX.Matrix3x3(Matrix3x3 value)
-        {
-            return new SlimDX.Matrix3x3()
-            {
-                M11 = value.M11, M12 = value.M12, M13 = value.M13,
-                M21 = value.M21, M22 = value.M22, M23 = value.M23,
-                M31 = value.M31, M32 = value.M32, M33 = value.M33
-            };
-        }
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="SlimDX.Matrix3x3"/> to <see cref="SharpDX.Matrix3x3"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator Matrix3x3(SlimDX.Matrix3x3 value)
-        {
-            return new Matrix3x3()
-            {
-                M11 = value.M11, M12 = value.M12, M13 = value.M13,
-                M21 = value.M21, M22 = value.M22, M23 = value.M23,
-                M31 = value.M31, M32 = value.M32, M33 = value.M33
-            };
-        }
-*/
-#endif
-
-#if XnaInterop
-/* Enable if Xna has,or ever gets, 3x3 matrices
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="SharpDX.Matrix3x3"/> to <see cref="Microsoft.Xna.Framework.Matrix3x3"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator Microsoft.Xna.Framework.Matrix3x3(Matrix3x3 value)
-        {
-            return new Microsoft.Xna.Framework.Matrix3x3()
-            {
-                M11 = value.M11, M12 = value.M12, M13 = value.M13,
-                M21 = value.M21, M22 = value.M22, M23 = value.M23,
-                M31 = value.M31, M32 = value.M32, M33 = value.M33
-            };
-        }
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Matrix3x3"/> to <see cref="SharpDX.Matrix3x3"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator Matrix3x3(Microsoft.Xna.Framework.Matrix3x3 value)
-        {
-            return new Matrix3x3()
-            {
-                M11 = value.M11, M12 = value.M12, M13 = value.M13,
-                M21 = value.M21, M22 = value.M22, M23 = value.M23,
-                M31 = value.M31, M32 = value.M32, M33 = value.M33
-            };
-        }
-*/
-#endif
 	}
 }
