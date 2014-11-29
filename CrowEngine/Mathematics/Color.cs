@@ -30,6 +30,7 @@ namespace CrowEngine.Mathematics
 	[StructLayout ( LayoutKind.Sequential, Size = 4 )]
 	public partial struct Color : IEquatable<Color>, IFormattable
 	{
+		private const float toFloat = 1f / 255f;
 		private const string toStringFormat = "A:{0} R:{1} G:{2} B:{3}";
 
 		/// <summary>
@@ -333,7 +334,7 @@ namespace CrowEngine.Mathematics
 		/// <returns>A three component vector containing the red, green, and blue components of the color.</returns>
 		public Vector3 ToVector3 ()
 		{
-			return new Vector3 ( R / 255.0f, G / 255.0f, B / 255.0f );
+			return new Vector3 ( R * toFloat, G * toFloat, B * toFloat );
 		}
 
 		/// <summary>
@@ -342,7 +343,7 @@ namespace CrowEngine.Mathematics
 		/// <returns>A three component color containing the red, green, and blue components of the color.</returns>
 		public Color3 ToColor3 ()
 		{
-			return new Color3 ( R / 255.0f, G / 255.0f, B / 255.0f );
+			return new Color3 ( R * toFloat, G * toFloat, B * toFloat );
 		}
 
 		/// <summary>
@@ -351,7 +352,7 @@ namespace CrowEngine.Mathematics
 		/// <returns>A four component vector containing all four color components.</returns>
 		public Vector4 ToVector4 ()
 		{
-			return new Vector4 ( R / 255.0f, G / 255.0f, B / 255.0f, A / 255.0f );
+			return new Vector4 ( R * toFloat, G * toFloat, B * toFloat, A * toFloat );
 		}
 
 		/// <summary>
@@ -369,9 +370,9 @@ namespace CrowEngine.Mathematics
 		/// <returns>The Hue-Saturation-Brightness (HSB) saturation for this <see cref="Color"/></returns>
 		public float GetBrightness ()
 		{
-			float r = (float)R / 255.0f;
-			float g = (float)G / 255.0f;
-			float b = (float)B / 255.0f;
+			float r = (float)R * toFloat;
+			float g = (float)G * toFloat;
+			float b = (float)B * toFloat;
 
 			float max, min;
 
@@ -383,7 +384,7 @@ namespace CrowEngine.Mathematics
 			if ( g < min ) min = g;
 			if ( b < min ) min = b;
 
-			return (max + min) / 2;
+			return (max + min) * 0.5f;
 		}
 
 		/// <summary>
@@ -395,9 +396,9 @@ namespace CrowEngine.Mathematics
 			if ( R == G && G == B )
 				return 0; // 0 makes as good an UNDEFINED value as any
 
-			float r = (float)R / 255.0f;
-			float g = (float)G / 255.0f;
-			float b = (float)B / 255.0f;
+			float r = (float)R * toFloat;
+			float g = (float)G * toFloat;
+			float b = (float)B * toFloat;
 
 			float max, min;
 			float delta;
@@ -440,9 +441,9 @@ namespace CrowEngine.Mathematics
 		/// <returns>The Hue-Saturation-Brightness (HSB) saturation for this <see cref="Color"/></returns>
 		public float GetSaturation ()
 		{
-			float r = (float)R / 255.0f;
-			float g = (float)G / 255.0f;
-			float b = (float)B / 255.0f;
+			float r = (float)R * toFloat;
+			float g = (float)G * toFloat;
+			float b = (float)B * toFloat;
 
 			float max, min;
 			float l, s = 0;
@@ -460,9 +461,9 @@ namespace CrowEngine.Mathematics
 			//
 			if ( max != min )
 			{
-				l = (max + min) / 2;
+				l = (max + min) * 0.5f;
 
-				if ( l <= .5 )
+				if ( l <= 0.5f )
 				{
 					s = (max - min) / (max + min);
 				}
@@ -532,10 +533,10 @@ namespace CrowEngine.Mathematics
 		/// <param name="result">When the method completes, contains the modulated color.</param>
 		public static void Modulate ( ref Color left, ref Color right, out Color result )
 		{
-			result.A = (byte)(left.A * right.A / 255.0f);
-			result.R = (byte)(left.R * right.R / 255.0f);
-			result.G = (byte)(left.G * right.G / 255.0f);
-			result.B = (byte)(left.B * right.B / 255.0f);
+			result.A = (byte)(left.A * right.A * toFloat);
+			result.R = (byte)(left.R * right.R * toFloat);
+			result.G = (byte)(left.G * right.G * toFloat);
+			result.B = (byte)(left.B * right.B * toFloat);
 		}
 
 		/// <summary>
@@ -850,9 +851,9 @@ namespace CrowEngine.Mathematics
 		public static void AdjustContrast ( ref Color value, float contrast, out Color result )
 		{
 			result.A = value.A;
-			result.R = ToByte ( 0.5f + contrast * (value.R / 255.0f - 0.5f) );
-			result.G = ToByte ( 0.5f + contrast * (value.G / 255.0f - 0.5f) );
-			result.B = ToByte ( 0.5f + contrast * (value.B / 255.0f - 0.5f) );
+			result.R = ToByte ( 0.5f + contrast * (value.R * toFloat - 0.5f) );
+			result.G = ToByte ( 0.5f + contrast * (value.G * toFloat - 0.5f) );
+			result.B = ToByte ( 0.5f + contrast * (value.B * toFloat - 0.5f) );
 		}
 
 		/// <summary>
@@ -864,9 +865,9 @@ namespace CrowEngine.Mathematics
 		public static Color AdjustContrast ( Color value, float contrast )
 		{
 			return new Color (
-				 ToByte ( 0.5f + contrast * (value.R / 255.0f - 0.5f) ),
-				 ToByte ( 0.5f + contrast * (value.G / 255.0f - 0.5f) ),
-				 ToByte ( 0.5f + contrast * (value.B / 255.0f - 0.5f) ),
+				 ToByte ( 0.5f + contrast * (value.R * toFloat - 0.5f) ),
+				 ToByte ( 0.5f + contrast * (value.G * toFloat - 0.5f) ),
+				 ToByte ( 0.5f + contrast * (value.B * toFloat - 0.5f) ),
 				 value.A );
 		}
 
@@ -878,12 +879,12 @@ namespace CrowEngine.Mathematics
 		/// <param name="result">When the method completes, contains the adjusted color.</param>
 		public static void AdjustSaturation ( ref Color value, float saturation, out Color result )
 		{
-			float grey = value.R / 255.0f * 0.2125f + value.G / 255.0f * 0.7154f + value.B / 255.0f * 0.0721f;
+			float grey = value.R * toFloat * 0.2125f + value.G * toFloat * 0.7154f + value.B * toFloat * 0.0721f;
 
 			result.A = value.A;
-			result.R = ToByte ( grey + saturation * (value.R / 255.0f - grey) );
-			result.G = ToByte ( grey + saturation * (value.G / 255.0f - grey) );
-			result.B = ToByte ( grey + saturation * (value.B / 255.0f - grey) );
+			result.R = ToByte ( grey + saturation * (value.R * toFloat - grey) );
+			result.G = ToByte ( grey + saturation * (value.G * toFloat - grey) );
+			result.B = ToByte ( grey + saturation * (value.B * toFloat - grey) );
 		}
 
 		/// <summary>
@@ -894,12 +895,12 @@ namespace CrowEngine.Mathematics
 		/// <returns>The adjusted color.</returns>
 		public static Color AdjustSaturation ( Color value, float saturation )
 		{
-			float grey = value.R / 255.0f * 0.2125f + value.G / 255.0f * 0.7154f + value.B / 255.0f * 0.0721f;
+			float grey = value.R * toFloat * 0.2125f + value.G * toFloat * 0.7154f + value.B * toFloat * 0.0721f;
 
 			return new Color (
-				 ToByte ( grey + saturation * (value.R / 255.0f - grey) ),
-				 ToByte ( grey + saturation * (value.G / 255.0f - grey) ),
-				 ToByte ( grey + saturation * (value.B / 255.0f - grey) ),
+				 ToByte ( grey + saturation * (value.R * toFloat - grey) ),
+				 ToByte ( grey + saturation * (value.G * toFloat - grey) ),
+				 ToByte ( grey + saturation * (value.B * toFloat - grey) ),
 				 value.A );
 		}
 
@@ -975,7 +976,7 @@ namespace CrowEngine.Mathematics
 		/// <returns>The modulated color.</returns>
 		public static Color operator * ( Color left, Color right )
 		{
-			return new Color ( (byte)(left.R * right.R / 255.0f), (byte)(left.G * right.G / 255.0f), (byte)(left.B * right.B / 255.0f), (byte)(left.A * right.A / 255.0f) );
+			return new Color ( (byte)(left.R * right.R * toFloat), (byte)(left.G * right.G * toFloat), (byte)(left.B * right.B * toFloat), (byte)(left.A * right.A * toFloat) );
 		}
 
 		/// <summary>
@@ -1017,7 +1018,7 @@ namespace CrowEngine.Mathematics
 		/// <returns>The result of the conversion.</returns>
 		public static explicit operator Vector3 ( Color value )
 		{
-			return new Vector3 ( value.R / 255.0f, value.G / 255.0f, value.B / 255.0f );
+			return new Vector3 ( value.R * toFloat, value.G * toFloat, value.B * toFloat );
 		}
 
 		/// <summary>
@@ -1027,7 +1028,7 @@ namespace CrowEngine.Mathematics
 		/// <returns>The result of the conversion.</returns>
 		public static explicit operator Vector4 ( Color value )
 		{
-			return new Vector4 ( value.R / 255.0f, value.G / 255.0f, value.B / 255.0f, value.A / 255.0f );
+			return new Vector4 ( value.R * toFloat, value.G * toFloat, value.B * toFloat, value.A * toFloat );
 		}
 
 		/// <summary>
@@ -1036,7 +1037,7 @@ namespace CrowEngine.Mathematics
 		/// <returns>The result of the conversion.</returns>
 		public Color4 ToColor4 ()
 		{
-			return new Color4 ( R / 255.0f, G / 255.0f, B / 255.0f, A / 255.0f );
+			return new Color4 ( R * toFloat, G * toFloat, B * toFloat, A * toFloat );
 		}
 
 		/// <summary>

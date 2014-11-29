@@ -49,7 +49,7 @@ namespace CrowEngine.Mathematics
 		/// </remarks>
 		public OrientedBoundingBox ( BoundingBox bb )
 		{
-			var Center = bb.Minimum + (bb.Maximum - bb.Minimum) / 2f;
+			var Center = bb.Minimum + (bb.Maximum - bb.Minimum) * 0.5f;
 			Extents = bb.Maximum - Center;
 			Transformation = Matrix.Translation ( Center );
 		}
@@ -64,7 +64,7 @@ namespace CrowEngine.Mathematics
 		/// </remarks>
 		public OrientedBoundingBox ( Vector3 minimum, Vector3 maximum )
 		{
-			var Center = minimum + (maximum - minimum) / 2f;
+			var Center = minimum + (maximum - minimum) * 0.5f;
 			Extents = maximum - Center;
 			Transformation = Matrix.Translation ( Center );
 		}
@@ -91,7 +91,7 @@ namespace CrowEngine.Mathematics
 				Vector3.Max ( ref maximum, ref points[i], out maximum );
 			}
 
-			var Center = minimum + (maximum - minimum) / 2f;
+			var Center = minimum + (maximum - minimum) * 0.5f;
 			Extents = maximum - Center;
 			Transformation = Matrix.Translation ( Center );
 		}
@@ -534,7 +534,7 @@ namespace CrowEngine.Mathematics
 			if ( cornersCheck != ContainmentType.Disjoint )
 				return cornersCheck;
 
-			var boxCenter = box.Minimum + (box.Maximum - box.Minimum) / 2f;
+			var boxCenter = box.Minimum + (box.Maximum - box.Minimum) * 0.5f;
 			var boxExtents = box.Maximum - boxCenter;
 
 			var SizeA = Extents;
@@ -734,7 +734,7 @@ namespace CrowEngine.Mathematics
 			BoundingBox.Merge ( ref B_LocalBB, ref A_LocalBB, out mergedBB );
 
 			//Find the new Extents and Center, Transform Center back to world
-			var newCenter = mergedBB.Minimum + (mergedBB.Maximum - mergedBB.Minimum) / 2f;
+			var newCenter = mergedBB.Minimum + (mergedBB.Maximum - mergedBB.Minimum) * 0.5f;
 			A.Extents = mergedBB.Maximum - newCenter;
 			Vector3.TransformCoordinate ( ref newCenter, ref A.Transformation, out newCenter );
 			A.Transformation.TranslationVector = newCenter;

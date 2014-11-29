@@ -55,6 +55,7 @@ namespace CrowEngine.Mathematics
 	[StructLayout ( LayoutKind.Sequential, Pack = 4 )]
 	public struct Color4 : IEquatable<Color4>, IFormattable
 	{
+		private const float toFloat = 1f / 255f;
 		private const string toStringFormat = "Alpha:{0} Red:{1} Green:{2} Blue:{3}";
 
 		/// <summary>
@@ -142,10 +143,10 @@ namespace CrowEngine.Mathematics
 		/// <param name="rgba">A packed integer containing all four color components in RGBA order.</param>
 		public Color4 ( uint rgba )
 		{
-			Alpha = ((rgba >> 24) & 255) / 255.0f;
-			Blue = ((rgba >> 16) & 255) / 255.0f;
-			Green = ((rgba >> 8) & 255) / 255.0f;
-			Red = (rgba & 255) / 255.0f;
+			Alpha = ((rgba >> 24) & 255) * toFloat;
+			Blue = ((rgba >> 16) & 255) * toFloat;
+			Green = ((rgba >> 8) & 255) * toFloat;
+			Red = (rgba & 255) * toFloat;
 		}
 
 		/// <summary>
@@ -154,10 +155,10 @@ namespace CrowEngine.Mathematics
 		/// <param name="rgba">A packed integer containing all four color components in RGBA order.</param>
 		public Color4 ( int rgba )
 		{
-			Alpha = ((rgba >> 24) & 255) / 255.0f;
-			Blue = ((rgba >> 16) & 255) / 255.0f;
-			Green = ((rgba >> 8) & 255) / 255.0f;
-			Red = (rgba & 255) / 255.0f;
+			Alpha = ((rgba >> 24) & 255) * toFloat;
+			Blue = ((rgba >> 16) & 255) * toFloat;
+			Green = ((rgba >> 8) & 255) * toFloat;
+			Red = (rgba & 255) * toFloat;
 		}
 
 		/// <summary>

@@ -176,7 +176,7 @@ namespace CrowEngine.Mathematics
 		{
 			get
 			{
-				return new Vector2 ( X + (Width / 2), Y + (Height / 2) );
+				return new Vector2 ( X + (Width * 0.5f), Y + (Height * 0.5f) );
 			}
 		}
 

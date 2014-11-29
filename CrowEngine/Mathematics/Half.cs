@@ -200,7 +200,8 @@ namespace CrowEngine.Mathematics
 		public override int GetHashCode ()
 		{
 			ushort num = value;
-			return (((num * 3) / 2) ^ num);
+			// (((num * 3) / 2) ^ num)
+			return ((((num << 1) + num) >> 1) ^ num);
 		}
 
 		/// <summary>

@@ -55,6 +55,7 @@ namespace CrowEngine.Mathematics
 	[StructLayout ( LayoutKind.Sequential, Pack = 4 )]
 	public struct Color3 : IEquatable<Color3>, IFormattable
 	{
+		private const float toFloat = 1f / 255f;
 		private const string toStringFormat = "Red:{0} Green:{1} Blue:{2}";
 
 		/// <summary>
@@ -122,9 +123,9 @@ namespace CrowEngine.Mathematics
 		/// The alpha component is ignored.</param>
 		public Color3 ( int rgb )
 		{
-			Blue = ((rgb >> 16) & 255) / 255.0f;
-			Green = ((rgb >> 8) & 255) / 255.0f;
-			Red = (rgb & 255) / 255.0f;
+			Blue = ((rgb >> 16) & 255) * toFloat;
+			Green = ((rgb >> 8) & 255) * toFloat;
+			Red = (rgb & 255) * toFloat;
 		}
 
 		/// <summary>

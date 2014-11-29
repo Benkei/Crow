@@ -285,8 +285,8 @@ namespace CrowEngine.Mathematics
 
 			Vector3 nearCenter = cameraPos + lookDir * znear;
 			Vector3 farCenter = cameraPos + lookDir * zfar;
-			float nearHalfHeight = (float)(znear * Math.Tan ( fov / 2f ));
-			float farHalfHeight = (float)(zfar * Math.Tan ( fov / 2f ));
+			float nearHalfHeight = (float)(znear * Math.Tan ( fov * 0.5f ));
+			float farHalfHeight = (float)(zfar * Math.Tan ( fov * 0.5f ));
 			float nearHalfWidth = nearHalfHeight * aspect;
 			float farHalfWidth = farHalfHeight * aspect;
 
