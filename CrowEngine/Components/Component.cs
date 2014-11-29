@@ -2,7 +2,7 @@
 
 namespace CrowEngine.Components
 {
-	public abstract class Component : Object
+	public abstract class Component : Object, IDisposable
 	{
 		GameObject m_GameObject;
 
@@ -22,6 +22,17 @@ namespace CrowEngine.Components
 		}
 
 
+
+		public void Dispose ()
+		{
+			if ( m_GameObject != null )
+			{
+				m_GameObject.RemoveComponent ( this );
+				m_GameObject = null;
+			}
+			DestroyObject ();
+		}
+
 		internal void Init ( GameObject root )
 		{
 			m_GameObject = root;
@@ -30,16 +41,6 @@ namespace CrowEngine.Components
 
 		protected virtual void OnAwake ()
 		{
-		}
-
-		internal override void DestroyObject ()
-		{
-			base.DestroyObject ();
-			if ( m_GameObject != null )
-			{
-				m_GameObject.RemoveComponent ( this );
-				m_GameObject = null;
-			}
 		}
 	}
 }

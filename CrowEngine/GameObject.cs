@@ -4,15 +4,13 @@ using CrowEngine.Components;
 
 namespace CrowEngine
 {
-	public sealed class GameObject : Object
+	public sealed class GameObject : Object, IDisposable
 	{
 		private List<Component> m_Components;
 		private Transform m_Transform;
 
 		public GameObject ()
 		{
-			m_Transform = new Transform ();
-
 			Active = true;
 			Layer = ~0;
 		}
@@ -207,6 +205,11 @@ namespace CrowEngine
 			comp.Init ( this );
 			m_Components.Add ( comp );
 
+			if ( comp is Transform )
+			{
+				m_Transform = comp as Transform;
+			}
+
 			//if ( component is Behavior )
 			//{
 			//	SceneManager.AddComponentBehavior ( (Behavior)component );
@@ -215,14 +218,13 @@ namespace CrowEngine
 		}
 
 
-		protected override void OnDestroy ()
+		public void Dispose ()
 		{
-			base.OnDestroy ();
 			if ( m_Components != null )
 			{
 				for ( int i = m_Components.Count - 1; i >= 0; i-- )
 				{
-					m_Components[i].DestroyObject ();
+					m_Components[i].Dispose ();
 				}
 				m_Components.Clear ();
 				m_Components = null;

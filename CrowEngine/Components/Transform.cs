@@ -1,41 +1,44 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using CrowEngine.Mathematics;
 
 namespace CrowEngine.Components
 {
 	public class Transform : Component, ICollection<Transform>, IDisposable
 	{
+		[Flags]
+		enum Dirty : byte
+		{
+			NeedParentUpdate = 1 << 0,
+			NeedChildUpdate = 1 << 1,
+			WorldMatrix = 1 << 2,
+			LocalMatrix = 1 << 3,
+			ParentNotified = 1 << 4,
+		}
+
 		private Transform m_Parent;
 		private List<Transform> m_Children;
 		private HashSet<Transform> m_ChildrenToUpdate;
 
-		private Matrix m_WorldMatrix = Matrix.Identity;
+		private Matrix3x3 m_WorldMatrix = Matrix3x3.Identity;
 		private Vector3 m_WorldScale = Vector3.One;
 		private Vector3 m_WorldPosition;
 		private Quaternion m_WorldRotation = Quaternion.Identity;
 
-		private Matrix m_LocalMatrix = Matrix.Identity;
+		private Matrix3x3 m_LocalMatrix = Matrix3x3.Identity;
 		private Vector3 m_LocalScale = Vector3.One;
 		private Vector3 m_LocalPosition;
 		private Quaternion m_LocalRotation = Quaternion.Identity;
 
 		//SceneManager		m_SceneManager;
 
-		/// <summary>
-		/// need a world transform update
-		/// </summary>
-		private bool m_NeedParentUpdate;
-
-		private bool m_NeedChildUpdate;
-		private bool m_NeedMatrixUpdate;
-		private bool m_NeedLocalMatrixUpdate;
-		private bool m_ParentNotified;
-
+		private Dirty m_Dirty;
 
 		public Transform Root
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
 				Transform last = m_Parent;
@@ -51,7 +54,9 @@ namespace CrowEngine.Components
 
 		public Transform Parent
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get { return m_Parent; }
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			set
 			{
 				if ( m_Parent != value )
@@ -70,7 +75,8 @@ namespace CrowEngine.Components
 
 		public int Count
 		{
-			get { return (m_Children != null) ? m_Children.Count : 0; }
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+			get { return m_Children != null ? m_Children.Count : 0; }
 		}
 
 		public override string Name
@@ -94,22 +100,13 @@ namespace CrowEngine.Components
 		/// </summary>
 		public Matrix WorldMatrix
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
-				if ( m_NeedParentUpdate ) { UpdateFromParent (); }
-				if ( m_NeedMatrixUpdate )
-				{
-					m_NeedMatrixUpdate = false;
-
-					Matrix.RotationQuaternion ( ref m_WorldRotation, out m_WorldMatrix );
-					m_WorldMatrix.TranslationVector = m_WorldPosition;
-
-					Matrix scale;
-					Matrix.Scaling ( ref m_WorldScale, out scale );
-
-					Matrix.Multiply ( ref m_WorldMatrix, ref scale, out m_WorldMatrix );
-				}
-				return m_WorldMatrix;
+				CheckWorldMatrix ();
+				Matrix m = (Matrix)m_WorldMatrix;
+				m.TranslationVector = m_WorldPosition;
+				return m;
 			}
 		}
 
@@ -118,11 +115,14 @@ namespace CrowEngine.Components
 		/// </summary>
 		public Vector3 Position
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
-				if ( m_NeedParentUpdate ) { UpdateFromParent (); }
+				if ( (m_Dirty & Dirty.NeedParentUpdate) > 0 )
+					UpdateFromParent ();
 				return m_WorldPosition;
 			}
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			set
 			{
 				if ( m_Parent != null )
@@ -139,14 +139,17 @@ namespace CrowEngine.Components
 		/// </summary>
 		public Vector3 EulerAngles
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
-				if ( m_NeedParentUpdate ) { UpdateFromParent (); }
+				if ( (m_Dirty & Dirty.NeedParentUpdate) > 0 )
+					UpdateFromParent ();
 				Vector3 euler;
 				Mathf.QuaternionToYawPitchRoll ( ref m_WorldRotation, out euler );
 				Util.Swap ( ref euler.X, ref euler.Y );
 				return euler * Mathf.Rad2Deg; // to degrees
 			}
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			set
 			{
 				value *= Mathf.Deg2Rad; // to radians
@@ -161,11 +164,14 @@ namespace CrowEngine.Components
 		/// </summary>
 		public Quaternion Rotation
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
-				if ( m_NeedParentUpdate ) { UpdateFromParent (); }
+				if ( (m_Dirty & Dirty.NeedParentUpdate) > 0 )
+					UpdateFromParent ();
 				return m_WorldRotation;
 			}
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			set
 			{
 				if ( m_Parent != null )
@@ -183,9 +189,11 @@ namespace CrowEngine.Components
 		/// </summary>
 		public Vector3 Scale
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
-				if ( m_NeedParentUpdate ) { UpdateFromParent (); }
+				if ( (m_Dirty & Dirty.NeedParentUpdate) > 0 )
+					UpdateFromParent ();
 				return m_WorldScale;
 			}
 			//set { throw new System.NotImplementedException (); }
@@ -196,21 +204,13 @@ namespace CrowEngine.Components
 		/// </summary>
 		public Matrix LocalMatrix
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
-				if ( m_NeedLocalMatrixUpdate )
-				{
-					m_NeedLocalMatrixUpdate = false;
-
-					Matrix.RotationQuaternion ( ref m_LocalRotation, out m_LocalMatrix );
-					m_LocalMatrix.TranslationVector = m_LocalPosition;
-
-					Matrix scale;
-					Matrix.Scaling ( ref m_LocalScale, out scale );
-
-					Matrix.Multiply ( ref m_LocalMatrix, ref scale, out m_LocalMatrix );
-				}
-				return m_LocalMatrix;
+				CheckLocalMatrix ();
+				Matrix m = (Matrix)m_LocalMatrix;
+				m.TranslationVector = m_LocalPosition;
+				return m;
 			}
 		}
 
@@ -219,7 +219,9 @@ namespace CrowEngine.Components
 		/// </summary>
 		public Vector3 LocalPosition
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get { return m_LocalPosition; }
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			set
 			{
 				m_LocalPosition = value;
@@ -232,6 +234,7 @@ namespace CrowEngine.Components
 		/// </summary>
 		public Vector3 LocalEulerAngles
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
 				Vector3 euler;
@@ -239,6 +242,7 @@ namespace CrowEngine.Components
 				Util.Swap ( ref euler.X, ref euler.Y );
 				return euler * Mathf.Rad2Deg; // to degrees
 			}
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			set
 			{
 				value *= Mathf.Deg2Rad; // to radians
@@ -253,7 +257,9 @@ namespace CrowEngine.Components
 		/// </summary>
 		public Quaternion LocalRotation
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get { return m_LocalRotation; }
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			set
 			{
 				m_LocalRotation = value;
@@ -266,7 +272,9 @@ namespace CrowEngine.Components
 		/// </summary>
 		public Vector3 LocalScale
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get { return m_LocalScale; }
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			set
 			{
 				m_LocalScale = value;
@@ -276,6 +284,7 @@ namespace CrowEngine.Components
 
 		public Vector3 Right
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
 				Quaternion rot = Rotation;
@@ -287,6 +296,7 @@ namespace CrowEngine.Components
 
 		public Vector3 Up
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
 				Quaternion rot = Rotation;
@@ -298,6 +308,7 @@ namespace CrowEngine.Components
 
 		public Vector3 Forward
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
 				Quaternion rot = Rotation;
@@ -314,6 +325,7 @@ namespace CrowEngine.Components
 
 		public Transform this[int index]
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
 				if ( m_Children == null || index < 0 || index >= m_Children.Count )
@@ -323,11 +335,6 @@ namespace CrowEngine.Components
 			}
 		}
 
-		//internal Transform ( SceneManager sceneManager, string name )
-		//{
-		//	m_SceneManager = sceneManager;
-		//	Name = name;
-		//}
 
 		public void AddChild ( Transform child )
 		{
@@ -378,7 +385,7 @@ namespace CrowEngine.Components
 			child.m_Parent = null;
 			m_Children.RemoveAt ( index );
 			//SceneManager.AddRootNode ( child );
-			cancelUpdate ( child );
+			CancelUpdate ( child );
 		}
 
 		public void DetachAllChilds ()
@@ -414,6 +421,36 @@ namespace CrowEngine.Components
 					RemoveChildAt ( i );
 					child.Dispose ();
 				}
+			}
+		}
+
+		[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+		private void CheckWorldMatrix ()
+		{
+			if ( (m_Dirty & Dirty.NeedParentUpdate) > 0 )
+				UpdateFromParent ();
+			if ( (m_Dirty & Dirty.WorldMatrix) > 0 )
+			{
+				m_Dirty &= ~Dirty.WorldMatrix;
+
+				Matrix3x3.RotationQuaternion ( ref m_WorldRotation, out m_WorldMatrix );
+				Matrix3x3 scale;
+				Matrix3x3.Scaling ( ref m_WorldScale, out scale );
+				Matrix3x3.Multiply ( ref m_WorldMatrix, ref scale, out m_WorldMatrix );
+			}
+		}
+
+		[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+		private void CheckLocalMatrix ()
+		{
+			if ( (m_Dirty & Dirty.LocalMatrix) > 0 )
+			{
+				m_Dirty &= ~Dirty.LocalMatrix;
+
+				Matrix3x3.RotationQuaternion ( ref m_LocalRotation, out m_LocalMatrix );
+				Matrix3x3 scale;
+				Matrix3x3.Scaling ( ref m_LocalScale, out scale );
+				Matrix3x3.Multiply ( ref m_LocalMatrix, ref scale, out m_LocalMatrix );
 			}
 		}
 
@@ -487,22 +524,19 @@ namespace CrowEngine.Components
 				m_WorldRotation = m_LocalRotation;
 				m_WorldScale = m_LocalScale;
 			}
-			m_NeedParentUpdate = false;
+			m_Dirty &= ~Dirty.NeedParentUpdate;
 		}
 
 		private void NeedUpdate ( bool forceParentUpdate = false )
 		{
 			HasChanged = true;
-			m_NeedParentUpdate = true;
-			m_NeedChildUpdate = true;
-			m_NeedMatrixUpdate = true;
-			m_NeedLocalMatrixUpdate = true;
+			m_Dirty = ~(Dirty)0;
 
 			// Make sure we're not root and parent hasn't been notified before
-			if ( m_Parent != null && (!m_ParentNotified || forceParentUpdate) )
+			if ( m_Parent != null && ((m_Dirty & Dirty.ParentNotified) == 0 || forceParentUpdate) )
 			{
-				m_Parent.requestUpdate ( this, forceParentUpdate );
-				m_ParentNotified = true;
+				m_Parent.RequestUpdate ( this, forceParentUpdate );
+				m_Dirty |= Dirty.ParentNotified;
 			}
 
 			// all children will be updated
@@ -510,10 +544,10 @@ namespace CrowEngine.Components
 				m_ChildrenToUpdate.Clear ();
 		}
 
-		private void requestUpdate ( Transform child, bool forceParentUpdate )
+		private void RequestUpdate ( Transform child, bool forceParentUpdate )
 		{
 			// If we're already going to update everything this doesn't matter
-			if ( m_NeedChildUpdate )
+			if ( (m_Dirty & Dirty.NeedChildUpdate) > 0 )
 			{
 				return;
 			}
@@ -522,24 +556,24 @@ namespace CrowEngine.Components
 				m_ChildrenToUpdate = new HashSet<Transform> ();
 			m_ChildrenToUpdate.Add ( child );
 			// Request selective update of me, if we didn't do it before
-			if ( m_Parent != null && (!m_ParentNotified || forceParentUpdate) )
+			if ( m_Parent != null && ((m_Dirty & Dirty.ParentNotified) == 0 || forceParentUpdate) )
 			{
-				m_Parent.requestUpdate ( this, forceParentUpdate );
-				m_ParentNotified = true;
+				m_Parent.RequestUpdate ( this, forceParentUpdate );
+				m_Dirty |= Dirty.ParentNotified;
 			}
 		}
 
-		private void cancelUpdate ( Transform child )
+		private void CancelUpdate ( Transform child )
 		{
 			if ( m_ChildrenToUpdate != null )
 				m_ChildrenToUpdate.Remove ( child );
 
 			// Propogate this up if we're done
 			if ( (m_ChildrenToUpdate != null && m_ChildrenToUpdate.Count == 0)
-				&& m_Parent != null && !m_NeedChildUpdate )
+				&& m_Parent != null && (m_Dirty & Dirty.NeedChildUpdate) == 0 )
 			{
-				m_Parent.cancelUpdate ( this );
-				m_ParentNotified = false;
+				m_Parent.CancelUpdate ( this );
+				m_Dirty &= ~Dirty.ParentNotified;
 			}
 		}
 
@@ -551,22 +585,24 @@ namespace CrowEngine.Components
 		internal void Update ( bool updateChildren, bool parentHasChanged )
 		{
 			// always clear information about parent notification
-			m_ParentNotified = false;
+			m_Dirty &= ~Dirty.ParentNotified;
 
 			// Short circuit the off case
-			if ( !updateChildren && !m_NeedParentUpdate && !m_NeedChildUpdate && !parentHasChanged )
+			if ( !updateChildren
+				&& !parentHasChanged
+				&& (m_Dirty & (Dirty.NeedParentUpdate & Dirty.NeedChildUpdate)) == 0 )
 			{
 				return;
 			}
 
 			// See if we should process everyone
-			if ( m_NeedParentUpdate || parentHasChanged )
+			if ( (m_Dirty & Dirty.NeedParentUpdate) > 0 || parentHasChanged )
 			{
 				// Update transforms from parent
 				UpdateFromParent ();
 			}
 
-			if ( m_NeedChildUpdate || parentHasChanged )
+			if ( (m_Dirty & Dirty.NeedChildUpdate) > 0 || parentHasChanged )
 			{
 				for ( int i = 0, len = m_Children.Count; i < len; ++i )
 				{
@@ -585,7 +621,7 @@ namespace CrowEngine.Components
 			if ( m_ChildrenToUpdate != null )
 				m_ChildrenToUpdate.Clear ();
 
-			m_NeedChildUpdate = false;
+			m_Dirty &= ~Dirty.NeedChildUpdate;
 		}
 
 		#region IEnumerable<Transform> Member

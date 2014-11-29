@@ -122,7 +122,7 @@
     <Compile Include="Mathematics\Viewport.cs" />
     <Compile Include="Mathematics\ViewportF.cs" />
     <Compile Include="ObjectPool.cs" />
-    <Compile Include="RectTransform.cs" />
+    <Compile Include="Components\RectTransform.cs" />
     <Compile Include="Components\Renderer.cs" />
     <Compile Include="GameObject.cs" />
     <Compile Include="GLHandler.cs" />
@@ -147,7 +147,7 @@
     <Compile Include="Texture2D.cs" />
     <Compile Include="Texture3D.cs" />
     <Compile Include="TextureFactory.cs" />
-    <Compile Include="Transform.cs" />
+    <Compile Include="Components\Transform.cs" />
     <Compile Include="Components\UI\BaseGraphic.cs" />
     <Compile Include="Components\UI\Canvas.cs" />
     <Compile Include="Components\UI\CanvasRenderer.cs" />
