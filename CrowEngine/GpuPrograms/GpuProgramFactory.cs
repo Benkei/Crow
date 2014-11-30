@@ -18,32 +18,35 @@ namespace CrowEngine.GpuPrograms
 
 			var folder = Path.GetDirectoryName ( filePath );
 
-			CrowGlslOptimizer.Context ctx = new CrowGlslOptimizer.Context ( CrowGlslOptimizer.Target.OpenGL );
-			var s = ctx.Optimize ( CrowGlslOptimizer.ShaderType.Vertex, File.ReadAllText ( Path.Combine ( folder, data.Vertex.Path ), Encoding.ASCII ), CrowGlslOptimizer.Options.None );
+			string source = File.ReadAllText ( Path.Combine ( folder, data.Vertex.Path ), Encoding.UTF8 );
 
-			Console.WriteLine ( "VertexShader" );
-			Console.WriteLine ( "Raw" );
-			Console.WriteLine ( s.RawOutput );
-			Console.WriteLine ( "Opt" );
-			Console.WriteLine ( s.Output );
+			//CrowGlslOptimizer.Context ctx = new CrowGlslOptimizer.Context ( CrowGlslOptimizer.Target.OpenGL );
+			//var s = ctx.Optimize ( CrowGlslOptimizer.ShaderType.Vertex, source, CrowGlslOptimizer.Options.None );
 
-			var vertex = new GLShader ( ShaderType.VertexShader, s.Output );
+			//Console.WriteLine ( "VertexShader" );
+			//Console.WriteLine ( "Raw" );
+			//Console.WriteLine ( s.RawOutput );
+			//Console.WriteLine ( "Opt" );
+			//Console.WriteLine ( s.Output );
 
-			s.Dispose ();
+			var vertex = new GLShader ( ShaderType.VertexShader, source );
 
-			s = ctx.Optimize ( CrowGlslOptimizer.ShaderType.Fragment, File.ReadAllText ( Path.Combine ( folder, data.Fragment.Path ), Encoding.ASCII ), CrowGlslOptimizer.Options.None );
+			//s.Dispose ();
 
-			Console.WriteLine ( "FragmentShader" );
-			Console.WriteLine ( "Raw" );
-			Console.WriteLine ( s.RawOutput );
-			Console.WriteLine ( "Opt" );
-			Console.WriteLine ( s.Output );
+			source = File.ReadAllText ( Path.Combine ( folder, data.Fragment.Path ), Encoding.UTF8 );
+			//s = ctx.Optimize ( CrowGlslOptimizer.ShaderType.Fragment, source, CrowGlslOptimizer.Options.None );
 
-			var fragment = new GLShader ( ShaderType.FragmentShader, s.Output );
+			//Console.WriteLine ( "FragmentShader" );
+			//Console.WriteLine ( "Raw" );
+			//Console.WriteLine ( s.RawOutput );
+			//Console.WriteLine ( "Opt" );
+			//Console.WriteLine ( s.Output );
 
-			s.Dispose ();
+			var fragment = new GLShader ( ShaderType.FragmentShader, source );
 
-			ctx.Dispose ();
+			//s.Dispose ();
+
+			//ctx.Dispose ();
 
 			var program = new GLProgram ();
 			program.SetShader ( vertex );

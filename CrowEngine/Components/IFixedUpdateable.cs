@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace CrowEngine.Components
 {
-	public interface IUpdate
+	public interface IFixedUpdateable
 	{
-		void Update ();
+		void OnFixedUpdate ();
 	}
 }

@@ -29,21 +29,21 @@ namespace CrowEngine
 			m_Vao = VertexArrayObject.Create ();
 			m_Vao.Bind ();
 
-			// Position 3 float
+			// Position; 3 float
 			GL.EnableVertexAttribArray ( (int)VertexShaderSemanticInput.POSITION );
 			GL.VertexAttribPointer ( (int)VertexShaderSemanticInput.POSITION,
 				3,
 				VertexAttribPointerType.Float,
 				false,
 				SizeOf<MeshPrimitive.Vertex>.Value, 0 );
-			// UV 2 float
-			GL.EnableVertexAttribArray ( (int)VertexShaderSemanticInput.TEXCOORD );
-			GL.VertexAttribPointer ( (int)VertexShaderSemanticInput.TEXCOORD,
+			// UV; 2 float
+			GL.EnableVertexAttribArray ( (int)VertexShaderSemanticInput.TEXCOORD0 );
+			GL.VertexAttribPointer ( (int)VertexShaderSemanticInput.TEXCOORD0,
 				2,
 				VertexAttribPointerType.Float,
 				true,
 				SizeOf<MeshPrimitive.Vertex>.Value, SizeOf<Vector3>.Value );
-			// Color 4 byte
+			// Color; 4 byte
 			GL.EnableVertexAttribArray ( (int)VertexShaderSemanticInput.COLOR );
 			GL.VertexAttribPointer ( (int)VertexShaderSemanticInput.COLOR,
 				4,

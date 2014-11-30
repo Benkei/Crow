@@ -15,33 +15,21 @@ namespace CrowEngine
 
 	public abstract class Object
 	{
-		public abstract string Name { get; set; }
-		public bool IsDestroyed { get; private set; }
 		public HideFlags HideFlags { get; set; }
-		
+
+		public bool IsDestroyed { get; internal set; }
+
+		public abstract string Name { get; set; }
 
 		public override string ToString ()
 		{
-			return string.Format ( "Name: {0}", Name );
+			return string.Format ( GetType () + "; Name: {0};", Name );
 		}
-
-
-		protected virtual void OnDestroy () { }
-
 
 		protected internal void CheckDestroyed ()
 		{
 			if ( IsDestroyed )
 				throw new ObjectDisposedException ( "Object already destoryed! " + ToString () );
-		}
-
-		internal virtual void DestroyObject ()
-		{
-			if ( !IsDestroyed )
-			{
-				IsDestroyed = true;
-				OnDestroy ();
-			}
 		}
 	}
 }

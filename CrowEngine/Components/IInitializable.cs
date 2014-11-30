@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace CrowEngine.Components
 {
-	public interface IFixedUpdate
+	public interface IInitializable
 	{
-		void FixedUpdate ();
+		void OnInitialize ();
+
+		void OnDestroy ();
 	}
 }

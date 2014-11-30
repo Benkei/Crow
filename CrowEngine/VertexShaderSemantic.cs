@@ -16,8 +16,9 @@ namespace CrowEngine
 		POSITION,		// Vertex position in object space; float4
 		POSITIONT,		// Transformed vertex position; float4
 		PSIZE,			// Point size; float
-		TANGENT,		// Tangent; float4
-		TEXCOORD,		// Texture coordinates; float4
+		TANGENT,			// Tangent; float4
+		TEXCOORD0,		// Texture coordinates; float4
+		TEXCOORD1,		// Texture coordinates; float4
 	}
 	enum VertexShaderSemanticOutput
 	{

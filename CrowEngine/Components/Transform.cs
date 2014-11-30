@@ -1,40 +1,45 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using CrowEngine.Mathematics;
+using CrowEngine.Pooling;
 
 namespace CrowEngine.Components
 {
 	public class Transform : Component, ICollection<Transform>, IDisposable
 	{
 		[Flags]
-		enum Dirty : byte
+		protected enum Dirty : byte
 		{
+			None = 0,
 			NeedParentUpdate = 1 << 0,
 			NeedChildUpdate = 1 << 1,
 			WorldMatrix = 1 << 2,
 			LocalMatrix = 1 << 3,
 			ParentNotified = 1 << 4,
+			NeedRectUpdate = 1 << 5,
 		}
+
+		protected Dirty m_Dirty;
 
 		private Transform m_Parent;
 		private List<Transform> m_Children;
 		private HashSet<Transform> m_ChildrenToUpdate;
 
-		private Matrix3x3 m_WorldMatrix = Matrix3x3.Identity;
-		private Vector3 m_WorldScale = Vector3.One;
-		private Vector3 m_WorldPosition;
-		private Quaternion m_WorldRotation = Quaternion.Identity;
+		protected Matrix3x3 m_WorldMatrix = Matrix3x3.Identity;
+		protected Vector3 m_WorldScale = Vector3.One;
+		protected Vector3 m_WorldPosition;
+		protected Quaternion m_WorldRotation = Quaternion.Identity;
 
-		private Matrix3x3 m_LocalMatrix = Matrix3x3.Identity;
-		private Vector3 m_LocalScale = Vector3.One;
-		private Vector3 m_LocalPosition;
-		private Quaternion m_LocalRotation = Quaternion.Identity;
+		protected Matrix3x3 m_LocalMatrix = Matrix3x3.Identity;
+		protected Vector3 m_LocalScale = Vector3.One;
+		protected Vector3 m_LocalPosition;
+		protected Quaternion m_LocalRotation = Quaternion.Identity;
 
 		//SceneManager		m_SceneManager;
 
-		private Dirty m_Dirty;
 
 		public Transform Root
 		{
@@ -79,10 +84,19 @@ namespace CrowEngine.Components
 			get { return m_Children != null ? m_Children.Count : 0; }
 		}
 
-		public override string Name
+		public int Depth
 		{
-			get;
-			set;
+			get
+			{
+				int depth = 0;
+				Transform current = m_Parent;
+				while ( current != null )
+				{
+					current = current.m_Parent;
+					depth++;
+				}
+				return depth;
+			}
 		}
 
 		//public SceneManager SceneManager
@@ -103,7 +117,17 @@ namespace CrowEngine.Components
 			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
-				CheckWorldMatrix ();
+				if ( (m_Dirty & Dirty.NeedParentUpdate) > 0 )
+					UpdateFromParent ();
+				if ( (m_Dirty & Dirty.WorldMatrix) > 0 )
+				{
+					m_Dirty &= ~Dirty.WorldMatrix;
+
+					Matrix3x3.RotationQuaternion ( ref m_WorldRotation, out m_WorldMatrix );
+					Matrix3x3 scale;
+					Matrix3x3.Scaling ( ref m_WorldScale, out scale );
+					Matrix3x3.Multiply ( ref m_WorldMatrix, ref scale, out m_WorldMatrix );
+				}
 				Matrix m = (Matrix)m_WorldMatrix;
 				m.TranslationVector = m_WorldPosition;
 				return m;
@@ -147,12 +171,13 @@ namespace CrowEngine.Components
 				Vector3 euler;
 				Mathf.QuaternionToYawPitchRoll ( ref m_WorldRotation, out euler );
 				Util.Swap ( ref euler.X, ref euler.Y );
-				return euler * Mathf.Rad2Deg; // to degrees
+				Vector3.Multiply ( ref euler, Mathf.Rad2Deg, out euler ); // to degrees
+				return euler;
 			}
 			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			set
 			{
-				value *= Mathf.Deg2Rad; // to radians
+				Vector3.Multiply ( ref value, Mathf.Deg2Rad, out value ); // to radians
 				Quaternion rotation;
 				Quaternion.RotationYawPitchRoll ( value.Y, value.X, value.Z, out rotation );
 				Rotation = rotation;
@@ -207,7 +232,15 @@ namespace CrowEngine.Components
 			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
-				CheckLocalMatrix ();
+				if ( (m_Dirty & Dirty.LocalMatrix) > 0 )
+				{
+					m_Dirty &= ~Dirty.LocalMatrix;
+
+					Matrix3x3.RotationQuaternion ( ref m_LocalRotation, out m_LocalMatrix );
+					Matrix3x3 scale;
+					Matrix3x3.Scaling ( ref m_LocalScale, out scale );
+					Matrix3x3.Multiply ( ref m_LocalMatrix, ref scale, out m_LocalMatrix );
+				}
 				Matrix m = (Matrix)m_LocalMatrix;
 				m.TranslationVector = m_LocalPosition;
 				return m;
@@ -220,7 +253,14 @@ namespace CrowEngine.Components
 		public Vector3 LocalPosition
 		{
 			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
-			get { return m_LocalPosition; }
+			get
+			{
+				if ( (m_Dirty & Dirty.NeedRectUpdate) > 0 )
+				{
+					UpdateFromParent ();
+				}
+				return m_LocalPosition;
+			}
 			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			set
 			{
@@ -240,12 +280,13 @@ namespace CrowEngine.Components
 				Vector3 euler;
 				Mathf.QuaternionToYawPitchRoll ( ref m_LocalRotation, out euler );
 				Util.Swap ( ref euler.X, ref euler.Y );
-				return euler * Mathf.Rad2Deg; // to degrees
+				Vector3.Multiply ( ref euler, Mathf.Rad2Deg, out euler ); // to degrees
+				return euler;
 			}
 			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			set
 			{
-				value *= Mathf.Deg2Rad; // to radians
+				Vector3.Multiply ( ref value, Mathf.Deg2Rad, out value ); // to radians
 				Quaternion rotation;
 				Quaternion.RotationYawPitchRoll ( value.Y, value.X, value.Z, out rotation );
 				LocalRotation = rotation;
@@ -357,6 +398,7 @@ namespace CrowEngine.Components
 			}
 			m_Children.Add ( child );
 			child.m_Parent = this;
+			child.NeedUpdate ();
 		}
 
 		public bool RemoveChild ( Transform child )
@@ -424,36 +466,6 @@ namespace CrowEngine.Components
 			}
 		}
 
-		[MethodImpl ( MethodImplOptions.AggressiveInlining )]
-		private void CheckWorldMatrix ()
-		{
-			if ( (m_Dirty & Dirty.NeedParentUpdate) > 0 )
-				UpdateFromParent ();
-			if ( (m_Dirty & Dirty.WorldMatrix) > 0 )
-			{
-				m_Dirty &= ~Dirty.WorldMatrix;
-
-				Matrix3x3.RotationQuaternion ( ref m_WorldRotation, out m_WorldMatrix );
-				Matrix3x3 scale;
-				Matrix3x3.Scaling ( ref m_WorldScale, out scale );
-				Matrix3x3.Multiply ( ref m_WorldMatrix, ref scale, out m_WorldMatrix );
-			}
-		}
-
-		[MethodImpl ( MethodImplOptions.AggressiveInlining )]
-		private void CheckLocalMatrix ()
-		{
-			if ( (m_Dirty & Dirty.LocalMatrix) > 0 )
-			{
-				m_Dirty &= ~Dirty.LocalMatrix;
-
-				Matrix3x3.RotationQuaternion ( ref m_LocalRotation, out m_LocalMatrix );
-				Matrix3x3 scale;
-				Matrix3x3.Scaling ( ref m_LocalScale, out scale );
-				Matrix3x3.Multiply ( ref m_LocalMatrix, ref scale, out m_LocalMatrix );
-			}
-		}
-
 		void ICollection<Transform>.Add ( Transform child )
 		{
 			AddChild ( child );
@@ -477,24 +489,7 @@ namespace CrowEngine.Components
 			}
 		}
 
-		internal override void DestroyObject ()
-		{
-			base.DestroyObject ();
-			if ( m_Parent != null )
-			{
-				Parent = null;
-			}
-			if ( m_Children != null )
-			{
-				for ( int i = m_Children.Count - 1; i >= 0; i-- )
-				{
-					var child = m_Children[i];
-					child.DestroyObject ();
-				}
-			}
-		}
-
-		private void UpdateFromParent ()
+		protected virtual void UpdateFromParent ()
 		{
 			if ( m_Parent != null )
 			{
@@ -502,7 +497,7 @@ namespace CrowEngine.Components
 				Quaternion parentRotation = m_Parent.Rotation;
 
 				// Combine orientation with that of parent
-				m_WorldRotation = parentRotation * m_LocalRotation;
+				Quaternion.Multiply ( ref parentRotation, ref m_LocalRotation, out m_WorldRotation );
 
 				// Update scale
 				Vector3 parentScale = m_Parent.Scale;
@@ -515,7 +510,8 @@ namespace CrowEngine.Components
 				Vector3.Transform ( ref m_WorldPosition, ref parentRotation, out m_WorldPosition );
 
 				// Add altered position vector to parents
-				m_WorldPosition += m_Parent.Position;
+				parentScale = m_Parent.Position;
+				Vector3.Add ( ref parentScale, ref m_WorldPosition, out m_WorldPosition );
 			}
 			else
 			{
@@ -524,13 +520,14 @@ namespace CrowEngine.Components
 				m_WorldRotation = m_LocalRotation;
 				m_WorldScale = m_LocalScale;
 			}
-			m_Dirty &= ~Dirty.NeedParentUpdate;
+			m_Dirty &= ~(Dirty.NeedParentUpdate | Dirty.NeedRectUpdate);
 		}
 
-		private void NeedUpdate ( bool forceParentUpdate = false )
+		protected virtual void NeedUpdate ( bool forceParentUpdate = false )
 		{
 			HasChanged = true;
-			m_Dirty = ~(Dirty)0;
+			m_Dirty |= Dirty.NeedParentUpdate | Dirty.NeedChildUpdate
+				| Dirty.WorldMatrix | Dirty.LocalMatrix;
 
 			// Make sure we're not root and parent hasn't been notified before
 			if ( m_Parent != null && ((m_Dirty & Dirty.ParentNotified) == 0 || forceParentUpdate) )
@@ -590,13 +587,13 @@ namespace CrowEngine.Components
 			// Short circuit the off case
 			if ( !updateChildren
 				&& !parentHasChanged
-				&& (m_Dirty & (Dirty.NeedParentUpdate & Dirty.NeedChildUpdate)) == 0 )
+				&& (m_Dirty & (Dirty.NeedParentUpdate | Dirty.NeedChildUpdate | Dirty.NeedRectUpdate)) == 0 )
 			{
 				return;
 			}
 
 			// See if we should process everyone
-			if ( (m_Dirty & Dirty.NeedParentUpdate) > 0 || parentHasChanged )
+			if ( (m_Dirty & (Dirty.NeedParentUpdate | Dirty.NeedRectUpdate)) > 0 || parentHasChanged )
 			{
 				// Update transforms from parent
 				UpdateFromParent ();
@@ -625,6 +622,106 @@ namespace CrowEngine.Components
 		}
 
 		#region IEnumerable<Transform> Member
+
+		public DeepEnumerable GetDeepEnumerable ()
+		{
+			return new DeepEnumerable ( this );
+		}
+
+		public Enumerator GetEnumerator ()
+		{
+			return new Enumerator ( m_Children );
+		}
+
+		IEnumerator<Transform> IEnumerable<Transform>.GetEnumerator ()
+		{
+			return new Enumerator ( m_Children );
+		}
+
+		IEnumerator IEnumerable.GetEnumerator ()
+		{
+			return new Enumerator ( m_Children );
+		}
+
+
+		public struct DeepEnumerable : IEnumerable<Transform>
+		{
+			private Transform m_Root;
+
+			internal DeepEnumerable ( Transform root )
+			{
+				m_Root = root;
+			}
+
+			public DeepEnumerator GetEnumerator ()
+			{
+				return new DeepEnumerator ( m_Root );
+			}
+
+			IEnumerator<Transform> IEnumerable<Transform>.GetEnumerator ()
+			{
+				return new DeepEnumerator ( m_Root );
+			}
+
+			IEnumerator IEnumerable.GetEnumerator ()
+			{
+				return new DeepEnumerator ( m_Root );
+			}
+		}
+
+		public struct DeepEnumerator : IEnumerator<Transform>
+		{
+			private Stack<Enumerator> m_Stack;
+			private Transform m_Root;
+			private Transform m_Current;
+
+			public Transform Current { get { return m_Current; } }
+
+			object IEnumerator.Current { get { return m_Current; } }
+
+			internal DeepEnumerator ( Transform root )
+			{
+				m_Stack = ThreadSingleton<StackPool<Enumerator>>.Instance.Get ();
+				m_Stack.Push ( root.GetEnumerator () );
+				m_Root = root;
+				m_Current = null;
+			}
+
+			public bool MoveNext ()
+			{
+				while ( m_Stack != null && m_Stack.Count > 0 )
+				{
+					var iter = m_Stack.Pop ();
+					if ( iter.MoveNext () )
+					{
+						m_Stack.Push ( iter );
+						m_Current = iter.Current;
+						if ( m_Current.Count > 0 )
+							m_Stack.Push ( m_Current.GetEnumerator () );
+						return true;
+					}
+				}
+				m_Current = null;
+				return false;
+			}
+
+			public void Reset ()
+			{
+				m_Stack.Clear ();
+				m_Stack.Push ( m_Root.GetEnumerator () );
+				m_Current = null;
+			}
+
+			public void Dispose ()
+			{
+				if ( m_Stack != null )
+				{
+					ThreadSingleton<StackPool<Enumerator>>.Instance.Recycle ( m_Stack );
+					m_Stack = null;
+				}
+				m_Current = null;
+			}
+		}
 
 		public struct Enumerator : IEnumerator<Transform>
 		{
@@ -666,21 +763,6 @@ namespace CrowEngine.Components
 				m_Transforms = null;
 				Reset ();
 			}
-		}
-
-		public Enumerator GetEnumerator ()
-		{
-			return new Enumerator ( m_Children );
-		}
-
-		IEnumerator<Transform> IEnumerable<Transform>.GetEnumerator ()
-		{
-			return new Enumerator ( m_Children );
-		}
-
-		IEnumerator IEnumerable.GetEnumerator ()
-		{
-			return new Enumerator ( m_Children );
 		}
 
 		#endregion IEnumerable<Transform> Member

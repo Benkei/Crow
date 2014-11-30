@@ -39,12 +39,13 @@ namespace CrowEngine.Components
 	public class RectTransform : Transform
 	{
 		private RectAnchor m_Anchor;
-		private Vector3 m_AnchoredPosition;
-		// wenn anchor point ist es wight & height
-		// anchor auf stretch da ist offset zur kante
+		private Vector2 m_AnchoredPosition;
+		// anchor modus point: x:wight y:height
+		// anchor modus stretch: x:wightoffset y:heightoffset
 		private Vector2 m_SizeDelta;
 		private Vector2 m_Pivot;
 		private RectangleBounds m_Rectangle;
+
 
 		public RectTransform ()
 		{
@@ -74,74 +75,133 @@ namespace CrowEngine.Components
 		//     point.
 		public Vector2 AnchoredPosition
 		{
-			get { return (Vector2)m_AnchoredPosition; }
-			set { m_AnchoredPosition.X = value.X; m_AnchoredPosition.Y = value.Y; }
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+			get
+			{
+				if ( (m_Dirty & (Dirty.NeedParentUpdate | Dirty.NeedRectUpdate)) > 0 )
+					UpdateFromParent ();
+				return m_AnchoredPosition;
+			}
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+			set
+			{
+				m_AnchoredPosition = value;
+				NeedUpdate ();
+			}
 		}
 		public Vector3 AnchoredPosition3D
 		{
-			get { return m_AnchoredPosition; }
-			set { m_AnchoredPosition = value; }
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+			get
+			{
+				if ( (m_Dirty & (Dirty.NeedParentUpdate | Dirty.NeedRectUpdate)) > 0 )
+					UpdateFromParent ();
+				return new Vector3 ( m_AnchoredPosition, m_LocalPosition.Z );
+			}
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+			set
+			{
+				m_AnchoredPosition = (Vector2)value;
+				m_LocalPosition.X = value.X;
+				m_LocalPosition.Y = value.Y;
+				NeedUpdate ();
+			}
 		}
 		//
 		// Summary:
 		//     The normalized position in the parent RectTransform that the upper right
 		//     corner is anchored to.
-		public RectAnchor Anchor
+		public Vector2 AnchorMaximum
 		{
-			get { return m_Anchor; }
-			set { m_Anchor = value; }
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+			get { return m_Anchor.Maximum; }
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+			set
+			{
+				if ( value.X > 1 ) value.X = 1;
+				else if ( value.X < 0 ) value.X = 0;
+				if ( value.Y > 1 ) value.Y = 1;
+				else if ( value.Y < 0 ) value.Y = 0;
+				m_Anchor.Maximum = value;
+				NeedUpdate ();
+			}
+		}
+		public Vector2 AnchorMinimum
+		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+			get { return m_Anchor.Minimum; }
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+			set
+			{
+				if ( value.X > 1 ) value.X = 1;
+				else if ( value.X < 0 ) value.X = 0;
+				if ( value.Y > 1 ) value.Y = 1;
+				else if ( value.Y < 0 ) value.Y = 0;
+				m_Anchor.Minimum = value;
+				NeedUpdate ();
+			}
+		}
+		public Vector2 OffsetMinimum
+		{
+			get
+			{
+				if ( (m_Dirty & (Dirty.NeedParentUpdate | Dirty.NeedRectUpdate)) > 0 )
+					UpdateFromParent ();
+				return m_AnchoredPosition - m_SizeDelta * m_Pivot;
+			}
+			set
+			{
+				Vector2 s = value - (m_AnchoredPosition - m_SizeDelta * m_Pivot);
+				m_SizeDelta -= s;
+				m_AnchoredPosition += s * (Vector2.One - m_Pivot);
+				NeedUpdate ();
+			}
+		}
+		public Vector2 OffsetMaximum
+		{
+			get
+			{
+				if ( (m_Dirty & (Dirty.NeedParentUpdate | Dirty.NeedRectUpdate)) > 0 )
+					UpdateFromParent ();
+				return m_AnchoredPosition + m_SizeDelta * (Vector2.One - m_Pivot);
+			}
+			set
+			{
+				Vector2 s = value - (m_AnchoredPosition + m_SizeDelta * (Vector2.One - m_Pivot));
+				m_SizeDelta += s;
+				m_AnchoredPosition += s * m_Pivot;
+				NeedUpdate ();
+			}
 		}
 		//
 		// Summary:
 		//     The normalized position in this RectTransform that it rotates around.
 		public Vector2 Pivot
 		{
-			get { return m_Pivot; }
-			set { m_Pivot = value; }
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+			get
+			{
+				if ( (m_Dirty & (Dirty.NeedParentUpdate | Dirty.NeedRectUpdate)) > 0 )
+					UpdateFromParent ();
+				return m_Pivot;
+			}
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+			set
+			{
+				m_Pivot = value;
+				NeedUpdate ();
+			}
 		}
 		//
 		// Summary:
 		//     The calculated rectangle in the local space of the Transform.
-		public RectangleBounds Rect
+		public RectangleBounds Rectangle
 		{
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
-				var p = Parent as RectTransform;
-				if ( p == null )
-				{
-					m_Rectangle.Minimum = new Vector2 ();
-					m_Rectangle.Maximum = m_SizeDelta;
-				}
-				else
-				{
-					var host = p.Rect;
-					if ( m_Anchor.IsStretch )
-					{
-						var padding = m_SizeDelta * 0.5f;
-						m_Rectangle.Minimum = host.Size;
-						m_Rectangle.Minimum.X *= m_Anchor.Minimum.X;
-						m_Rectangle.Minimum.Y *= m_Anchor.Minimum.Y;
-						m_Rectangle.Minimum += host.Minimum;
-						m_Rectangle.Maximum -= padding;
-
-						m_Rectangle.Maximum = -host.Size;
-						m_Rectangle.Maximum.X *= m_Anchor.Maximum.X;
-						m_Rectangle.Maximum.Y *= m_Anchor.Maximum.Y;
-						m_Rectangle.Maximum += host.Maximum;
-						m_Rectangle.Maximum += padding;
-					}
-					else
-					{
-						var point = host.Minimum;
-						point += Vector2.Multiply ( host.Size, m_Anchor.Point );
-						point += (Vector2)m_AnchoredPosition;
-
-						point -= Vector2.Multiply ( m_SizeDelta, m_Pivot );
-
-						m_Rectangle.Minimum = point;
-						m_Rectangle.Maximum = point + m_SizeDelta;
-					}
-				}
+				if ( (m_Dirty & (Dirty.NeedParentUpdate | Dirty.NeedRectUpdate)) > 0 )
+					UpdateFromParent ();
 				return m_Rectangle;
 			}
 		}
@@ -150,8 +210,19 @@ namespace CrowEngine.Components
 		//     The size of this RectTransform relative to the distances between the anchors.
 		public Vector2 SizeDelta
 		{
-			get { return m_SizeDelta; }
-			set { m_SizeDelta = value; }
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+			get
+			{
+				if ( (m_Dirty & (Dirty.NeedParentUpdate | Dirty.NeedRectUpdate)) > 0 )
+					UpdateFromParent ();
+				return m_SizeDelta;
+			}
+			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
+			set
+			{
+				m_SizeDelta = value;
+				NeedUpdate ();
+			}
 		}
 
 
@@ -173,6 +244,51 @@ namespace CrowEngine.Components
 			Vector3 bottomRight, Vector3 bottomLeft )
 		{
 
+		}
+
+
+		protected override void NeedUpdate ( bool forceParentUpdate = false )
+		{
+			m_Dirty |= Dirty.NeedRectUpdate;
+			base.NeedUpdate ( forceParentUpdate );
+		}
+
+		protected override void UpdateFromParent ()
+		{
+			var parent = Parent as RectTransform;
+			if ( parent == null )
+			{
+				m_Rectangle.Minimum = new Vector2 ();
+				m_Rectangle.Maximum = m_SizeDelta;
+			}
+			else
+			{
+				Vector2 tmp;
+				if ( m_Anchor.IsStretch )
+				{
+					var hostSize = parent.Rectangle.Size;
+					tmp = m_SizeDelta * 0.5f;
+					m_Rectangle.Minimum = Vector2.Multiply ( hostSize, m_Anchor.Minimum );
+					m_Rectangle.Minimum -= tmp;
+					m_Rectangle.Maximum = Vector2.Multiply ( hostSize, m_Anchor.Maximum );
+					m_Rectangle.Maximum += tmp;
+
+					tmp = m_Rectangle.Minimum + m_Rectangle.Size * m_Pivot;
+					m_AnchoredPosition = tmp;
+					m_LocalPosition.X = tmp.X;
+					m_LocalPosition.Y = tmp.Y;
+				}
+				else
+				{
+					tmp = -Vector2.Multiply ( m_SizeDelta, m_Pivot );
+					m_Rectangle.Minimum = tmp;
+					m_Rectangle.Maximum = tmp + m_SizeDelta;
+
+					m_LocalPosition.X = m_AnchoredPosition.X;
+					m_LocalPosition.Y = m_AnchoredPosition.Y;
+				}
+			}
+			base.UpdateFromParent ();
 		}
 	}
 }

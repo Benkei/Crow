@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace CrowEngine.Components
 {
-	public interface ILateUpdate
+	public interface IUpdatable
 	{
-		void LateUpdate ();
+		void OnUpdate ();
 	}
 }
