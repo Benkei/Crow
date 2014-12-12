@@ -17,11 +17,15 @@ namespace CrowEngine.Components
 				if ( m_Enabled != value )
 				{
 					m_Enabled = value;
-					OnChangeEnabled ();
+					if ( this is IActivatable )
+					{
+						if ( value )
+							((IActivatable)this).OnEnable ();
+						else
+							((IActivatable)this).OnDisable ();
+					}
 				}
 			}
 		}
-		
-		protected virtual void OnChangeEnabled () { }
 	}
 }

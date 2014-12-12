@@ -11,6 +11,17 @@ namespace CrowTestConsole
 {
 	class Program
 	{
+		class TestComp : Behavior, IActivatable
+		{
+			public void OnEnable ()
+			{
+			}
+
+			public void OnDisable ()
+			{
+			}
+		}
+
 		[STAThread]
 		static void Main ( string[] args )
 		{
@@ -19,10 +30,7 @@ namespace CrowTestConsole
 			trans.AnchoredPosition = new Vector2 ( 600, 600 ) * 0.5f;
 			trans.SizeDelta = new Vector2 ( 600, 600 );
 
-			foreach ( var item in go.Transform )
-			{
-
-			}
+			go.AddComponent<TestComp> ();
 
 			var nodex = new GameObject ( "Child 5" );
 			var child = nodex.AddComponent<Transform> ();
@@ -60,6 +68,15 @@ namespace CrowTestConsole
 			foreach ( var node in go.Transform.GetDeepEnumerable () )
 			{
 				Console.WriteLine ( new string ( ' ', node.Depth ) + node.GameObject.Name );
+			}
+
+
+			var scene = new Scene ();
+			scene.AddGameObject ( go );
+
+			foreach ( var item in scene.IterateComponents ( typeof ( IActivatable ) ) )
+			{
+				Console.WriteLine ( ((Component)item).GameObject.Name );
 			}
 
 			using ( var game = new Tutorial () )

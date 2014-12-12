@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using CrowEngine.Collections;
 using CrowEngine.Components;
 using CrowEngine.Pooling;
 using CrowEngine.Reflection;
@@ -11,6 +13,7 @@ namespace CrowEngine
 	{
 		private List<Component> m_Components;
 		private Transform m_Transform;
+		private Scene m_Scene;
 
 		public GameObject ()
 		{
@@ -45,6 +48,8 @@ namespace CrowEngine
 			{
 				if ( !Active )
 					return false;
+				if ( m_Transform == null )
+					return Active;
 				var current = m_Transform.Parent;
 				while ( current != null )
 				{
@@ -62,19 +67,60 @@ namespace CrowEngine
 			set;
 		}
 
+		public GameObject Parent
+		{
+			get
+			{
+				return m_Transform != null && m_Transform.Parent != null
+					? m_Transform.Parent.GameObject
+					: this;
+			}
+		}
+
+		public GameObject Root
+		{
+			get { return m_Transform != null ? m_Transform.Root.GameObject : this; }
+		}
+
 		public Transform Transform
 		{
 			get { CheckDestroyed (); return m_Transform; }
 		}
 
-		//public SceneManager SceneManager
-		//{
-		//	get { CheckDestroyed (); return m_Transform.SceneManager; }
-		//}
+		public Scene Scene
+		{
+			get { return m_Scene; }
+			internal set { m_Scene = value; }
+		}
+
 		public override string Name
 		{
 			get;
 			set;
+		}
+
+		public string FullName
+		{
+			get
+			{
+				var sb = ThreadSingleton<StringBuilder>.Instance;
+				try
+				{
+					Transform current = m_Transform;
+					while ( current != null )
+					{
+						sb.Insert ( 0, '/' );
+						sb.Insert ( 1, current.Name );
+						current = current.Parent;
+					}
+					return sb.ToString ( 1, sb.Length - 1 );
+				}
+				finally
+				{
+					sb.Clear ();
+					sb.Capacity = 256;
+				}
+			}
 		}
 
 		public bool HasComponents
@@ -101,7 +147,7 @@ namespace CrowEngine
 		{
 			if ( type == null )
 				throw new ArgumentException ();
-			if ( !type.IsInterface && typeof ( Component ).IsAssignableFrom ( type ) )
+			if ( !type.IsInterface && type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
 			if ( m_Components == null )
 				return null;
@@ -109,7 +155,7 @@ namespace CrowEngine
 			for ( int i = m_Components.Count - 1; i >= 0; i-- )
 			{
 				comp = m_Components[i];
-				if ( type.IsAssignableFrom ( comp.GetType () ) )
+				if ( type.IsInstanceOfType ( comp ) )
 					return comp;
 			}
 			return null;
@@ -133,7 +179,7 @@ namespace CrowEngine
 		{
 			if ( type == null )
 				throw new ArgumentException ();
-			if ( !type.IsInterface && typeof ( Component ).IsAssignableFrom ( type ) )
+			if ( !type.IsInterface && type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
 			var trans = m_Transform;
 			while ( trans != null )
@@ -162,7 +208,7 @@ namespace CrowEngine
 		{
 			if ( type == null )
 				throw new ArgumentException ();
-			if ( !type.IsInterface && typeof ( Component ).IsAssignableFrom ( type ) )
+			if ( !type.IsInterface && type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
 			Component comp;
 			for ( int i = 0, len = m_Transform.Count; i < len; i++ )
@@ -188,7 +234,7 @@ namespace CrowEngine
 		{
 			if ( type == null )
 				throw new ArgumentException ();
-			if ( !type.IsInterface && typeof ( Component ).IsAssignableFrom ( type ) )
+			if ( !type.IsInterface && type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
 			if ( m_Components == null || m_Components.Count == 0 )
 				return Arrays<Component>.Empty;
@@ -209,7 +255,7 @@ namespace CrowEngine
 		{
 			if ( type == null )
 				throw new ArgumentException ();
-			if ( !type.IsInterface && typeof ( Component ).IsAssignableFrom ( type ) )
+			if ( !type.IsInterface && type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
 			var comps = new List<Component> ();
 			GetAllComponentsInParent ( comps );
@@ -230,7 +276,7 @@ namespace CrowEngine
 		{
 			if ( type == null )
 				throw new ArgumentException ();
-			if ( !type.IsInterface && typeof ( Component ).IsAssignableFrom ( type ) )
+			if ( !type.IsInterface && type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
 			if ( m_Transform.Count == 0 )
 				return Arrays<Component>.Empty;
@@ -267,7 +313,7 @@ namespace CrowEngine
 		{
 			if ( type == null )
 				throw new ArgumentNullException ();
-			if ( !type.IsInterface && typeof ( Component ).IsAssignableFrom ( type ) )
+			if ( !type.IsInterface && type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
 			if ( buffer == null )
 				throw new ArgumentNullException ( "buffer" );
@@ -281,7 +327,7 @@ namespace CrowEngine
 			for ( int i = m_Components.Count - 1; i >= 0; i-- )
 			{
 				comp = m_Components[i];
-				if ( type.IsAssignableFrom ( comp.GetType () ) )
+				if ( type.IsInstanceOfType ( comp ) )
 				{
 					buffer.Add ( comp );
 					added++;
@@ -312,7 +358,7 @@ namespace CrowEngine
 		{
 			if ( type == null )
 				throw new ArgumentNullException ();
-			if ( !type.IsInterface && typeof ( Component ).IsAssignableFrom ( type ) )
+			if ( !type.IsInterface && type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
 			if ( buffer == null )
 				throw new ArgumentNullException ( "buffer" );
@@ -351,7 +397,7 @@ namespace CrowEngine
 		{
 			if ( type == null )
 				throw new ArgumentNullException ();
-			if ( !type.IsInterface && typeof ( Component ).IsAssignableFrom ( type ) )
+			if ( !type.IsInterface && type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
 			if ( buffer == null )
 				throw new ArgumentNullException ( "buffer" );
@@ -379,41 +425,46 @@ namespace CrowEngine
 		{
 			if ( type == null )
 				throw new ArgumentNullException ();
-			if ( typeof ( Component ).IsAssignableFrom ( type ) )
+			if ( type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
 			if ( m_Components == null )
 				m_Components = new List<Component> ();
 
 			Component comp = (Component)InstanceFactory.Construct ( type );
 			comp._Setup ( this );
-			m_Components.Add ( comp );
 
 			if ( comp is Transform )
 			{
 				m_Transform = comp as Transform;
 			}
 
-			//if ( component is Behavior )
-			//{
-			//	SceneManager.AddComponentBehavior ( (Behavior)component );
-			//}
+			m_Components.Add ( comp );
+			if ( m_Scene != null )
+			{
+				m_Scene.AddComponent ( comp );
+			}
 			return comp;
 		}
 
 
-		public Enumerable IterateAllComponents ()
+		public ComponentEnumerable IterateAllComponents ()
 		{
-			return new Enumerable ( m_Components );
+			return new ComponentEnumerable ( m_Components );
 		}
 
-		public ParentEnumerable IterateAllComponentsInParent ()
+		public ParentComponentEnumerable IterateAllComponentsInParent ()
 		{
-			return new ParentEnumerable ( this );
+			return new ParentComponentEnumerable ( this );
 		}
 
-		public ChildrenEnumerable IterateAllComponentsInChildren ( bool includeInactive = false )
+		public ChildrenComponentEnumerable IterateAllComponentsInChildren ( bool includeInactive = false )
 		{
-			return new ChildrenEnumerable ( this, includeInactive );
+			return new ChildrenComponentEnumerable ( this, includeInactive );
+		}
+
+		public ChildrenEnumerable IterateChildren ( bool deep, bool includeInactive = false )
+		{
+			return new ChildrenEnumerable ( this, deep, includeInactive );
 		}
 
 
@@ -514,32 +565,32 @@ namespace CrowEngine
 
 		#region Iterators
 
-		public struct Enumerable : IEnumerable<Component>
+		public struct ComponentEnumerable : IEnumerable<Component>
 		{
 			private List<Component> m_Root;
 
-			internal Enumerable ( List<Component> root )
+			internal ComponentEnumerable ( List<Component> root )
 			{
 				m_Root = root;
 			}
 
-			public Enumerator GetEnumerator ()
+			public ComponentEnumerator GetEnumerator ()
 			{
-				return new Enumerator ( m_Root );
+				return new ComponentEnumerator ( m_Root );
 			}
 
 			IEnumerator<Component> IEnumerable<Component>.GetEnumerator ()
 			{
-				return new Enumerator ( m_Root );
+				return new ComponentEnumerator ( m_Root );
 			}
 
 			IEnumerator IEnumerable.GetEnumerator ()
 			{
-				return new Enumerator ( m_Root );
+				return new ComponentEnumerator ( m_Root );
 			}
 		}
 
-		public struct Enumerator : IEnumerator<Component>
+		public struct ComponentEnumerator : IEnumerator<Component>
 		{
 			private int m_Index;
 			private List<Component> m_List;
@@ -549,7 +600,7 @@ namespace CrowEngine
 
 			object IEnumerator.Current { get { return m_Current; } }
 
-			internal Enumerator ( List<Component> list )
+			internal ComponentEnumerator ( List<Component> list )
 			{
 				m_List = list;
 				m_Index = 0;
@@ -581,37 +632,37 @@ namespace CrowEngine
 			}
 		}
 
-		public struct ChildrenEnumerable : IEnumerable<Component>
+		public struct ChildrenComponentEnumerable : IEnumerable<Component>
 		{
 			private GameObject m_Root;
 			private bool m_IncludeInactive;
 
-			internal ChildrenEnumerable ( GameObject root, bool includeInactive )
+			internal ChildrenComponentEnumerable ( GameObject root, bool includeInactive )
 			{
 				m_Root = root;
 				m_IncludeInactive = includeInactive;
 			}
 
-			public ChildrenEnumerator GetEnumerator ()
+			public ChildrenComponentEnumerator GetEnumerator ()
 			{
-				return new ChildrenEnumerator ( m_Root, m_IncludeInactive );
+				return new ChildrenComponentEnumerator ( m_Root, m_IncludeInactive );
 			}
 
 			IEnumerator<Component> IEnumerable<Component>.GetEnumerator ()
 			{
-				return new ChildrenEnumerator ( m_Root, m_IncludeInactive );
+				return new ChildrenComponentEnumerator ( m_Root, m_IncludeInactive );
 			}
 
 			IEnumerator IEnumerable.GetEnumerator ()
 			{
-				return new ChildrenEnumerator ( m_Root, m_IncludeInactive );
+				return new ChildrenComponentEnumerator ( m_Root, m_IncludeInactive );
 			}
 		}
 
-		public struct ChildrenEnumerator : IEnumerator<Component>
+		public struct ChildrenComponentEnumerator : IEnumerator<Component>
 		{
 			private Transform.DeepEnumerator m_TreeIterator;
-			private Enumerator m_CompIterator;
+			private ComponentEnumerator m_CompIterator;
 			private GameObject m_Root;
 			private Component m_Current;
 			private bool m_IncludeInactive;
@@ -620,7 +671,7 @@ namespace CrowEngine
 
 			object IEnumerator.Current { get { return m_Current; } }
 
-			internal ChildrenEnumerator ( GameObject root, bool includeInactive )
+			internal ChildrenComponentEnumerator ( GameObject root, bool includeInactive )
 			{
 				if ( root.Transform != null )
 					m_TreeIterator = root.Transform.GetDeepEnumerable ().GetEnumerator ();
@@ -629,7 +680,7 @@ namespace CrowEngine
 				if ( root.HasComponents )
 					m_CompIterator = root.IterateAllComponents ().GetEnumerator ();
 				else
-					m_CompIterator = new Enumerator ();
+					m_CompIterator = new ComponentEnumerator ();
 				m_Root = root;
 				m_Current = null;
 				m_IncludeInactive = includeInactive;
@@ -662,45 +713,45 @@ namespace CrowEngine
 			{
 				m_TreeIterator.Dispose ();
 				m_CompIterator.Dispose ();
-				this = new ChildrenEnumerator ( m_Root, m_IncludeInactive );
+				this = new ChildrenComponentEnumerator ( m_Root, m_IncludeInactive );
 			}
 
 			public void Dispose ()
 			{
 				m_TreeIterator.Dispose ();
 				m_CompIterator.Dispose ();
-				this = new ChildrenEnumerator ();
+				this = new ChildrenComponentEnumerator ();
 			}
 		}
 
-		public struct ParentEnumerable : IEnumerable<Component>
+		public struct ParentComponentEnumerable : IEnumerable<Component>
 		{
 			private GameObject m_Root;
 
-			internal ParentEnumerable ( GameObject root )
+			internal ParentComponentEnumerable ( GameObject root )
 			{
 				m_Root = root;
 			}
 
-			public ParentEnumerator GetEnumerator ()
+			public ParentComponentEnumerator GetEnumerator ()
 			{
-				return new ParentEnumerator ( m_Root );
+				return new ParentComponentEnumerator ( m_Root );
 			}
 
 			IEnumerator<Component> IEnumerable<Component>.GetEnumerator ()
 			{
-				return new ParentEnumerator ( m_Root );
+				return new ParentComponentEnumerator ( m_Root );
 			}
 
 			IEnumerator IEnumerable.GetEnumerator ()
 			{
-				return new ParentEnumerator ( m_Root );
+				return new ParentComponentEnumerator ( m_Root );
 			}
 		}
 
-		public struct ParentEnumerator : IEnumerator<Component>
+		public struct ParentComponentEnumerator : IEnumerator<Component>
 		{
-			private Enumerator m_CompIterator;
+			private ComponentEnumerator m_CompIterator;
 			private GameObject m_Root;
 			private GameObject m_Child;
 			private Component m_Current;
@@ -709,12 +760,12 @@ namespace CrowEngine
 
 			object IEnumerator.Current { get { return m_Current; } }
 
-			internal ParentEnumerator ( GameObject root )
+			internal ParentComponentEnumerator ( GameObject root )
 			{
 				if ( root.HasComponents )
 					m_CompIterator = root.IterateAllComponents ().GetEnumerator ();
 				else
-					m_CompIterator = new Enumerator ();
+					m_CompIterator = new ComponentEnumerator ();
 				m_Root = root;
 				m_Child = root;
 				m_Current = null;
@@ -747,13 +798,103 @@ namespace CrowEngine
 			public void Reset ()
 			{
 				m_CompIterator.Dispose ();
-				this = new ParentEnumerator ( m_Root );
+				this = new ParentComponentEnumerator ( m_Root );
 			}
 
 			public void Dispose ()
 			{
 				m_CompIterator.Dispose ();
-				this = new ParentEnumerator ();
+				this = new ParentComponentEnumerator ();
+			}
+		}
+
+		public struct ChildrenEnumerable : IEnumerable<GameObject>
+		{
+			private GameObject m_Root;
+			private bool m_Deep;
+			private bool m_IncludeInactive;
+
+			internal ChildrenEnumerable ( GameObject root, bool deep, bool includeInactive )
+			{
+				m_Root = root;
+				m_Deep = deep;
+				m_IncludeInactive = includeInactive;
+			}
+
+			public ChildrenEnumerator GetEnumerator ()
+			{
+				return new ChildrenEnumerator ( m_Root, m_Deep, m_IncludeInactive );
+			}
+
+			IEnumerator<GameObject> IEnumerable<GameObject>.GetEnumerator ()
+			{
+				return new ChildrenEnumerator ( m_Root, m_Deep, m_IncludeInactive );
+			}
+
+			IEnumerator IEnumerable.GetEnumerator ()
+			{
+				return new ChildrenEnumerator ( m_Root, m_Deep, m_IncludeInactive );
+			}
+		}
+
+		public struct ChildrenEnumerator : IEnumerator<GameObject>
+		{
+			private Transform.Enumerator m_TreeIterator;
+			private Transform.DeepEnumerator m_DeepTreeIterator;
+			private GameObject m_Root;
+			private GameObject m_Current;
+			private bool m_Deep;
+			private bool m_IncludeInactive;
+
+			public GameObject Current { get { return m_Current; } }
+
+			object IEnumerator.Current { get { return m_Current; } }
+
+			internal ChildrenEnumerator ( GameObject root, bool deep, bool includeInactive )
+			{
+				m_TreeIterator = new Transform.Enumerator ();
+				m_DeepTreeIterator = new Transform.DeepEnumerator ();
+				if ( root.Transform != null )
+				{
+					if ( deep )
+						m_TreeIterator = root.Transform.GetEnumerator ();
+					else
+						m_DeepTreeIterator = root.Transform.GetDeepEnumerable ().GetEnumerator ();
+				}
+				m_Root = root;
+				m_Current = null;
+				m_Deep = deep;
+				m_IncludeInactive = includeInactive;
+			}
+
+			public bool MoveNext ()
+			{
+				if ( m_Deep && m_DeepTreeIterator.MoveNext () )
+				{
+					m_Current = m_DeepTreeIterator.Current.GameObject;
+					return true;
+				}
+				else if ( m_TreeIterator.MoveNext () )
+				{
+					m_Current = m_TreeIterator.Current.GameObject;
+					return true;
+				}
+				m_Current = null;
+				return false;
+			}
+
+			public void Reset ()
+			{
+				m_TreeIterator.Dispose ();
+				m_DeepTreeIterator.Dispose ();
+				this = new ChildrenEnumerator ( m_Root, m_Deep, m_IncludeInactive );
+			}
+
+			public void Dispose ()
+			{
+				m_TreeIterator.Dispose ();
+				m_DeepTreeIterator.Dispose ();
+				this = new ChildrenEnumerator ();
 			}
 		}
 

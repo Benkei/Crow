@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using CrowEngine.Mathematics;
 using CrowEngine.Pooling;
@@ -46,8 +45,8 @@ namespace CrowEngine.Components
 			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
-				Transform last = m_Parent;
-				Transform current = m_Parent;
+				Transform last = this;
+				Transform current = this;
 				while ( current != null )
 				{
 					last = current;

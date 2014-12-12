@@ -34,5 +34,12 @@ namespace CrowEngine
 			a = b;
 			b = tmp;
 		}
+
+		public static bool IsCastableTo ( this Type type, Type target )
+		{
+			if ( target.IsInterface )
+				return type.GetInterfaces ().Contains ( target );
+			return type.IsAssignableFrom ( target );
+		}
 	}
 }

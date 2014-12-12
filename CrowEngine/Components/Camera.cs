@@ -22,22 +22,22 @@ namespace CrowEngine.Components
 		public const float MIN_NEAR_CLIP_PLANE = 0.01f;
 		public const float MIN_FAR_CLIP_PLANE = 0.02f;
 
-		bool				m_UpdateProjectionMatrix = true;
-		bool				m_CustomAspect;
+		bool m_UpdateProjectionMatrix = true;
+		bool m_CustomAspect;
 
-		float				m_Aspect;
-		float				m_FieldOfView; // fov in radians
-		float				m_NearClipPlane;
-		float				m_FarClipPlane;
-		EProjectionType		m_ProjectionType;
+		float m_Aspect;
+		float m_FieldOfView; // fov in radians
+		float m_NearClipPlane;
+		float m_FarClipPlane;
+		EProjectionType m_ProjectionType;
 
-		Vector3				m_LastPosition;
-		Quaternion			m_LastRotation;
+		Vector3 m_LastPosition;
+		Quaternion m_LastRotation;
 
-		Rectangle			m_PixelScreenSize;
+		Rectangle m_PixelScreenSize;
 
-		Matrix				m_ViewMatrix;
-		Matrix				m_ProjectionMatrix;
+		Matrix m_ViewMatrix;
+		Matrix m_ProjectionMatrix;
 
 
 
