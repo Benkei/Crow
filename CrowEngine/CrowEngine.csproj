@@ -89,8 +89,10 @@
     <Compile Include="Components\MeshRenderer.cs" />
     <Compile Include="Components\UI\CanvasUpdate.cs" />
     <Compile Include="Components\UI\ICanvasElement.cs" />
+    <Compile Include="Graphics\DeviceContext.cs" />
     <Compile Include="Graphics\Framebuffer.cs" />
     <Compile Include="GameObjectState.cs" />
+    <Compile Include="Graphics\Query.cs" />
     <Compile Include="Resources\Material.cs" />
     <Compile Include="Mathematics\AngleSingle.cs" />
     <Compile Include="Mathematics\Bool4.cs" />
