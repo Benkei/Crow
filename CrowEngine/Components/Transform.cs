@@ -396,13 +396,16 @@ namespace CrowEngine.Components
 				//SceneManager.RemoveRootNode ( child );
 			}
 			m_Children.Add ( child );
+			var oldParent = child.m_Parent;
 			child.m_Parent = this;
 			child.NeedUpdate ();
+
+			child.EventParentModified ( oldParent );
 		}
 
 		public bool RemoveChild ( Transform child )
 		{
-			if ( child != null && m_Children != null && child.m_Parent == this )
+			if ( m_Children != null && child != null && child.m_Parent == this )
 			{
 				//if ( child.SceneManager != SceneManager )
 				//	throw new ArgumentException ( "Given child is created form a another SceneManager!", "child" );
@@ -423,10 +426,13 @@ namespace CrowEngine.Components
 				throw new ArgumentOutOfRangeException ();
 
 			var child = m_Children[index];
+			var oldParent = child.m_Parent;
 			child.m_Parent = null;
 			m_Children.RemoveAt ( index );
 			//SceneManager.AddRootNode ( child );
 			CancelUpdate ( child );
+
+			child.EventParentModified ( oldParent );
 		}
 
 		public void DetachAllChilds ()
@@ -570,6 +576,24 @@ namespace CrowEngine.Components
 			{
 				m_Parent.CancelUpdate ( this );
 				m_Dirty &= ~Dirty.ParentNotified;
+			}
+		}
+
+		private void EventParentModified ( Transform old )
+		{
+			foreach ( var comp in GameObject.IterateAllComponents () )
+			{
+				if ( comp is ITransformParentModified )
+				{
+					try
+					{
+						((ITransformParentModified)comp).OnTransformParentChanged ( old );
+					}
+					catch ( Exception ex )
+					{
+						throw ex;
+					}
+				}
 			}
 		}
 

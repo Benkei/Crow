@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CrowEngine
 {
-	public abstract class GLHandler
+	public abstract class GLObject
 	{
 		protected int m_Handler;
 

@@ -7,7 +7,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace CrowEngine
 {
-	public class GLBuffer : GLHandler
+	public class GLBuffer : GLObject
 	{
 		//todo change this! it's a binding target
 		protected BufferTarget m_Type;
@@ -24,16 +24,6 @@ namespace CrowEngine
 			{
 				int value;
 				GL.GetBufferParameter ( m_Type, BufferParameterName.BufferImmutableStorage, out value );
-				return value == 1;
-			}
-		}
-
-		public bool IsMapped
-		{
-			get
-			{
-				int value;
-				GL.GetBufferParameter ( m_Type, BufferParameterName.BufferMapped, out value );
 				return value == 1;
 			}
 		}
@@ -56,6 +46,16 @@ namespace CrowEngine
 				int value;
 				GL.GetBufferParameter ( m_Type, BufferParameterName.BufferUsage, out value );
 				return (BufferUsageHint)value;
+			}
+		}
+
+		public bool IsMapped
+		{
+			get
+			{
+				int value;
+				GL.GetBufferParameter ( m_Type, BufferParameterName.BufferMapped, out value );
+				return value == 1;
 			}
 		}
 

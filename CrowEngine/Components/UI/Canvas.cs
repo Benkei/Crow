@@ -1,5 +1,6 @@
 ﻿using System;
 using CrowEngine.Components;
+using CrowEngine.Mathematics;
 
 namespace CrowEngine.Components.UI
 {
@@ -9,99 +10,97 @@ namespace CrowEngine.Components.UI
 		{
 			get
 			{
-				return false;
+				Transform current = Transform.Parent;
+				while ( current != null )
+				{
+					if ( current.GameObject.GetComponent<Canvas> () != null )
+						return false;
+					current = current.Parent;
+				}
+				return true;
 			}
 		}
 
-		public extern bool overridePixelPerfect
+		/// <summary>
+		/// Override the sorting of canvas.
+		/// </summary>
+		public bool OverrideSorting
 		{
 			get;
 			set;
 		}
 
-		public extern bool overrideSorting
+		/// <summary>
+		/// Get the render rect for the Canvas.
+		/// </summary>
+		public Rectangle PixelRect
+		{
+			get { return new Rectangle (); }
+		}
+
+		/// <summary>
+		/// How far away from the camera is the Canvas generated.
+		/// </summary>
+		public float PlaneDistance
 		{
 			get;
 			set;
 		}
 
-		public extern bool pixelPerfect
+		/// <summary>
+		/// The number of pixels per unit that is considered the default.
+		/// </summary>
+		public float ReferencePixelsPerUnit
 		{
 			get;
 			set;
 		}
 
-		//public Rect pixelRect
-		//{
-		//	get
-		//	{
-		//		Rect result;
-		//		this.INTERNAL_get_pixelRect ( out result );
-		//		return result;
-		//	}
-		//}
-
-		public extern float planeDistance
+		/// <summary>
+		/// Is the Canvas in World or Overlay mode?
+		/// </summary>
+		public RenderMode RenderMode
 		{
 			get;
 			set;
 		}
 
-		public extern float referencePixelsPerUnit
+		/// <summary>
+		/// Used to scale the entire canvas, while still making it fit the screen.
+		/// Only applies with renderMode is Screen Space.
+		/// </summary>
+		public float ScaleFactor
 		{
 			get;
 			set;
 		}
 
-		public extern RenderMode renderMode
+		public int SortingLayerID
 		{
 			get;
 			set;
 		}
 
-		public extern float scaleFactor
+		public string SortingLayerName
 		{
 			get;
 			set;
 		}
 
-		public extern int sortingLayerID
+		public int SortingOrder
 		{
 			get;
 			set;
 		}
 
-		public extern string sortingLayerName
+		public Camera WorldCamera
 		{
 			get;
 			set;
 		}
 
-		public extern int sortingOrder
+		public void ForceUpdateCanvases ()
 		{
-			get;
-			set;
 		}
-
-		public extern Camera worldCamera
-		{
-			get;
-			set;
-		}
-
-		public static void ForceUpdateCanvases ()
-		{
-			Canvas.SendWillRenderCanvases ();
-		}
-
-		private static void SendWillRenderCanvases ()
-		{
-			//if ( Canvas.willRenderCanvases != null )
-			//{
-			//	Canvas.willRenderCanvases ();
-			//}
-		}
-
-		//private extern void INTERNAL_get_pixelRect ( out Rect value );
 	}
 }

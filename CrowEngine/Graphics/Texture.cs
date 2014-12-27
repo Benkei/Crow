@@ -7,7 +7,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace CrowEngine
 {
-	public abstract class Texture : GLHandler
+	public abstract class Texture : GLObject
 	{
 		public Texture ()
 		{

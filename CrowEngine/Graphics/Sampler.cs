@@ -26,7 +26,7 @@ namespace CrowEngine
 	}
 	*/
 
-	class Sampler : GLHandler, ISamplerValues
+	class Sampler : GLObject, ISamplerValues
 	{
 		public Sampler ()
 		{

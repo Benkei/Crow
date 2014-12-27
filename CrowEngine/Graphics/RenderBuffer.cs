@@ -7,7 +7,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace CrowEngine
 {
-	class RenderBuffer : GLHandler
+	class RenderBuffer : GLObject
 	{
 		public RenderBuffer ( int width, int height, int samples, RenderbufferStorage type )
 		{

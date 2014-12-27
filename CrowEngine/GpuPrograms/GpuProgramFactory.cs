@@ -65,6 +65,8 @@ namespace CrowEngine.GpuPrograms
 
 			program.Link ();
 
+			program.Reflection ();
+
 			return program;
 		}
 

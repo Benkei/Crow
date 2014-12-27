@@ -132,15 +132,7 @@ namespace CrowEngine
 		public T GetComponent<T> ()
 			where T : class
 		{
-			if ( m_Components == null )
-				return null;
-			T comp;
-			for ( int i = 0, len = m_Components.Count; i < len; i++ )
-			{
-				if ( (comp = m_Components[i] as T) != null )
-					return comp;
-			}
-			return null;
+			return (T)(object)GetComponent ( typeof ( T ) );
 		}
 
 		public Component GetComponent ( Type type )
@@ -164,15 +156,7 @@ namespace CrowEngine
 		public T GetComponentInParent<T> ()
 			where T : class
 		{
-			var trans = m_Transform;
-			while ( trans != null )
-			{
-				var comp = trans.GameObject.GetComponent<T> ();
-				if ( comp != null )
-					return comp;
-				trans = trans.Parent;
-			}
-			return null;
+			return (T)(object)GetComponentInParent ( typeof ( T ) );
 		}
 
 		public Component GetComponentInParent ( Type type )
@@ -182,12 +166,19 @@ namespace CrowEngine
 			if ( !type.IsInterface && type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
 			var trans = m_Transform;
-			while ( trans != null )
+			if ( trans == null )
 			{
-				var comp = trans.GameObject.GetComponent ( type );
-				if ( comp != null )
-					return comp;
-				trans = trans.Parent;
+				return GetComponent ( type );
+			}
+			else
+			{
+				while ( trans != null )
+				{
+					var comp = trans.GameObject.GetComponent ( type );
+					if ( comp != null )
+						return comp;
+					trans = trans.Parent;
+				}
 			}
 			return null;
 		}
@@ -195,13 +186,7 @@ namespace CrowEngine
 		public T GetComponentInChildren<T> ( bool includeInactive = false )
 			where T : class
 		{
-			T comp;
-			for ( int i = 0, len = m_Transform.Count; i < len; i++ )
-			{
-				comp = m_Transform[i].GameObject.GetComponentInChildrenRecurse<T> ( includeInactive );
-				if ( comp != null ) return comp;
-			}
-			return null;
+			return (T)(object)GetComponentInChildren ( typeof ( T ), includeInactive );
 		}
 
 		public Component GetComponentInChildren ( Type type, bool includeInactive = false )
@@ -210,12 +195,17 @@ namespace CrowEngine
 				throw new ArgumentException ();
 			if ( !type.IsInterface && type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
-			Component comp;
-			for ( int i = 0, len = m_Transform.Count; i < len; i++ )
-			{
-				comp = m_Transform[i].GameObject.GetComponentInChildrenRecurse ( type, includeInactive );
-				if ( comp != null ) return comp;
-			}
+			Component comp = GetComponent ( type );
+			if ( comp != null )
+				return comp;
+			var trans = m_Transform;
+			if ( trans != null )
+				for ( int i = 0, len = trans.Count; i < len; i++ )
+				{
+					comp = trans[i].GameObject.GetComponentInChildrenRecurse ( type, includeInactive );
+					if ( comp != null )
+						return comp;
+				}
 			return null;
 		}
 
@@ -227,7 +217,7 @@ namespace CrowEngine
 				return Arrays<T>.Empty;
 			List<T> comps = new List<T> ();
 			GetAllComponents ( comps );
-			return comps.ToArray ();
+			return comps.Count == 0 ? Arrays<T>.Empty : comps.ToArray ();
 		}
 
 		public Component[] GetAllComponents ( Type type )
@@ -240,14 +230,14 @@ namespace CrowEngine
 				return Arrays<Component>.Empty;
 			var comps = new List<Component> ();
 			GetAllComponents ( type, comps );
-			return comps.ToArray ();
+			return comps.Count == 0 ? Arrays<Component>.Empty : comps.ToArray ();
 		}
 
 		public T[] GetAllComponentsInParent<T> ()
 			where T : class
 		{
 			List<T> comps = new List<T> ();
-			GetAllComponentsInParent ( comps );
+			GetAllComponentsInParent<T> ( comps );
 			return comps.Count == 0 ? Arrays<T>.Empty : comps.ToArray ();
 		}
 
@@ -258,17 +248,17 @@ namespace CrowEngine
 			if ( !type.IsInterface && type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
 			var comps = new List<Component> ();
-			GetAllComponentsInParent ( comps );
+			GetAllComponentsInParent ( type, comps );
 			return comps.Count == 0 ? Arrays<Component>.Empty : comps.ToArray ();
 		}
 
 		public T[] GetAllComponentsInChildren<T> ( bool includeInactive = false )
 			where T : class
 		{
-			if ( m_Transform.Count == 0 )
+			if ( m_Transform == null || m_Transform.Count == 0 )
 				return Arrays<T>.Empty;
 			List<T> comps = new List<T> ();
-			GetAllComponentsInChildren ( comps, includeInactive );
+			GetAllComponentsInChildren<T> ( comps, includeInactive );
 			return comps.Count == 0 ? Arrays<T>.Empty : comps.ToArray ();
 		}
 
@@ -278,10 +268,10 @@ namespace CrowEngine
 				throw new ArgumentException ();
 			if ( !type.IsInterface && type.IsAssignableFrom ( typeof ( Component ) ) )
 				throw new ArgumentException ();
-			if ( m_Transform.Count == 0 )
+			if ( m_Transform == null || m_Transform.Count == 0 )
 				return Arrays<Component>.Empty;
 			var comps = new List<Component> ();
-			GetAllComponentsInChildren ( comps, includeInactive );
+			GetAllComponentsInChildren ( type, comps, includeInactive );
 			return comps.Count == 0 ? Arrays<Component>.Empty : comps.ToArray ();
 		}
 
@@ -298,7 +288,7 @@ namespace CrowEngine
 				return 0;
 			T comp;
 			int added = 0;
-			for ( int i = 0, len = m_Components.Count; i < len; i++ )
+			for ( int i = m_Components.Count - 1; i >= 0; i-- )
 			{
 				if ( (comp = m_Components[i] as T) != null )
 				{
@@ -382,8 +372,8 @@ namespace CrowEngine
 				throw new ArgumentNullException ( "buffer" );
 			if ( buffer.IsReadOnly )
 				throw new ArgumentException ( "Given buffer is ReadOnly!", "buffer" );
-
-			if ( m_Transform.Count == 0 )
+			
+			if ( m_Transform == null || m_Transform.Count == 0 )
 				return 0;
 			int added = 0;
 			for ( int i = 0, len = m_Transform.Count; i < len; i++ )
@@ -393,7 +383,7 @@ namespace CrowEngine
 			return added;
 		}
 
-		public int GetAllComponentsInChildren<T> ( Type type, IList<Component> buffer, bool includeInactive = false )
+		public int GetAllComponentsInChildren ( Type type, IList<Component> buffer, bool includeInactive = false )
 		{
 			if ( type == null )
 				throw new ArgumentNullException ();
@@ -404,7 +394,7 @@ namespace CrowEngine
 			if ( buffer.IsReadOnly )
 				throw new ArgumentException ( "Given buffer is ReadOnly!", "buffer" );
 
-			if ( m_Transform.Count == 0 )
+			if ( m_Transform == null || m_Transform.Count == 0 )
 				return 0;
 			int added = 0;
 			for ( int i = 0, len = m_Transform.Count; i < len; i++ )
@@ -495,25 +485,6 @@ namespace CrowEngine
 			//{
 			//	SceneManager.RemoveComponentBehavior ( (Behavior)component );
 			//}
-		}
-
-		private T GetComponentInChildrenRecurse<T> ( bool includeInactive )
-			where T : class
-		{
-			T comp;
-			if ( includeInactive || Active )
-			{
-				comp = GetComponent<T> ();
-				if ( comp != null )
-					return comp;
-			}
-			for ( int i = 0, len = m_Transform.Count; i < len; i++ )
-			{
-				comp = m_Transform[i].GameObject.GetComponentInChildrenRecurse<T> ( includeInactive );
-				if ( comp != null )
-					return comp;
-			}
-			return null;
 		}
 
 		private Component GetComponentInChildrenRecurse ( Type type, bool includeInactive )
