@@ -23,8 +23,6 @@ namespace CrowEngine
 		private bool m_RunningThread = true;
 
 		private float time;
-		private int uniform_mview;
-		private int uniform_diffuse;
 		private GLProgram m_Program;
 		private Texture2D m_Texture;
 
@@ -350,9 +348,9 @@ namespace CrowEngine
 
 					var matrix = m_Cube.Transform.WorldMatrix * m_MainCamera.ViewMatrix * m_MainCamera.ProjectionMatrix;
 
-					//GL.UniformMatrix4 ( uniform_mview, 1, false, (float*)&matrix );
-					GL.Uniform1 ( uniform_diffuse, 0 );
-					//GL.Uniform1()
+					int v = 0;
+					m_Program.SetValue ( "diffuse", ref v );
+					//m_Program.SetValue ( "modelview", ref matrix );
 
 					GL.ActiveTexture ( TextureUnit.Texture0 + 0 );
 					GL.BindTexture ( TextureTarget.Texture2D, m_Texture.Handler );
@@ -369,7 +367,7 @@ namespace CrowEngine
 					//Matrix.OrthoLH ( Width, Height, 0, 100, out matrix );
 					Matrix.OrthoOffCenterLH ( 0, Width, 0, Height, 0, 100, out matrix );
 					//matrix = Matrix.Identity;
-					GL.UniformMatrix4 ( uniform_mview, 1, false, (float*)&matrix );
+					m_Program.SetValue ( "modelview", ref matrix );
 
 					m_QuadMesh.m_Vao.Bind ();
 					//m_QuadMesh.m_Ibo.Bind ();
@@ -397,14 +395,6 @@ namespace CrowEngine
 			//m_Texture = TextureFactory.Load ( "Assets/guid.JPG" );
 
 			m_Program = GpuPrograms.GpuProgramFactory.Load ( "Assets/Simple.gfx" );
-
-			uniform_mview = m_Program.GetUniformLocation ( "modelview" );
-			uniform_diffuse = m_Program.GetUniformLocation ( "diffuse" );
-
-			if ( uniform_mview == -1 )
-			{
-				Console.WriteLine ( "Error binding attributes" );
-			}
 
 			var mesh = MeshPrimitive.CreateBox ();
 

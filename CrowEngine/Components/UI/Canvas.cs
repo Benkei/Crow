@@ -21,6 +21,24 @@ namespace CrowEngine.Components.UI
 			}
 		}
 
+		public Canvas RootCanvas
+		{
+			get
+			{
+				Canvas canvas;
+				Canvas lastCanvas = null;
+				Transform current = Transform;
+				while ( current != null )
+				{
+					canvas = current.GameObject.GetComponent<Canvas> ();
+					if ( canvas != null )
+						lastCanvas = canvas;
+					current = current.Parent;
+				}
+				return lastCanvas;
+			}
+		}
+
 		/// <summary>
 		/// Override the sorting of canvas.
 		/// </summary>

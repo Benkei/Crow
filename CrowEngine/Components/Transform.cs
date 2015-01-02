@@ -581,18 +581,15 @@ namespace CrowEngine.Components
 
 		private void EventParentModified ( Transform old )
 		{
-			foreach ( var comp in GameObject.IterateAllComponents () )
+			foreach ( var comp in GameObject.IterateAllComponentsInChildren<ITransformParentModified> () )
 			{
-				if ( comp is ITransformParentModified )
+				try
 				{
-					try
-					{
-						((ITransformParentModified)comp).OnTransformParentChanged ( old );
-					}
-					catch ( Exception ex )
-					{
-						throw ex;
-					}
+					comp.OnTransformParentChanged ( this, old );
+				}
+				catch ( Exception ex )
+				{
+					throw ex;
 				}
 			}
 		}

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
 using CrowEngine;
@@ -25,6 +26,9 @@ namespace CrowTestConsole
 		[STAThread]
 		static void Main ( string[] args )
 		{
+			//ProfileOptimization.SetProfileRoot ( @"C:\MyAppFolder" );
+			ProfileOptimization.StartProfile ( "JITProfile" );
+
 			var go = new GameObject ( "Root" );
 			var trans = go.AddComponent<RectTransform> ();
 			trans.AnchoredPosition = new Vector2 ( 600, 600 ) * 0.5f;

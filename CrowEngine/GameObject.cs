@@ -372,7 +372,7 @@ namespace CrowEngine
 				throw new ArgumentNullException ( "buffer" );
 			if ( buffer.IsReadOnly )
 				throw new ArgumentException ( "Given buffer is ReadOnly!", "buffer" );
-			
+
 			if ( m_Transform == null || m_Transform.Count == 0 )
 				return 0;
 			int added = 0;
@@ -436,6 +436,7 @@ namespace CrowEngine
 			return comp;
 		}
 
+		// todo create type component iterator 
 
 		public ComponentEnumerable IterateAllComponents ()
 		{
@@ -447,11 +448,19 @@ namespace CrowEngine
 			return new ParentComponentEnumerable ( this );
 		}
 
-		public ChildrenComponentEnumerable IterateAllComponentsInChildren ( bool includeInactive = false )
+		public ChildrenComponentEnumerable<T> IterateAllComponentsInChildren<T> ( bool includeInactive = false )
+			where T : class
 		{
-			return new ChildrenComponentEnumerable ( this, includeInactive );
+			if ( !typeof ( T ).IsInterface && typeof ( T ).IsAssignableFrom ( typeof ( Component ) ) )
+				throw new ArgumentException ();
+			return new ChildrenComponentEnumerable<T> ( this, includeInactive );
 		}
-
+		/// <summary>
+		/// Iterate child gameobjects
+		/// </summary>
+		/// <param name="deep"></param>
+		/// <param name="includeInactive"></param>
+		/// <returns></returns>
 		public ChildrenEnumerable IterateChildren ( bool deep, bool includeInactive = false )
 		{
 			return new ChildrenEnumerable ( this, deep, includeInactive );
@@ -603,7 +612,8 @@ namespace CrowEngine
 			}
 		}
 
-		public struct ChildrenComponentEnumerable : IEnumerable<Component>
+		public struct ChildrenComponentEnumerable<T> : IEnumerable<T>
+			where T : class
 		{
 			private GameObject m_Root;
 			private bool m_IncludeInactive;
@@ -614,31 +624,32 @@ namespace CrowEngine
 				m_IncludeInactive = includeInactive;
 			}
 
-			public ChildrenComponentEnumerator GetEnumerator ()
+			public ChildrenComponentEnumerator<T> GetEnumerator ()
 			{
-				return new ChildrenComponentEnumerator ( m_Root, m_IncludeInactive );
+				return new ChildrenComponentEnumerator<T> ( m_Root, m_IncludeInactive );
 			}
 
-			IEnumerator<Component> IEnumerable<Component>.GetEnumerator ()
+			IEnumerator<T> IEnumerable<T>.GetEnumerator ()
 			{
-				return new ChildrenComponentEnumerator ( m_Root, m_IncludeInactive );
+				return new ChildrenComponentEnumerator<T> ( m_Root, m_IncludeInactive );
 			}
 
 			IEnumerator IEnumerable.GetEnumerator ()
 			{
-				return new ChildrenComponentEnumerator ( m_Root, m_IncludeInactive );
+				return new ChildrenComponentEnumerator<T> ( m_Root, m_IncludeInactive );
 			}
 		}
 
-		public struct ChildrenComponentEnumerator : IEnumerator<Component>
+		public struct ChildrenComponentEnumerator<T> : IEnumerator<T>
+			where T : class
 		{
 			private Transform.DeepEnumerator m_TreeIterator;
 			private ComponentEnumerator m_CompIterator;
 			private GameObject m_Root;
-			private Component m_Current;
+			private T m_Current;
 			private bool m_IncludeInactive;
 
-			public Component Current { get { return m_Current; } }
+			public T Current { get { return m_Current; } }
 
 			object IEnumerator.Current { get { return m_Current; } }
 
@@ -660,10 +671,11 @@ namespace CrowEngine
 			public bool MoveNext ()
 			{
 			RESTART:
-				if ( m_CompIterator.MoveNext () )
+				while ( m_CompIterator.MoveNext () )
 				{
-					m_Current = m_CompIterator.Current;
-					return true;
+					m_Current = m_CompIterator.Current as T;
+					if ( m_Current != null )
+						return true;
 				}
 				m_CompIterator.Dispose ();
 
@@ -676,6 +688,7 @@ namespace CrowEngine
 						goto RESTART;
 					}
 				}
+				m_TreeIterator.Dispose ();
 				m_Current = null;
 				return false;
 			}
@@ -684,14 +697,14 @@ namespace CrowEngine
 			{
 				m_TreeIterator.Dispose ();
 				m_CompIterator.Dispose ();
-				this = new ChildrenComponentEnumerator ( m_Root, m_IncludeInactive );
+				this = new ChildrenComponentEnumerator<T> ( m_Root, m_IncludeInactive );
 			}
 
 			public void Dispose ()
 			{
 				m_TreeIterator.Dispose ();
 				m_CompIterator.Dispose ();
-				this = new ChildrenComponentEnumerator ();
+				this = new ChildrenComponentEnumerator<T> ();
 			}
 		}
 

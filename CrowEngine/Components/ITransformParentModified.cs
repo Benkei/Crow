@@ -8,6 +8,6 @@ namespace CrowEngine.Components
 {
 	public interface ITransformParentModified
 	{
-		void OnTransformParentChanged ( Transform oldParent );
+		void OnTransformParentChanged ( Transform child, Transform oldParent );
 	}
 }

@@ -71,7 +71,7 @@ namespace CrowEngine
 			{
 				int value;
 				GL.GetRenderbufferParameter ( m_Target, RenderbufferParameterName.RenderbufferInternalFormat, out value );
-				return (PixelInternalFormat)value;
+				return (RenderbufferStorage)value;
 			}
 		}
 		public int RedSize

@@ -88,6 +88,12 @@ namespace CrowEngine.Collections
 		public int Count
 		{
 			get { return m_Size; }
+			set
+			{
+				if ( value >= m_Items.Length )
+					EnsureCapacity ( value );
+				m_Size = value;
+			}
 		}
 
 		bool ICollection<T>.IsReadOnly
@@ -152,8 +158,21 @@ namespace CrowEngine.Collections
 			{
 				Array.Clear ( m_Items, 0, m_Size );
 				m_Size = 0;
+				m_Version++;
 			}
-			m_Version++;
+		}
+
+		public void Clear ( bool force )
+		{
+			if ( force || m_Size > 0 )
+			{
+				if ( force )
+					Array.Clear ( m_Items, 0, m_Items.Length );
+				else
+					Array.Clear ( m_Items, 0, m_Size );
+				m_Size = 0;
+				m_Version++;
+			}
 		}
 
 		public bool Contains ( T item )
@@ -191,35 +210,6 @@ namespace CrowEngine.Collections
 		public void CopyTo ( T[] array, int arrayIndex )
 		{
 			Array.Copy ( m_Items, 0, array, arrayIndex, m_Size );
-		}
-
-		public Vector<T>.Enumerator GetEnumerator ()
-		{
-			return new Enumerator ( this );
-		}
-
-		public Vector<T> GetRange ( int index, int count )
-		{
-			if ( index < 0 )
-				throw new ArgumentOutOfRangeException ();
-			if ( count < 0 )
-				throw new ArgumentOutOfRangeException ();
-			if ( m_Size - index < count )
-				throw new ArgumentException ();
-			Vector<T> list = new Vector<T> ( count );
-			Array.Copy ( m_Items, index, list.m_Items, 0, count );
-			list.m_Size = count;
-			return list;
-		}
-
-		IEnumerator IEnumerable.GetEnumerator ()
-		{
-			return new Enumerator ( this );
-		}
-
-		IEnumerator<T> IEnumerable<T>.GetEnumerator ()
-		{
-			return new Enumerator ( this );
 		}
 
 		public int IndexOf ( T item )
@@ -411,6 +401,35 @@ namespace CrowEngine.Collections
 			int num = (int)((double)m_Items.Length * 0.9);
 			if ( m_Size < num )
 				Capacity = m_Size;
+		}
+
+		public Vector<T>.Enumerator GetEnumerator ()
+		{
+			return new Enumerator ( this );
+		}
+
+		public Vector<T> GetRange ( int index, int count )
+		{
+			if ( index < 0 )
+				throw new ArgumentOutOfRangeException ();
+			if ( count < 0 )
+				throw new ArgumentOutOfRangeException ();
+			if ( m_Size - index < count )
+				throw new ArgumentException ();
+			Vector<T> list = new Vector<T> ( count );
+			Array.Copy ( m_Items, index, list.m_Items, 0, count );
+			list.m_Size = count;
+			return list;
+		}
+
+		IEnumerator IEnumerable.GetEnumerator ()
+		{
+			return new Enumerator ( this );
+		}
+
+		IEnumerator<T> IEnumerable<T>.GetEnumerator ()
+		{
+			return new Enumerator ( this );
 		}
 
 		private void EnsureCapacity ( int min )
