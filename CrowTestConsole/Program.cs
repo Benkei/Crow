@@ -29,6 +29,84 @@ namespace CrowTestConsole
 			//ProfileOptimization.SetProfileRoot ( @"C:\MyAppFolder" );
 			ProfileOptimization.StartProfile ( "JITProfile" );
 
+			Crow.Init ();
+
+			var lib = new SharpFont.Library ();
+			var v = lib.Version;
+
+			var face = lib.NewFace ( "DejaVuSansMono.ttf", 0 );
+			face.SetPixelSizes ( 50, 50 );
+
+			var text = "hallo du!";
+
+			Vector2 baseLine = new Vector2 ( 0, 50 );
+			uint lastIdx = 0;
+			for ( int i = 0; i < text.Length; i++ )
+			{
+				uint idx = face.GetCharIndex ( text[i] );
+
+				if ( face.HasKerning && lastIdx != 0 && idx != 0 )
+				{
+					var kerning = face.GetKerning ( lastIdx, idx, SharpFont.KerningMode.Default );
+					baseLine.X += (float)SharpFont.Fixed16Dot16.FromRawValue ( kerning.X );
+
+					Console.WriteLine ( "kerning: " + kerning );
+				}
+
+				face.LoadGlyph ( idx, SharpFont.LoadFlags.NoBitmap, SharpFont.LoadTarget.Normal );
+
+				//var glyphOffset = new Vector2 (
+				//	baseLine.X + (float)SharpFont.Fixed16Dot16.FromRawValue ( glyph.Metrics.HorizontalBearingX ),
+				//	baseLine.Y - (float)SharpFont.Fixed16Dot16.FromRawValue ( glyph.Metrics.HorizontalBearingY )
+				//);
+
+				var glyph = face.Glyph;
+
+				glyph.RenderGlyph ( SharpFont.RenderMode.Normal );
+
+				glyph = face.Glyph; // hack
+
+				var advance = new Vector2 (
+					(float)SharpFont.Fixed16Dot16.FromRawValue ( glyph.Advance.X ),
+					(float)SharpFont.Fixed16Dot16.FromRawValue ( glyph.Advance.Y )
+				);
+
+				var img = glyph.Bitmap;
+
+				if ( img.Rows > 0 && img.Width > 0 )
+					using ( System.Drawing.Bitmap bit = new System.Drawing.Bitmap ( img.Width, img.Rows, System.Drawing.Imaging.PixelFormat.Format32bppArgb ) )
+					{
+						for ( int y = 0; y < img.Rows; y++ )
+						{
+							for ( int x = 0; x < img.Width; x++ )
+							{
+								byte pix;
+
+								unsafe
+								{
+									pix = ((byte*)img.Buffer)[y * img.Width + x];
+								}
+
+								var color = bit.GetPixel ( x, y );
+								color = System.Drawing.Color.FromArgb (
+									255,
+									Math.Max ( color.R, pix ),
+									Math.Max ( color.G, pix ),
+									Math.Max ( color.B, pix )
+								);
+								bit.SetPixel ( x, y, color );
+							}
+						}
+						bit.Save ( text[i] + "_char.png", System.Drawing.Imaging.ImageFormat.Png );
+					}
+
+
+				baseLine += advance;
+				lastIdx = idx;
+			}
+
+
+
 			var go = new GameObject ( "Root" );
 			var trans = go.AddComponent<RectTransform> ();
 			trans.AnchoredPosition = new Vector2 ( 600, 600 ) * 0.5f;

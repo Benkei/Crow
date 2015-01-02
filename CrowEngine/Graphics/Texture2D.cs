@@ -123,11 +123,6 @@ namespace CrowEngine
 			set { GL.TexParameter ( TextureTarget.Texture2D, TextureParameterName.GenerateMipmap, value ? 1 : 0 ); }
 		}
 
-		public int CountLevels
-		{
-			get { return Util.CalculateMipmap ( Width ( 0 ), Height ( 0 ) ); }
-		}
-
 		public TextureSwizzle SwizzleR
 		{
 			get

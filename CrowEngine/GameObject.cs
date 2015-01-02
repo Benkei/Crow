@@ -14,6 +14,8 @@ namespace CrowEngine
 		private List<Component> m_Components;
 		private Transform m_Transform;
 		private Scene m_Scene;
+		private bool m_Active;
+		private GameObjectState m_State;
 
 		public GameObject ()
 		{
@@ -35,8 +37,8 @@ namespace CrowEngine
 
 		public bool Active
 		{
-			get;
-			set;
+			get { return m_Active; }
+			set { m_Active = value; }
 		}
 
 		/// <summary>
@@ -46,14 +48,14 @@ namespace CrowEngine
 		{
 			get
 			{
-				if ( !Active )
+				if ( !m_Active )
 					return false;
 				if ( m_Transform == null )
-					return Active;
+					return m_Active;
 				var current = m_Transform.Parent;
 				while ( current != null )
 				{
-					if ( !current.GameObject.Active )
+					if ( !current.GameObject.m_Active )
 						return false;
 					current = current.Parent;
 				}

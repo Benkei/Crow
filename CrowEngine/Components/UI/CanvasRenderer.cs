@@ -9,7 +9,7 @@ using CrowEngine.Mathematics;
 
 namespace CrowEngine.Components.UI
 {
-	public sealed class CanvasRenderer : Behavior, ITransformParentModified
+	public sealed class CanvasRenderer : Behavior
 	{
 		private Vector<Vertex> m_Vertices;
 		private bool m_SizeChanged;
@@ -129,13 +129,6 @@ namespace CrowEngine.Components.UI
 				m_Vertices.Clear ();
 				m_SizeChanged = true;
 			}
-		}
-
-		void ITransformParentModified.OnTransformParentChanged ( Transform child, Transform oldParent )
-		{
-			Canvas p = oldParent.GameObject.GetComponentInParent<Canvas> ();
-			p = p.RootCanvas;
-
 		}
 
 		internal unsafe void WriteBuffer ( Vertex[] buffer, int offset )

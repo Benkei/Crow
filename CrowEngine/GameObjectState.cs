@@ -17,6 +17,14 @@ namespace CrowEngine
 		/// </summary>
 		Initialized,
 		/// <summary>
+		/// 
+		/// </summary>
+		Enabled,
+		/// <summary>
+		/// 
+		/// </summary>
+		Disabled,
+		/// <summary>
 		/// The object is currently disposing.
 		/// </summary>
 		Disposing,

@@ -42,6 +42,9 @@
     <Reference Include="OpenTK">
       <HintPath>..\libdebug\OpenTK.dll</HintPath>
     </Reference>
+    <Reference Include="SharpFont">
+      <HintPath>..\lib\SharpFont.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -53,6 +56,18 @@
     <Compile Include="Tutorial.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Font\DejaVuSans.ttf">
+      <Link>DejaVuSans.ttf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\Font\DejaVuSansMono.ttf">
+      <Link>DejaVuSansMono.ttf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\Font\DejaVuSerif.ttf">
+      <Link>DejaVuSerif.ttf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="..\Sample_ProjectTest\Assets\fs.glsl">
       <Link>Assets\fs.glsl</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

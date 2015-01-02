@@ -65,7 +65,7 @@ namespace CrowEngine
 			}
 		}
 
-		public void RemoveGameObject ( GameObject go )
+		internal void RemoveGameObject ( GameObject go )
 		{
 			if ( go == null )
 				throw new ArgumentNullException ();
@@ -91,8 +91,7 @@ namespace CrowEngine
 				}
 			}
 		}
-
-
+		
 		internal void AddComponent ( Component comp )
 		{
 			var compType = comp.GetType ();
