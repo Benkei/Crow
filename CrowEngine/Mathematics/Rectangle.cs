@@ -1,22 +1,19 @@
 ﻿// Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+// associated documentation files (the "Software"), to deal in the Software without restriction,
+// including without limitation the rights to use, copy, modify, merge, publish, distribute,
+// sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// 
+// The above copyright notice and this permission notice shall be included in all copies or
+// substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+// NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
 using System.Globalization;
@@ -25,31 +22,47 @@ using System.Runtime.InteropServices;
 namespace CrowEngine.Mathematics
 {
 	/// <summary>
-	/// Define a Rectangle. This structure is slightly different from System.Drawing.Rectangle as it is
-	/// internally storing Left,Top,Right,Bottom instead of Left,Top,Width,Height.
+	/// Define a Rectangle. This structure is slightly different from System.Drawing.Rectangle as it
+	/// is internally storing Left,Top,Right,Bottom instead of Left,Top,Width,Height.
 	/// </summary>
-	[StructLayout ( LayoutKind.Sequential )]
+	[StructLayout ( LayoutKind.Explicit, Pack = 4 )]
 	public struct Rectangle : IEquatable<Rectangle>
 	{
 		/// <summary>
 		/// The left.
 		/// </summary>
+		[FieldOffset ( 0 )]
 		public int Left;
 
 		/// <summary>
 		/// The top.
 		/// </summary>
+		[FieldOffset ( 4 )]
 		public int Top;
 
 		/// <summary>
 		/// The right.
 		/// </summary>
+		[FieldOffset ( 8 )]
 		public int Right;
 
 		/// <summary>
 		/// The bottom.
 		/// </summary>
+		[FieldOffset ( 12 )]
 		public int Bottom;
+
+		/// <summary>
+		/// alias fields for Left and Top
+		/// </summary>
+		[FieldOffset ( 0 )]
+		public Int2 Minimum;
+
+		/// <summary>
+		/// alias fields for Right and Bottom
+		/// </summary>
+		[FieldOffset ( 8 )]
+		public Int2 Maximum;
 
 		/// <summary>
 		/// An empty rectangle.
@@ -70,6 +83,8 @@ namespace CrowEngine.Mathematics
 		/// <param name="height">The height.</param>
 		public Rectangle ( int x, int y, int width, int height )
 		{
+			Minimum = new Int2 ();
+			Maximum = new Int2 ();
 			Left = x;
 			Top = y;
 			Right = x + width;
@@ -82,15 +97,8 @@ namespace CrowEngine.Mathematics
 		/// <value>The X position.</value>
 		public int X
 		{
-			get
-			{
-				return Left;
-			}
-			set
-			{
-				Right = value + Width;
-				Left = value;
-			}
+			get { return Left; }
+			set { Right = value + Width; Left = value; }
 		}
 
 		/// <summary>
@@ -99,15 +107,8 @@ namespace CrowEngine.Mathematics
 		/// <value>The Y position.</value>
 		public int Y
 		{
-			get
-			{
-				return Top;
-			}
-			set
-			{
-				Bottom = value + Height;
-				Top = value;
-			}
+			get { return Top; }
+			set { Bottom = value + Height; Top = value; }
 		}
 
 		/// <summary>
@@ -133,99 +134,118 @@ namespace CrowEngine.Mathematics
 		/// <summary>
 		/// Gets a value that indicates whether the rectangle is empty.
 		/// </summary>
-		/// <value>
-		///   <c>true</c> if [is empty]; otherwise, <c>false</c>.
-		/// </value>
+		/// <value><c>true</c> if [is empty]; otherwise, <c>false</c>.</value>
 		public bool IsEmpty
+		{
+			get { return (Width == 0) && (Height == 0) && (X == 0) && (Y == 0); }
+		}
+
+		/// <summary>
+		/// Gets or sets the location.
+		/// </summary>
+		/// <value>The location.</value>
+		public Int2 Location
+		{
+			get { return Minimum; }
+			set { Minimum = value; }
+		}
+
+		/// <summary>
+		/// Gets the Point that specifies the center of the rectangle.
+		/// </summary>
+		/// <value>The center.</value>
+		public Int2 Center
+		{
+			get { return new Int2 ( X + (Width >> 1), Y + (Height >> 1) ); }
+		}
+
+		/// <summary>
+		/// Gets or sets the size of the rectangle.
+		/// </summary>
+		/// <value>The size of the rectangle.</value>
+		public Int2 Size
+		{
+			get { return new Int2 ( Width, Height ); }
+			set { Width = value.X; Height = value.Y; }
+		}
+
+		/// <summary>
+		/// Gets the position of the top-left corner of the rectangle.
+		/// </summary>
+		/// <value>The top-left corner of the rectangle.</value>
+		public Int2 TopLeft
+		{
+			get { return new Int2 ( Left, Top ); }
+		}
+
+		/// <summary>
+		/// Gets the position of the top-right corner of the rectangle.
+		/// </summary>
+		/// <value>The top-right corner of the rectangle.</value>
+		public Int2 TopRight
+		{
+			get { return new Int2 ( Right, Top ); }
+		}
+
+		/// <summary>
+		/// Gets the position of the bottom-left corner of the rectangle.
+		/// </summary>
+		/// <value>The bottom-left corner of the rectangle.</value>
+		public Int2 BottomLeft
+		{
+			get { return new Int2 ( Left, Bottom ); }
+		}
+
+		/// <summary>
+		/// Gets the position of the bottom-right corner of the rectangle.
+		/// </summary>
+		/// <value>The bottom-right corner of the rectangle.</value>
+		public Int2 BottomRight
+		{
+			get { return new Int2 ( Right, Bottom ); }
+		}
+
+		/// <summary>
+		/// Gets or sets the component at the specified index.
+		/// </summary>
+		public int this[int index]
 		{
 			get
 			{
-				return (Width == 0) && (Height == 0) && (X == 0) && (Y == 0);
+				switch ( index )
+				{
+					case 0: return Minimum.X;
+					case 1: return Minimum.Y;
+					case 2: return Maximum.X;
+					case 3: return Maximum.Y;
+				}
+				throw new ArgumentOutOfRangeException ( "index", "Indices for Rectangle run from 0 to 3, inclusive." );
+			}
+			set
+			{
+				switch ( index )
+				{
+					case 0: Minimum.X = value; return;
+					case 1: Minimum.Y = value; return;
+					case 2: Maximum.X = value; return;
+					case 3: Maximum.Y = value; return;
+				}
+				throw new ArgumentOutOfRangeException ( "index", "Indices for Rectangle run from 0 to 3, inclusive." );
 			}
 		}
 
-		///// <summary>
-		///// Gets or sets the location.
-		///// </summary>
-		///// <value>
-		///// The location.
-		///// </value>
-		//public Point Location
-		//{
-		//    get
-		//    {
-		//        return new Point(X, Y);
-		//    }
-		//    set
-		//    {
-		//        X = value.X;
-		//        Y = value.Y;
-		//    }
-		//}
+		/// <summary>
+		/// Changes the position of the rectangle.
+		/// </summary>
+		/// <param name="amount">The values to adjust the position of the rectangle by.</param>
+		public void Offset ( Int2 amount )
+		{
+			Offset ( amount.X, amount.Y );
+		}
 
-		///// <summary>
-		///// Gets the Point that specifies the center of the rectangle.
-		///// </summary>
-		///// <value>
-		///// The center.
-		///// </value>
-		//public Point Center
-		//{
-		//    get
-		//    {
-		//        return new Point(X + (Width / 2), Y + (Height / 2));
-		//    }
-		//}
-
-		///// <summary>
-		///// Gets or sets the size of the rectangle.
-		///// </summary>
-		///// <value>The size of the rectangle.</value>
-		//public Size2 Size
-		//{
-		//    get
-		//    {
-		//        return new Size2(Width, Height);
-		//    }
-		//    set
-		//    {
-		//        Width = value.Width;
-		//        Height = value.Height;
-		//    }
-		//}
-
-		///// <summary>
-		///// Gets the position of the top-left corner of the rectangle.
-		///// </summary>
-		///// <value>The top-left corner of the rectangle.</value>
-		//public Point TopLeft { get { return new Point(_left, _top); } }
-
-		///// <summary>
-		///// Gets the position of the top-right corner of the rectangle.
-		///// </summary>
-		///// <value>The top-right corner of the rectangle.</value>
-		//public Point TopRight { get { return new Point(_right, _top); } }
-
-		///// <summary>
-		///// Gets the position of the bottom-left corner of the rectangle.
-		///// </summary>
-		///// <value>The bottom-left corner of the rectangle.</value>
-		//public Point BottomLeft { get { return new Point(_left, _bottom); } }
-
-		///// <summary>
-		///// Gets the position of the bottom-right corner of the rectangle.
-		///// </summary>
-		///// <value>The bottom-right corner of the rectangle.</value>
-		//public Point BottomRight { get { return new Point(_right, _bottom); } }
-
-		///// <summary>Changes the position of the rectangle.</summary>
-		///// <param name="amount">The values to adjust the position of the rectangle by.</param>
-		//public void Offset(Point amount)
-		//{
-		//    Offset(amount.X, amount.Y);
-		//}
-
-		/// <summary>Changes the position of the rectangle.</summary>
+		/// <summary>
+		/// Changes the position of the rectangle.
+		/// </summary>
 		/// <param name="offsetX">Change in the x-position.</param>
 		/// <param name="offsetY">Change in the y-position.</param>
 		public void Offset ( int offsetX, int offsetY )
@@ -234,7 +254,9 @@ namespace CrowEngine.Mathematics
 			Y += offsetY;
 		}
 
-		/// <summary>Pushes the edges of the rectangle out by the horizontal and vertical values specified.</summary>
+		/// <summary>
+		/// Pushes the edges of the rectangle out by the horizontal and vertical values specified.
+		/// </summary>
 		/// <param name="horizontalAmount">Value to push the sides out by.</param>
 		/// <param name="verticalAmount">Value to push the top and bottom out by.</param>
 		public void Inflate ( int horizontalAmount, int verticalAmount )
@@ -245,7 +267,9 @@ namespace CrowEngine.Mathematics
 			Height += verticalAmount * 2;
 		}
 
-		/// <summary>Determines whether this rectangle contains a specified point represented by its x- and y-coordinates.</summary>
+		/// <summary>
+		/// Determines whether this rectangle contains a specified point represented by its x- and y-coordinates.
+		/// </summary>
 		/// <param name="x">The x-coordinate of the specified point.</param>
 		/// <param name="y">The y-coordinate of the specified point.</param>
 		public bool Contains ( int x, int y )
@@ -253,24 +277,32 @@ namespace CrowEngine.Mathematics
 			return (X <= x) && (x < Right) && (Y <= y) && (y < Bottom);
 		}
 
-		///// <summary>Determines whether this rectangle contains a specified Point.</summary>
-		///// <param name="value">The Point to evaluate.</param>
-		//public bool Contains(Point value)
-		//{
-		//    bool result;
-		//    Contains(ref value, out result);
-		//    return result;
-		//}
+		/// <summary>
+		/// Determines whether this rectangle contains a specified Point.
+		/// </summary>
+		/// <param name="value">The Point to evaluate.</param>
+		public bool Contains ( Int2 value )
+		{
+			bool result;
+			Contains ( ref value, out result );
+			return result;
+		}
 
-		///// <summary>Determines whether this rectangle contains a specified Point.</summary>
-		///// <param name="value">The Point to evaluate.</param>
-		///// <param name="result">[OutAttribute] true if the specified Point is contained within this rectangle; false otherwise.</param>
-		//public void Contains(ref Point value, out bool result)
-		//{
-		//    result = (X <= value.X) && (value.X < Right) && (Y <= value.Y) && (value.Y < Bottom);
-		//}
+		/// <summary>
+		/// Determines whether this rectangle contains a specified Point.
+		/// </summary>
+		/// <param name="value">The Point to evaluate.</param>
+		/// <param name="result">
+		/// [OutAttribute] true if the specified Point is contained within this rectangle; false otherwise.
+		/// </param>
+		public void Contains ( ref Int2 value, out bool result )
+		{
+			result = (X <= value.X) && (value.X < Right) && (Y <= value.Y) && (value.Y < Bottom);
+		}
 
-		/// <summary>Determines whether this rectangle entirely contains a specified rectangle.</summary>
+		/// <summary>
+		/// Determines whether this rectangle entirely contains a specified rectangle.
+		/// </summary>
 		/// <param name="value">The rectangle to evaluate.</param>
 		public bool Contains ( Rectangle value )
 		{
@@ -279,9 +311,14 @@ namespace CrowEngine.Mathematics
 			return result;
 		}
 
-		/// <summary>Determines whether this rectangle entirely contains a specified rectangle.</summary>
+		/// <summary>
+		/// Determines whether this rectangle entirely contains a specified rectangle.
+		/// </summary>
 		/// <param name="value">The rectangle to evaluate.</param>
-		/// <param name="result">[OutAttribute] On exit, is true if this rectangle entirely contains the specified rectangle, or false if not.</param>
+		/// <param name="result">
+		/// [OutAttribute] On exit, is true if this rectangle entirely contains the specified
+		/// rectangle, or false if not.
+		/// </param>
 		public void Contains ( ref Rectangle value, out bool result )
 		{
 			result = (X <= value.X) && (value.Right <= Right) && (Y <= value.Y) && (value.Bottom <= Bottom);
@@ -298,17 +335,9 @@ namespace CrowEngine.Mathematics
 			return (x >= Left && x <= Right && y >= Top && y <= Bottom);
 		}
 
-		///// <summary>
-		///// Checks, if specified <see cref="SharpDX.Vector2"/> is inside <see cref="SharpDX.Rectangle"/>.
-		///// </summary>
-		///// <param name="vector2D">Coordinate <see cref="SharpDX.Vector2"/>.</param>
-		///// <returns><c>true</c> if <see cref="SharpDX.Vector2"/> is inside <see cref="SharpDX.Rectangle"/>, otherwise <c>false</c>.</returns>
-		//public bool Contains(Vector2 vector2D)
-		//{
-		//    return Contains(vector2D.X, vector2D.Y);
-		//}
-
-		/// <summary>Determines whether a specified rectangle intersects with this rectangle.</summary>
+		/// <summary>
+		/// Determines whether a specified rectangle intersects with this rectangle.
+		/// </summary>
 		/// <param name="value">The rectangle to evaluate.</param>
 		public bool Intersects ( Rectangle value )
 		{
@@ -321,7 +350,9 @@ namespace CrowEngine.Mathematics
 		/// Determines whether a specified rectangle intersects with this rectangle.
 		/// </summary>
 		/// <param name="value">The rectangle to evaluate</param>
-		/// <param name="result">[OutAttribute] true if the specified rectangle intersects with this one; false otherwise.</param>
+		/// <param name="result">
+		/// [OutAttribute] true if the specified rectangle intersects with this one; false otherwise.
+		/// </param>
 		public void Intersects ( ref Rectangle value, out bool result )
 		{
 			result = (value.X < Right) && (X < value.Right) && (value.Y < Bottom) && (Y < value.Bottom);
@@ -340,7 +371,9 @@ namespace CrowEngine.Mathematics
 			return result;
 		}
 
-		/// <summary>Creates a rectangle defining the area where one rectangle overlaps with another rectangle.</summary>
+		/// <summary>
+		/// Creates a rectangle defining the area where one rectangle overlaps with another rectangle.
+		/// </summary>
 		/// <param name="value1">The first rectangle to compare.</param>
 		/// <param name="value2">The second rectangle to compare.</param>
 		/// <param name="result">[OutAttribute] The area where the two first parameters overlap.</param>
@@ -378,7 +411,9 @@ namespace CrowEngine.Mathematics
 		/// </summary>
 		/// <param name="value1">The first rectangle to contain.</param>
 		/// <param name="value2">The second rectangle to contain.</param>
-		/// <param name="result">[OutAttribute] The rectangle that must be the union of the first two rectangles.</param>
+		/// <param name="result">
+		/// [OutAttribute] The rectangle that must be the union of the first two rectangles.
+		/// </param>
 		public static void Union ( ref Rectangle value1, ref Rectangle value2, out Rectangle result )
 		{
 			var left = Math.Min ( value1.Left, value2.Left );
@@ -393,7 +428,8 @@ namespace CrowEngine.Mathematics
 		/// </summary>
 		/// <param name="obj">The <see cref="System.Object"/> to compare with this instance.</param>
 		/// <returns>
-		/// <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
+		/// <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance;
+		/// otherwise, <c>false</c>.
 		/// </returns>
 		public override bool Equals ( object obj )
 		{
@@ -407,7 +443,8 @@ namespace CrowEngine.Mathematics
 		/// </summary>
 		/// <param name="other">The <see cref="Rectangle"/> to compare with this instance.</param>
 		/// <returns>
-		/// <c>true</c> if the specified <see cref="Rectangle"/> is equal to this instance; otherwise, <c>false</c>.
+		/// <c>true</c> if the specified <see cref="Rectangle"/> is equal to this instance;
+		/// otherwise, <c>false</c>.
 		/// </returns>
 		public bool Equals ( Rectangle other )
 		{
@@ -418,7 +455,8 @@ namespace CrowEngine.Mathematics
 		/// Returns a hash code for this instance.
 		/// </summary>
 		/// <returns>
-		/// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
+		/// A hash code for this instance, suitable for use in hashing algorithms and data
+		/// structures like a hash table.
 		/// </returns>
 		public override int GetHashCode ()
 		{
@@ -454,26 +492,25 @@ namespace CrowEngine.Mathematics
 			return !(left == right);
 		}
 
-		///// <summary>
-		///// Performs an implicit conversion to the <see cref="RectangleF"/> structure.
-		///// </summary>
-		///// <remarks>Performs direct converstion from int to float.</remarks>
-		///// <param name="value">The source <see cref="Rectangle"/> value.</param>
-		///// <returns>The converted structure.</returns>
-		//public static implicit operator RectangleF(Rectangle value)
-		//{
-		//    return new RectangleF(value.X, value.Y, value.Width, value.Height);
-		//}
+		/// <summary>
+		/// Performs an implicit conversion to the <see cref="RectangleF"/> structure.
+		/// </summary>
+		/// <remarks>Performs direct converstion from int to float.</remarks>
+		/// <param name="value">The source <see cref="Rectangle"/> value.</param>
+		/// <returns>The converted structure.</returns>
+		public static explicit operator RectangleF ( Rectangle value )
+		{
+			return new RectangleF ( value.X, value.Y, value.Width, value.Height );
+		}
+
+		public static explicit operator Vector4 ( Rectangle value )
+		{
+			return new Vector4 ( value.Left, value.Top, value.Right, value.Bottom );
+		}
 
 		public override string ToString ()
 		{
 			return string.Format ( CultureInfo.InvariantCulture, "X:{0} Y:{1} Width:{2} Height:{3}", X, Y, Width, Height );
-		}
-
-		internal void MakeXYAndWidthHeight ()
-		{
-			Right = (Right - Left);
-			Bottom = (Bottom - Top);
 		}
 	}
 }

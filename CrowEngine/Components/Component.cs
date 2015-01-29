@@ -11,15 +11,15 @@ namespace CrowEngine.Components
 			get { return m_GameObject; }
 		}
 
+		public Transform Transform
+		{
+			get { return m_GameObject.Transform; }
+		}
+
 		public override string Name
 		{
 			get { return m_GameObject.Name; }
 			set { m_GameObject.Name = value; }
-		}
-
-		public Transform Transform
-		{
-			get { return m_GameObject.Transform; }
 		}
 
 		public void Dispose ()

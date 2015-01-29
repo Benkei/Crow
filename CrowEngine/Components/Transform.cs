@@ -71,7 +71,7 @@ namespace CrowEngine.Components
 					}
 					else if ( m_Parent != null )
 					{
-						m_Parent.RemoveChild ( this );
+						m_Parent.RemoveChild ( this, true );
 					}
 				}
 			}
@@ -167,16 +167,15 @@ namespace CrowEngine.Components
 			{
 				if ( (m_Dirty & Dirty.NeedParentUpdate) > 0 )
 					UpdateFromParent ();
-				Vector3 euler;
-				Mathf.QuaternionToYawPitchRoll ( ref m_WorldRotation, out euler );
-				Util.Swap ( ref euler.X, ref euler.Y );
-				Vector3.Multiply ( ref euler, Mathf.Rad2Deg, out euler ); // to degrees
-				return euler;
+				Vector3 e;
+				Quaternion.RotationToYawPitchRoll ( ref m_WorldRotation, out e.Y, out e.X, out e.Z );
+				Vector3.Multiply ( ref e, MathUtil.Rad2Deg, out e ); // to degrees
+				return e;
 			}
 			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			set
 			{
-				Vector3.Multiply ( ref value, Mathf.Deg2Rad, out value ); // to radians
+				Vector3.Multiply ( ref value, MathUtil.Deg2Rad, out value ); // to radians
 				Quaternion rotation;
 				Quaternion.RotationYawPitchRoll ( value.Y, value.X, value.Z, out rotation );
 				Rotation = rotation;
@@ -276,16 +275,15 @@ namespace CrowEngine.Components
 			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
 			{
-				Vector3 euler;
-				Mathf.QuaternionToYawPitchRoll ( ref m_LocalRotation, out euler );
-				Util.Swap ( ref euler.X, ref euler.Y );
-				Vector3.Multiply ( ref euler, Mathf.Rad2Deg, out euler ); // to degrees
-				return euler;
+				Vector3 e;
+				Quaternion.RotationToYawPitchRoll ( ref m_LocalRotation, out e.Y, out e.X, out e.Z );
+				Vector3.Multiply ( ref e, MathUtil.Rad2Deg, out e ); // to degrees
+				return e;
 			}
 			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			set
 			{
-				Vector3.Multiply ( ref value, Mathf.Deg2Rad, out value ); // to radians
+				Vector3.Multiply ( ref value, MathUtil.Deg2Rad, out value ); // to radians
 				Quaternion rotation;
 				Quaternion.RotationYawPitchRoll ( value.Y, value.X, value.Z, out rotation );
 				LocalRotation = rotation;
@@ -376,6 +374,20 @@ namespace CrowEngine.Components
 		}
 
 
+		public Vector3 TransformPoint ( Vector3 position )
+		{
+			var m = WorldMatrix;
+			Vector3.Transform ( ref position, ref m, out position );
+			return position;
+		}
+
+		public Vector3 InverseTransformPoint ( Vector3 position )
+		{
+			var m = LocalMatrix;
+			Vector3.Transform ( ref position, ref m, out position );
+			return position;
+		}
+
 		public void AddChild ( Transform child )
 		{
 			if ( child == null )
@@ -390,7 +402,7 @@ namespace CrowEngine.Components
 				m_Children = new List<Transform> ();
 
 			if ( child.m_Parent != null )
-				child.m_Parent.RemoveChild ( child );
+				child.m_Parent.RemoveChild ( child, false );
 			else
 			{
 				//SceneManager.RemoveRootNode ( child );
@@ -405,6 +417,11 @@ namespace CrowEngine.Components
 
 		public bool RemoveChild ( Transform child )
 		{
+			return RemoveChild ( child, true );
+		}
+
+		private bool RemoveChild ( Transform child, bool broadcastEvent )
+		{
 			if ( m_Children != null && child != null && child.m_Parent == this )
 			{
 				//if ( child.SceneManager != SceneManager )
@@ -413,7 +430,7 @@ namespace CrowEngine.Components
 				int index = m_Children.IndexOf ( child );
 				if ( index != -1 )
 				{
-					RemoveChildAt ( index );
+					RemoveChildAt ( index, broadcastEvent );
 					return true;
 				}
 			}
@@ -421,6 +438,11 @@ namespace CrowEngine.Components
 		}
 
 		public void RemoveChildAt ( int index )
+		{
+			RemoveChildAt ( index, true );
+		}
+
+		private void RemoveChildAt ( int index, bool broadcastEvent )
 		{
 			if ( m_Children == null || index < 0 || index >= m_Children.Count )
 				throw new ArgumentOutOfRangeException ();
@@ -432,7 +454,8 @@ namespace CrowEngine.Components
 			//SceneManager.AddRootNode ( child );
 			CancelUpdate ( child );
 
-			child.EventParentModified ( oldParent );
+			if ( broadcastEvent )
+				child.EventParentModified ( oldParent );
 		}
 
 		public void DetachAllChilds ()
@@ -440,7 +463,7 @@ namespace CrowEngine.Components
 			if ( m_Children == null ) { return; }
 			for ( int i = m_Children.Count - 1; i >= 0; i-- )
 			{
-				RemoveChildAt ( i );
+				RemoveChildAt ( i, true );
 			}
 		}
 
@@ -465,7 +488,7 @@ namespace CrowEngine.Components
 				for ( int i = m_Children.Count - 1; i >= 0; i-- )
 				{
 					var child = m_Children[i];
-					RemoveChildAt ( i );
+					RemoveChildAt ( i, true );
 					child.Dispose ();
 				}
 			}
@@ -478,7 +501,7 @@ namespace CrowEngine.Components
 
 		bool ICollection<Transform>.Remove ( Transform child )
 		{
-			return RemoveChild ( child );
+			return RemoveChild ( child, true );
 		}
 
 		void ICollection<Transform>.Clear ()

@@ -120,6 +120,11 @@ namespace CrowEngine.Collections
 
 		public void Add ( T item )
 		{
+			Add ( ref item );
+		}
+
+		public void Add ( ref T item )
+		{
 			if ( m_Size == m_Items.Length )
 				EnsureCapacity ( m_Size + 1 );
 			m_Items[m_Size++] = item;

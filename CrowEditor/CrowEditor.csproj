@@ -78,8 +78,6 @@
     <Compile Include="Jobs\JobScheduler.cs" />
     <Compile Include="Metadata\AssetMetadata.cs" />
     <Compile Include="GLBackgroundThread.cs" />
-    <Compile Include="NativeMemory.cs" />
-    <Compile Include="NativeUtil.cs" />
     <Compile Include="CrowEditorApp.cs" />
     <Compile Include="Jobs\AssetValidation.cs" />
     <Compile Include="Jobs\IJob.cs" />

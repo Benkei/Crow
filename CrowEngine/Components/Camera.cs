@@ -64,8 +64,8 @@ namespace CrowEngine.Components
 		/// </summary>
 		public float FieldOfView
 		{
-			get { return m_FieldOfView * Mathf.Rad2Deg; }
-			set { m_FieldOfView = value * Mathf.Deg2Rad; }
+			get { return m_FieldOfView * MathUtil.Rad2Deg; }
+			set { m_FieldOfView = value * MathUtil.Deg2Rad; }
 		}
 		/// <summary>
 		/// aspect ratio (Width / Height)

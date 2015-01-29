@@ -75,6 +75,15 @@ namespace CrowEngine.Mathematics
 		public const float PiOverFour = (float)(Math.PI / 4);
 
 		/// <summary>
+		/// Converts degrees to radians.
+		/// </summary>
+		public const float Deg2Rad = (float)(Math.PI / 180.0);
+		/// <summary>
+		/// Converts radians to degrees.
+		/// </summary>
+		public const float Rad2Deg = (float)(180.0 / Math.PI);
+
+		/// <summary>
 		/// Checks if a and b are almost equals, taking into account the magnitude of floating point numbers (unlike <see cref="WithinEpsilon"/> method). See Remarks.
 		/// See remarks.
 		/// </summary>
@@ -106,7 +115,7 @@ namespace CrowEngine.Mathematics
 			// Choose of maxUlp = 4
 			// according to http://code.google.com/p/googletest/source/browse/trunk/include/gtest/internal/gtest-internal.h
 			const int maxUlp = 4;
-			return (ulp <= maxUlp);
+			return ulp <= maxUlp;
 		}
 
 		/// <summary>
@@ -277,6 +286,16 @@ namespace CrowEngine.Mathematics
 		}
 
 		/// <summary>
+		/// Clamp the value between zero and one
+		/// </summary>
+		/// <param name="val"></param>
+		/// <returns></returns>
+		public static float Clamp01 ( float val )
+		{
+			return val < 0 ? 0 : val > 1 ? 1 : val;
+		}
+
+		/// <summary>
 		/// Interpolates between two values using a linear function by a given amount.
 		/// </summary>
 		/// <remarks>
@@ -322,6 +341,52 @@ namespace CrowEngine.Mathematics
 		public static byte Lerp ( byte from, byte to, float amount )
 		{
 			return (byte)Lerp ( (float)from, (float)to, amount );
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="from"></param>
+		/// <param name="to"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static float InverseLerp ( float from, float to, float value )
+		{
+			if ( from < to )
+			{
+				if ( value < from )
+					return 0f;
+				if ( value > to )
+					return 1f;
+				value -= from;
+				value /= to - from;
+				return value;
+			}
+			else
+			{
+				if ( from <= to )
+					return 0f;
+				if ( value < to )
+					return 1f;
+				if ( value > from )
+					return 0f;
+				return 1f - (value - to) / (from - to);
+			}
+		}
+
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="from"></param>
+		/// <param name="to"></param>
+		/// <param name="t"></param>
+		/// <returns></returns>
+		public static float SmoothStep ( float from, float to, float t )
+		{
+			t = Clamp01 ( t );
+			t = -2f * t * t * t + 3f * t * t;
+			return to * t + from * (1f - t);
 		}
 
 		/// <summary>
@@ -461,6 +526,17 @@ namespace CrowEngine.Mathematics
 			var componentY = (cy * cy) / (2 * sigmaY * sigmaY);
 
 			return amplitude * Math.Exp ( -(componentX + componentY) );
+		}
+
+		public static float Repeat ( float t, float length )
+		{
+			return t - (float)Math.Floor ( t / length ) * length;
+		}
+
+		public static float PingPong ( float t, float length )
+		{
+			t = Repeat ( t, length * 2f );
+			return length - Math.Abs ( t - length );
 		}
 	}
 }

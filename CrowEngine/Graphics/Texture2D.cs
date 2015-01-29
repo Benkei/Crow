@@ -514,5 +514,26 @@ namespace CrowEngine
 		//{
 		//	GL.ClearTexImage(m_Handler,)
 		//}
+
+
+		public unsafe Color GetPixel ( int level, int x, int y )
+		{
+			var h = Height ( level );
+			IntPtr ptr = NativeUtil.AllocateMemory ( Width ( level ) * h * 4 );
+			try
+			{
+				GL.GetTexImage ( TextureTarget.Texture2D, level, PixelFormat.Rgba, PixelType.Byte, ptr );
+				return ((Color*)ptr)[x + y * h];
+			}
+			finally
+			{
+				NativeUtil.FreeMemory ( ptr );
+			}
+		}
+
+		public Color GetPixelBilinear ( int level, float u, float v )
+		{
+			return new Color ();
+		}
 	}
 }

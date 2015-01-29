@@ -26,18 +26,8 @@ namespace CrowEngine.Mathematics
 	/// Helper class to perform Half/Float conversion.
 	/// Code extract from paper : www.fox-toolkit.org/ftp/fasthalffloatconversion.pdf by Jeroen van der Zijp
 	/// </summary>
-	internal class HalfUtils
+	internal unsafe class HalfUtils
 	{
-		[StructLayout ( LayoutKind.Explicit )]
-		private struct FloatToUint
-		{
-			[FieldOffset ( 0 )]
-			public uint uintValue;
-
-			[FieldOffset ( 0 )]
-			public float floatValue;
-		}
-
 		/// <summary>
 		/// Unpacks the specified h.
 		/// </summary>
@@ -45,9 +35,8 @@ namespace CrowEngine.Mathematics
 		/// <returns></returns>
 		public static float Unpack ( ushort h )
 		{
-			var conv = new FloatToUint ();
-			conv.uintValue = HalfToFloatMantissaTable[HalfToFloatOffsetTable[h >> 10] + (((uint)h) & 0x3ff)] + HalfToFloatExponentTable[h >> 10];
-			return conv.floatValue;
+			var value = HalfToFloatMantissaTable[HalfToFloatOffsetTable[h >> 10] + (h & 0x3ff)] + HalfToFloatExponentTable[h >> 10];
+			return *(float*)&value;
 		}
 
 		/// <summary>
@@ -57,9 +46,8 @@ namespace CrowEngine.Mathematics
 		/// <returns></returns>
 		public static ushort Pack ( float f )
 		{
-			FloatToUint conv = new FloatToUint ();
-			conv.floatValue = f;
-			return (ushort)(FloatToHalfBaseTable[(conv.uintValue >> 23) & 0x1ff] + ((conv.uintValue & 0x007fffff) >> FloatToHalfShiftTable[(conv.uintValue >> 23) & 0x1ff]));
+			var value = *(uint*)&f;
+			return (ushort)(FloatToHalfBaseTable[(value >> 23) & 0x1ff] + ((value & 0x007fffff) >> FloatToHalfShiftTable[(value >> 23) & 0x1ff]));
 		}
 
 		private static readonly uint[] HalfToFloatMantissaTable = new uint[2048];

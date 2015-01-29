@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CrowEngine.Collections;
-using CrowEngine.Components;
 using CrowEngine.Mathematics;
 
 namespace CrowEngine.Components.UI
@@ -14,7 +10,8 @@ namespace CrowEngine.Components.UI
 		private Vector<Vertex> m_Vertices;
 		private bool m_SizeChanged;
 		private bool m_ContentChanged;
-		private Color4 m_Color = Color4.White;
+		private Color m_Color = Color.White;
+		private float m_Alpha = 1;
 		private Canvas m_MyCanvas;
 		private int m_MyCanvasDepth;
 		private Material m_Material;
@@ -37,7 +34,7 @@ namespace CrowEngine.Components.UI
 		{
 			get
 			{
-				int depth = 0;
+				int depth = -1;
 				Transform current = Transform;
 				while ( current != null )
 				{
@@ -57,7 +54,7 @@ namespace CrowEngine.Components.UI
 			get
 			{
 				int depth = 0;
-				int depthLast = 0;
+				int depthLast = -1;
 				Transform current = Transform;
 				while ( current != null )
 				{
@@ -72,18 +69,28 @@ namespace CrowEngine.Components.UI
 		/// <summary>
 		/// Set the color of the renderer. Will be multiplied with the UIVertex color and the Canvas color.
 		/// </summary>
-		public Color4 Color
+		public Color Color
 		{
 			get { return m_Color; }
-			set { m_Color = value; m_ContentChanged |= true; }
+			set
+			{
+				m_Color = value;
+				m_Alpha = value.A * (1f / 255f);
+				m_ContentChanged |= true;
+			}
 		}
 		/// <summary>
 		/// Set the alpha of the renderer. Will be multiplied with the UIVertex alpha and the Canvas alpha.
 		/// </summary>
 		public float Alpha
 		{
-			get { return m_Color.Alpha; }
-			set { m_Color.Alpha = value; m_ContentChanged |= true; }
+			get { return m_Alpha; }
+			set
+			{
+				m_Alpha = value;
+				m_Color.A = (byte)Math.Max ( (int)(value * 255), 255 );
+				m_ContentChanged |= true;
+			}
 		}
 
 		public void SetMaterial ( Material material, Texture texture )
@@ -100,6 +107,11 @@ namespace CrowEngine.Components.UI
 		public Material GetMaterial ()
 		{
 			return m_Material;
+		}
+
+		public void SetVertices ( IList<Vertex> vertices )
+		{
+			SetVertices ( vertices, 0, vertices.Count );
 		}
 
 		public void SetVertices ( IList<Vertex> vertices, int index, int length )
@@ -139,9 +151,7 @@ namespace CrowEngine.Components.UI
 				var src = m_Vertices[i];
 
 				Vector3.TransformCoordinate ( ref src.Position, ref m, out src.Position );
-				var c = (Color4)src.Color;
-				Color4.Modulate ( ref c, ref m_Color, out c );
-				src.Color = (Color)c;
+				Color.Modulate ( ref src.Color, ref m_Color, out src.Color );
 
 				buffer[offset + i] = src;
 			}

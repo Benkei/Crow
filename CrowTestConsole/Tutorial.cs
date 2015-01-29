@@ -55,6 +55,20 @@ namespace CrowEngine
 			Console.WriteLine ( GL.GetString ( StringName.ShadingLanguageVersion ) );
 			Console.WriteLine ();
 
+			int maxUniformBlockSize, maxUniformBlocksVertex, uniformBufferOffsetAlignment;
+			// maximum size of uniform block
+			GL.GetInteger ( GetPName.MaxUniformBlockSize, out maxUniformBlockSize );
+			// maximum number of uniform blocks in each shader (vertex, frag, etc)
+			GL.GetInteger ( GetPName.MaxVertexUniformBlocks, out maxUniformBlocksVertex );
+			// alignment for multiple uniform blocks in one UBO - glBindBufferRange()
+			GL.GetInteger ( GetPName.UniformBufferOffsetAlignment, out uniformBufferOffsetAlignment );
+
+			Console.WriteLine ( "MaxUniformBlockSize {0}", maxUniformBlockSize );
+
+			Console.WriteLine ( "MaxVertexUniformBlocks {0}", maxUniformBlocksVertex );
+
+			Console.WriteLine ( "UniformBufferOffsetAlignment {0}", uniformBufferOffsetAlignment );
+
 			// cache callback
 			m_DebugCallback = GLDebugCallback;
 

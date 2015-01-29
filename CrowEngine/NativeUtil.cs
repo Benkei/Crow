@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CrowEditor
+namespace CrowEngine
 {
-	class NativeUtil
+	public static class NativeUtil
 	{
 		/// <summary>
 		/// Determines whether the specified memory pointer is aligned in memory.

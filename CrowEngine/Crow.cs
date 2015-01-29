@@ -14,6 +14,10 @@ namespace CrowEngine
 			LoadLibrary ( "freetype.dll" );
 		}
 
+		public static void Run ()
+		{
+
+		}
 
 
 		internal static void LoadLibrary ( string name )

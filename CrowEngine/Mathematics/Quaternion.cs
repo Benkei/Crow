@@ -1,26 +1,22 @@
 ﻿// Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+// associated documentation files (the "Software"), to deal in the Software without restriction,
+// including without limitation the rights to use, copy, modify, merge, publish, distribute,
+// sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-// -----------------------------------------------------------------------------
-// Original code from SlimMath project. http://code.google.com/p/slimmath/
-// Greetings to SlimDX Group. Original code published with the following license:
-// -----------------------------------------------------------------------------
+// 
+// The above copyright notice and this permission notice shall be included in all copies or
+// substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+// NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------- Original code from
+// SlimMath project. http://code.google.com/p/slimmath/ Greetings to SlimDX Group. Original code
+// published with the following license: -----------------------------------------------------------------------------
 /*
 * Copyright (c) 2007-2011 SlimDX Group
 *
@@ -122,7 +118,9 @@ namespace CrowEngine.Mathematics
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Quaternion"/> struct.
 		/// </summary>
-		/// <param name="value">A vector containing the values with which to initialize the X, Y, and Z components.</param>
+		/// <param name="value">
+		/// A vector containing the values with which to initialize the X, Y, and Z components.
+		/// </param>
 		/// <param name="w">Initial value for the W component of the quaternion.</param>
 		public Quaternion ( Vector3 value, float w )
 		{
@@ -135,7 +133,9 @@ namespace CrowEngine.Mathematics
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Quaternion"/> struct.
 		/// </summary>
-		/// <param name="value">A vector containing the values with which to initialize the X and Y components.</param>
+		/// <param name="value">
+		/// A vector containing the values with which to initialize the X and Y components.
+		/// </param>
 		/// <param name="z">Initial value for the Z component of the quaternion.</param>
 		/// <param name="w">Initial value for the W component of the quaternion.</param>
 		public Quaternion ( Vector2 value, float z, float w )
@@ -164,9 +164,16 @@ namespace CrowEngine.Mathematics
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Quaternion"/> struct.
 		/// </summary>
-		/// <param name="values">The values to assign to the X, Y, Z, and W components of the quaternion. This must be an array with four elements.</param>
-		/// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
-		/// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than four elements.</exception>
+		/// <param name="values">
+		/// The values to assign to the X, Y, Z, and W components of the quaternion. This must be an
+		/// array with four elements.
+		/// </param>
+		/// <exception cref="ArgumentNullException">
+		/// Thrown when <paramref name="values"/> is <c>null</c>.
+		/// </exception>
+		/// <exception cref="ArgumentOutOfRangeException">
+		/// Thrown when <paramref name="values"/> contains more or less than four elements.
+		/// </exception>
 		public Quaternion ( float[] values )
 		{
 			if ( values == null )
@@ -183,9 +190,7 @@ namespace CrowEngine.Mathematics
 		/// <summary>
 		/// Gets a value indicating whether this instance is equivalent to the identity quaternion.
 		/// </summary>
-		/// <value>
-		/// <c>true</c> if this instance is an identity quaternion; otherwise, <c>false</c>.
-		/// </value>
+		/// <value><c>true</c> if this instance is an identity quaternion; otherwise, <c>false</c>.</value>
 		public bool IsIdentity
 		{
 			get { return this.Equals ( Identity ); }
@@ -236,9 +241,14 @@ namespace CrowEngine.Mathematics
 		/// Gets or sets the component at the specified index.
 		/// </summary>
 		/// <value>The value of the X, Y, Z, or W component, depending on the index.</value>
-		/// <param name="index">The index of the component to access. Use 0 for the X component, 1 for the Y component, 2 for the Z component, and 3 for the W component.</param>
+		/// <param name="index">
+		/// The index of the component to access. Use 0 for the X component, 1 for the Y component,
+		/// 2 for the Z component, and 3 for the W component.
+		/// </param>
 		/// <returns>The value of the component at the specified index.</returns>
-		/// <exception cref="System.ArgumentOutOfRangeException">Thrown when the <paramref name="index"/> is out of the range [0, 3].</exception>
+		/// <exception cref="System.ArgumentOutOfRangeException">
+		/// Thrown when the <paramref name="index"/> is out of the range [0, 3].
+		/// </exception>
 		public float this[int index]
 		{
 			get
@@ -299,8 +309,8 @@ namespace CrowEngine.Mathematics
 		/// </summary>
 		/// <returns>The length of the quaternion.</returns>
 		/// <remarks>
-		/// <see cref="Quaternion.LengthSquared"/> may be preferred when only the relative length is needed
-		/// and speed is of the essence.
+		/// <see cref="Quaternion.LengthSquared"/> may be preferred when only the relative length is
+		/// needed and speed is of the essence.
 		/// </remarks>
 		public float Length ()
 		{
@@ -312,8 +322,8 @@ namespace CrowEngine.Mathematics
 		/// </summary>
 		/// <returns>The squared length of the quaternion.</returns>
 		/// <remarks>
-		/// This method may be preferred to <see cref="Quaternion.Length"/> when only a relative length is needed
-		/// and speed is of the essence.
+		/// This method may be preferred to <see cref="Quaternion.Length"/> when only a relative
+		/// length is needed and speed is of the essence.
 		/// </remarks>
 		public float LengthSquared ()
 		{
@@ -377,7 +387,9 @@ namespace CrowEngine.Mathematics
 		/// </summary>
 		/// <param name="left">The first quaternion to subtract.</param>
 		/// <param name="right">The second quaternion to subtract.</param>
-		/// <param name="result">When the method completes, contains the difference of the two quaternions.</param>
+		/// <param name="result">
+		/// When the method completes, contains the difference of the two quaternions.
+		/// </param>
 		public static void Subtract ( ref Quaternion left, ref Quaternion right, out Quaternion result )
 		{
 			result.X = left.X - right.X;
@@ -469,7 +481,9 @@ namespace CrowEngine.Mathematics
 		/// Reverses the direction of a given quaternion.
 		/// </summary>
 		/// <param name="value">The quaternion to negate.</param>
-		/// <param name="result">When the method completes, contains a quaternion facing in the opposite direction.</param>
+		/// <param name="result">
+		/// When the method completes, contains a quaternion facing in the opposite direction.
+		/// </param>
 		public static void Negate ( ref Quaternion value, out Quaternion result )
 		{
 			result.X = -value.X;
@@ -491,14 +505,30 @@ namespace CrowEngine.Mathematics
 		}
 
 		/// <summary>
-		/// Returns a <see cref="Quaternion"/> containing the 4D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 2D triangle.
+		/// Returns a <see cref="Quaternion"/> containing the 4D Cartesian coordinates of a point
+		/// specified in Barycentric coordinates relative to a 2D triangle.
 		/// </summary>
-		/// <param name="value1">A <see cref="Quaternion"/> containing the 4D Cartesian coordinates of vertex 1 of the triangle.</param>
-		/// <param name="value2">A <see cref="Quaternion"/> containing the 4D Cartesian coordinates of vertex 2 of the triangle.</param>
-		/// <param name="value3">A <see cref="Quaternion"/> containing the 4D Cartesian coordinates of vertex 3 of the triangle.</param>
-		/// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
-		/// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
-		/// <param name="result">When the method completes, contains a new <see cref="Quaternion"/> containing the 4D Cartesian coordinates of the specified point.</param>
+		/// <param name="value1">
+		/// A <see cref="Quaternion"/> containing the 4D Cartesian coordinates of vertex 1 of the triangle.
+		/// </param>
+		/// <param name="value2">
+		/// A <see cref="Quaternion"/> containing the 4D Cartesian coordinates of vertex 2 of the triangle.
+		/// </param>
+		/// <param name="value3">
+		/// A <see cref="Quaternion"/> containing the 4D Cartesian coordinates of vertex 3 of the triangle.
+		/// </param>
+		/// <param name="amount1">
+		/// Barycentric coordinate b2, which expresses the weighting factor toward vertex 2
+		/// (specified in <paramref name="value2"/>).
+		/// </param>
+		/// <param name="amount2">
+		/// Barycentric coordinate b3, which expresses the weighting factor toward vertex 3
+		/// (specified in <paramref name="value3"/>).
+		/// </param>
+		/// <param name="result">
+		/// When the method completes, contains a new <see cref="Quaternion"/> containing the 4D
+		/// Cartesian coordinates of the specified point.
+		/// </param>
 		public static void Barycentric ( ref Quaternion value1, ref Quaternion value2, ref Quaternion value3, float amount1, float amount2, out Quaternion result )
 		{
 			Quaternion start, end;
@@ -508,14 +538,29 @@ namespace CrowEngine.Mathematics
 		}
 
 		/// <summary>
-		/// Returns a <see cref="Quaternion"/> containing the 4D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 2D triangle.
+		/// Returns a <see cref="Quaternion"/> containing the 4D Cartesian coordinates of a point
+		/// specified in Barycentric coordinates relative to a 2D triangle.
 		/// </summary>
-		/// <param name="value1">A <see cref="Quaternion"/> containing the 4D Cartesian coordinates of vertex 1 of the triangle.</param>
-		/// <param name="value2">A <see cref="Quaternion"/> containing the 4D Cartesian coordinates of vertex 2 of the triangle.</param>
-		/// <param name="value3">A <see cref="Quaternion"/> containing the 4D Cartesian coordinates of vertex 3 of the triangle.</param>
-		/// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
-		/// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
-		/// <returns>A new <see cref="Quaternion"/> containing the 4D Cartesian coordinates of the specified point.</returns>
+		/// <param name="value1">
+		/// A <see cref="Quaternion"/> containing the 4D Cartesian coordinates of vertex 1 of the triangle.
+		/// </param>
+		/// <param name="value2">
+		/// A <see cref="Quaternion"/> containing the 4D Cartesian coordinates of vertex 2 of the triangle.
+		/// </param>
+		/// <param name="value3">
+		/// A <see cref="Quaternion"/> containing the 4D Cartesian coordinates of vertex 3 of the triangle.
+		/// </param>
+		/// <param name="amount1">
+		/// Barycentric coordinate b2, which expresses the weighting factor toward vertex 2
+		/// (specified in <paramref name="value2"/>).
+		/// </param>
+		/// <param name="amount2">
+		/// Barycentric coordinate b3, which expresses the weighting factor toward vertex 3
+		/// (specified in <paramref name="value3"/>).
+		/// </param>
+		/// <returns>
+		/// A new <see cref="Quaternion"/> containing the 4D Cartesian coordinates of the specified point.
+		/// </returns>
 		public static Quaternion Barycentric ( Quaternion value1, Quaternion value2, Quaternion value3, float amount1, float amount2 )
 		{
 			Quaternion result;
@@ -553,7 +598,9 @@ namespace CrowEngine.Mathematics
 		/// </summary>
 		/// <param name="left">First source quaternion.</param>
 		/// <param name="right">Second source quaternion.</param>
-		/// <param name="result">When the method completes, contains the dot product of the two quaternions.</param>
+		/// <param name="result">
+		/// When the method completes, contains the dot product of the two quaternions.
+		/// </param>
 		public static void Dot ( ref Quaternion left, ref Quaternion right, out float result )
 		{
 			result = (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
@@ -611,7 +658,9 @@ namespace CrowEngine.Mathematics
 		/// Conjugates and renormalizes the quaternion.
 		/// </summary>
 		/// <param name="value">The quaternion to conjugate and renormalize.</param>
-		/// <param name="result">When the method completes, contains the conjugated and renormalized quaternion.</param>
+		/// <param name="result">
+		/// When the method completes, contains the conjugated and renormalized quaternion.
+		/// </param>
 		public static void Invert ( ref Quaternion value, out Quaternion result )
 		{
 			result = value;
@@ -636,11 +685,16 @@ namespace CrowEngine.Mathematics
 		/// <param name="start">Start quaternion.</param>
 		/// <param name="end">End quaternion.</param>
 		/// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-		/// <param name="result">When the method completes, contains the linear interpolation of the two quaternions.</param>
+		/// <param name="result">
+		/// When the method completes, contains the linear interpolation of the two quaternions.
+		/// </param>
 		/// <remarks>
 		/// This method performs the linear interpolation based on the following formula.
-		/// <code>start + (end - start) * amount</code>
-		/// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
+		/// <code>
+		/// start + (end - start) * amount
+		/// </code>
+		/// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be
+		/// returned; a value of 1 will cause <paramref name="end"/> to be returned.
 		/// </remarks>
 		public static void Lerp ( ref Quaternion start, ref Quaternion end, float amount, out Quaternion result )
 		{
@@ -673,8 +727,11 @@ namespace CrowEngine.Mathematics
 		/// <returns>The linear interpolation of the two quaternions.</returns>
 		/// <remarks>
 		/// This method performs the linear interpolation based on the following formula.
-		/// <code>start + (end - start) * amount</code>
-		/// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
+		/// <code>
+		/// start + (end - start) * amount
+		/// </code>
+		/// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be
+		/// returned; a value of 1 will cause <paramref name="end"/> to be returned.
 		/// </remarks>
 		public static Quaternion Lerp ( Quaternion start, Quaternion end, float amount )
 		{
@@ -687,7 +744,9 @@ namespace CrowEngine.Mathematics
 		/// Calculates the natural logarithm of the specified quaternion.
 		/// </summary>
 		/// <param name="value">The quaternion whose logarithm will be calculated.</param>
-		/// <param name="result">When the method completes, contains the natural logarithm of the quaternion.</param>
+		/// <param name="result">
+		/// When the method completes, contains the natural logarithm of the quaternion.
+		/// </param>
 		public static void Logarithm ( ref Quaternion value, out Quaternion result )
 		{
 			if ( Math.Abs ( value.W ) < 1.0 )
@@ -999,7 +1058,9 @@ namespace CrowEngine.Mathematics
 		/// <summary>
 		/// Creates a left-handed spherical billboard that rotates around a specified object position.
 		/// </summary>
-		/// <param name="objectPosition">The position of the object around which the billboard will rotate.</param>
+		/// <param name="objectPosition">
+		/// The position of the object around which the billboard will rotate.
+		/// </param>
 		/// <param name="cameraPosition">The position of the camera.</param>
 		/// <param name="cameraUpVector">The up vector of the camera.</param>
 		/// <param name="cameraForwardVector">The forward vector of the camera.</param>
@@ -1014,7 +1075,9 @@ namespace CrowEngine.Mathematics
 		/// <summary>
 		/// Creates a left-handed spherical billboard that rotates around a specified object position.
 		/// </summary>
-		/// <param name="objectPosition">The position of the object around which the billboard will rotate.</param>
+		/// <param name="objectPosition">
+		/// The position of the object around which the billboard will rotate.
+		/// </param>
 		/// <param name="cameraPosition">The position of the camera.</param>
 		/// <param name="cameraUpVector">The up vector of the camera.</param>
 		/// <param name="cameraForwardVector">The forward vector of the camera.</param>
@@ -1029,7 +1092,9 @@ namespace CrowEngine.Mathematics
 		/// <summary>
 		/// Creates a right-handed spherical billboard that rotates around a specified object position.
 		/// </summary>
-		/// <param name="objectPosition">The position of the object around which the billboard will rotate.</param>
+		/// <param name="objectPosition">
+		/// The position of the object around which the billboard will rotate.
+		/// </param>
 		/// <param name="cameraPosition">The position of the camera.</param>
 		/// <param name="cameraUpVector">The up vector of the camera.</param>
 		/// <param name="cameraForwardVector">The forward vector of the camera.</param>
@@ -1044,7 +1109,9 @@ namespace CrowEngine.Mathematics
 		/// <summary>
 		/// Creates a right-handed spherical billboard that rotates around a specified object position.
 		/// </summary>
-		/// <param name="objectPosition">The position of the object around which the billboard will rotate.</param>
+		/// <param name="objectPosition">
+		/// The position of the object around which the billboard will rotate.
+		/// </param>
 		/// <param name="cameraPosition">The position of the camera.</param>
 		/// <param name="cameraUpVector">The up vector of the camera.</param>
 		/// <param name="cameraForwardVector">The forward vector of the camera.</param>
@@ -1109,12 +1176,57 @@ namespace CrowEngine.Mathematics
 		}
 
 		/// <summary>
+		/// Convert a quaternion to yaw pitch roll values
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static void RotationToYawPitchRoll ( ref Quaternion value, out float yaw, out float pitch, out float roll )
+		{
+			// from http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
+			const float Epsilon = 0.0009765625f;
+			const float Threshold = 0.5f - Epsilon;
+			// result x = yaw y = pitch z = roll
+			float test = value.X * value.Y + value.Z * value.W;
+			if ( test < -Threshold || test > Threshold )
+			{
+				float sign = Math.Sign ( test );
+				yaw = sign * 2f * (float)Math.Atan2 ( value.X, value.W );
+				pitch = sign * MathUtil.PiOverTwo;
+				roll = 0;
+			}
+			else
+			{
+				float XX = value.X * value.X;
+				float XZ = value.X * value.Z;
+				float XW = value.X * value.W;
+
+				float YY = value.Y * value.Y;
+				float YW = value.Y * value.W;
+				float YZ = value.Y * value.Z;
+
+				float ZZ = value.Z * value.Z;
+
+				yaw = (float)Math.Atan2 ( 2 * YW - 2 * XZ, 1 - 2 * YY - 2 * ZZ );
+				pitch = (float)Math.Atan2 ( 2 * XW - 2 * YZ, 1 - 2 * XX - 2 * ZZ );
+				roll = (float)Math.Asin ( 2 * test );
+			}
+		}
+
+		public static void RotationDelta ( ref Quaternion from, ref Quaternion to, out Quaternion result )
+		{
+			Quaternion.Invert ( ref from, out result );
+			Quaternion.Multiply ( ref result, ref to, out result );
+		}
+
+		/// <summary>
 		/// Interpolates between two quaternions, using spherical linear interpolation.
 		/// </summary>
 		/// <param name="start">Start quaternion.</param>
 		/// <param name="end">End quaternion.</param>
 		/// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-		/// <param name="result">When the method completes, contains the spherical linear interpolation of the two quaternions.</param>
+		/// <param name="result">
+		/// When the method completes, contains the spherical linear interpolation of the two quaternions.
+		/// </param>
 		public static void Slerp ( ref Quaternion start, ref Quaternion end, float amount, out Quaternion result )
 		{
 			float opposite;
@@ -1163,7 +1275,9 @@ namespace CrowEngine.Mathematics
 		/// <param name="value3">Third source quaternion.</param>
 		/// <param name="value4">Fourth source quaternion.</param>
 		/// <param name="amount">Value between 0 and 1 indicating the weight of interpolation.</param>
-		/// <param name="result">When the method completes, contains the spherical quadrangle interpolation of the quaternions.</param>
+		/// <param name="result">
+		/// When the method completes, contains the spherical quadrangle interpolation of the quaternions.
+		/// </param>
 		public static void Squad ( ref Quaternion value1, ref Quaternion value2, ref Quaternion value3, ref Quaternion value4, float amount, out Quaternion result )
 		{
 			Quaternion start, end;
@@ -1195,7 +1309,9 @@ namespace CrowEngine.Mathematics
 		/// <param name="value2">Second source quaternion.</param>
 		/// <param name="value3">Third source quaternion.</param>
 		/// <param name="value4">Fourth source quaternion.</param>
-		/// <returns>An array of three quaternions that represent control points for spherical quadrangle interpolation.</returns>
+		/// <returns>
+		/// An array of three quaternions that represent control points for spherical quadrangle interpolation.
+		/// </returns>
 		public static Quaternion[] SquadSetup ( Quaternion value1, Quaternion value2, Quaternion value3, Quaternion value4 )
 		{
 			Quaternion q0 = (value1 + value2).LengthSquared () < (value1 - value2).LengthSquared () ? -value1 : value1;
@@ -1297,7 +1413,10 @@ namespace CrowEngine.Mathematics
 		/// </summary>
 		/// <param name="left">The first value to compare.</param>
 		/// <param name="right">The second value to compare.</param>
-		/// <returns><c>true</c> if <paramref name="left"/> has the same value as <paramref name="right"/>; otherwise, <c>false</c>.</returns>
+		/// <returns>
+		/// <c>true</c> if <paramref name="left"/> has the same value as <paramref name="right"/>;
+		/// otherwise, <c>false</c>.
+		/// </returns>
 		public static bool operator == ( Quaternion left, Quaternion right )
 		{
 			return left.Equals ( ref right );
@@ -1308,7 +1427,10 @@ namespace CrowEngine.Mathematics
 		/// </summary>
 		/// <param name="left">The first value to compare.</param>
 		/// <param name="right">The second value to compare.</param>
-		/// <returns><c>true</c> if <paramref name="left"/> has a different value than <paramref name="right"/>; otherwise, <c>false</c>.</returns>
+		/// <returns>
+		/// <c>true</c> if <paramref name="left"/> has a different value than <paramref
+		/// name="right"/>; otherwise, <c>false</c>.
+		/// </returns>
 		public static bool operator != ( Quaternion left, Quaternion right )
 		{
 			return !left.Equals ( ref right );
@@ -1317,9 +1439,7 @@ namespace CrowEngine.Mathematics
 		/// <summary>
 		/// Returns a <see cref="System.String"/> that represents this instance.
 		/// </summary>
-		/// <returns>
-		/// A <see cref="System.String"/> that represents this instance.
-		/// </returns>
+		/// <returns>A <see cref="System.String"/> that represents this instance.</returns>
 		public override string ToString ()
 		{
 			return string.Format ( CultureInfo.CurrentCulture, "X:{0} Y:{1} Z:{2} W:{3}", X, Y, Z, W );
@@ -1329,9 +1449,7 @@ namespace CrowEngine.Mathematics
 		/// Returns a <see cref="System.String"/> that represents this instance.
 		/// </summary>
 		/// <param name="format">The format.</param>
-		/// <returns>
-		/// A <see cref="System.String"/> that represents this instance.
-		/// </returns>
+		/// <returns>A <see cref="System.String"/> that represents this instance.</returns>
 		public string ToString ( string format )
 		{
 			if ( format == null )
@@ -1345,9 +1463,7 @@ namespace CrowEngine.Mathematics
 		/// Returns a <see cref="System.String"/> that represents this instance.
 		/// </summary>
 		/// <param name="formatProvider">The format provider.</param>
-		/// <returns>
-		/// A <see cref="System.String"/> that represents this instance.
-		/// </returns>
+		/// <returns>A <see cref="System.String"/> that represents this instance.</returns>
 		public string ToString ( IFormatProvider formatProvider )
 		{
 			return string.Format ( formatProvider, "X:{0} Y:{1} Z:{2} W:{3}", X, Y, Z, W );
@@ -1358,9 +1474,7 @@ namespace CrowEngine.Mathematics
 		/// </summary>
 		/// <param name="format">The format.</param>
 		/// <param name="formatProvider">The format provider.</param>
-		/// <returns>
-		/// A <see cref="System.String"/> that represents this instance.
-		/// </returns>
+		/// <returns>A <see cref="System.String"/> that represents this instance.</returns>
 		public string ToString ( string format, IFormatProvider formatProvider )
 		{
 			if ( format == null )
@@ -1374,7 +1488,8 @@ namespace CrowEngine.Mathematics
 		/// Returns a hash code for this instance.
 		/// </summary>
 		/// <returns>
-		/// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
+		/// A hash code for this instance, suitable for use in hashing algorithms and data
+		/// structures like a hash table.
 		/// </returns>
 		public override int GetHashCode ()
 		{
@@ -1393,7 +1508,8 @@ namespace CrowEngine.Mathematics
 		/// </summary>
 		/// <param name="other">The <see cref="Quaternion"/> to compare with this instance.</param>
 		/// <returns>
-		/// <c>true</c> if the specified <see cref="Quaternion"/> is equal to this instance; otherwise, <c>false</c>.
+		/// <c>true</c> if the specified <see cref="Quaternion"/> is equal to this instance;
+		/// otherwise, <c>false</c>.
 		/// </returns>
 		public bool Equals ( ref Quaternion other )
 		{
@@ -1405,7 +1521,8 @@ namespace CrowEngine.Mathematics
 		/// </summary>
 		/// <param name="other">The <see cref="Quaternion"/> to compare with this instance.</param>
 		/// <returns>
-		/// <c>true</c> if the specified <see cref="Quaternion"/> is equal to this instance; otherwise, <c>false</c>.
+		/// <c>true</c> if the specified <see cref="Quaternion"/> is equal to this instance;
+		/// otherwise, <c>false</c>.
 		/// </returns>
 		public bool Equals ( Quaternion other )
 		{
@@ -1417,7 +1534,8 @@ namespace CrowEngine.Mathematics
 		/// </summary>
 		/// <param name="value">The <see cref="System.Object"/> to compare with this instance.</param>
 		/// <returns>
-		/// <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
+		/// <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance;
+		/// otherwise, <c>false</c>.
 		/// </returns>
 		public override bool Equals ( object value )
 		{

@@ -25,17 +25,6 @@ namespace CrowEngine.Components
 		}
 	}
 
-	public struct RectangleBounds
-	{
-		public Vector2 Minimum;
-		public Vector2 Maximum;
-
-		public Vector2 Size
-		{
-			get { return Maximum - Minimum; }
-		}
-	}
-
 	public class RectTransform : Transform
 	{
 		private RectAnchor m_Anchor;
@@ -44,7 +33,7 @@ namespace CrowEngine.Components
 		// anchor modus stretch: x:wightoffset y:heightoffset
 		private Vector2 m_SizeDelta;
 		private Vector2 m_Pivot;
-		private RectangleBounds m_Rectangle;
+		private RectangleF m_Rectangle;
 
 
 		public RectTransform ()
@@ -195,7 +184,7 @@ namespace CrowEngine.Components
 		//
 		// Summary:
 		//     The calculated rectangle in the local space of the Transform.
-		public RectangleBounds Rectangle
+		public RectangleF Rectangle
 		{
 			[MethodImpl ( MethodImplOptions.AggressiveInlining )]
 			get
@@ -244,6 +233,37 @@ namespace CrowEngine.Components
 			Vector3 bottomRight, Vector3 bottomLeft )
 		{
 
+		}
+
+		public static bool ScreenPointToWorldPointInRectangle ( RectTransform rect, Vector2 screenPoint, Camera cam, out Vector3 worldPoint )
+		{
+			worldPoint = new Vector3 ();
+			Ray ray = ScreenPointToRay ( cam, screenPoint );
+			Plane plane = new Plane ( Vector3.Transform ( Vector3.BackwardLH, rect.Rotation ), rect.Position );
+			return Collision.RayIntersectsPlane ( ref ray, ref plane, out worldPoint );
+		}
+
+		public static bool ScreenPointToLocalPointInRectangle ( RectTransform rect, Vector2 screenPoint, Camera cam, out Vector2 localPoint )
+		{
+			localPoint = new Vector2 ();
+			Vector3 position;
+			if ( ScreenPointToWorldPointInRectangle ( rect, screenPoint, cam, out position ) )
+			{
+				localPoint = (Vector2)rect.InverseTransformPoint ( position );
+				return true;
+			}
+			return false;
+		}
+
+		public static Ray ScreenPointToRay ( Camera cam, Vector2 screenPos )
+		{
+			if ( cam != null )
+			{
+				return cam.ScreenPointToRay ( screenPos );
+			}
+			Vector3 origin = (Vector3)screenPos;
+			origin.Z -= 100f;
+			return new Ray ( origin, Vector3.ForwardLH );
 		}
 
 
