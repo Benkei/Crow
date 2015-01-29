@@ -259,7 +259,7 @@ namespace CrowEngine.Components
 		{
 			if ( cam != null )
 			{
-				return cam.ScreenPointToRay ( screenPos );
+				return cam.ScreenPointToRay ( (Vector3)screenPos );
 			}
 			Vector3 origin = (Vector3)screenPos;
 			origin.Z -= 100f;

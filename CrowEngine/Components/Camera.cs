@@ -25,16 +25,14 @@ namespace CrowEngine.Components
 		bool m_UpdateProjectionMatrix = true;
 		bool m_CustomAspect;
 
-		float m_Aspect;
+		float m_AspectRatio;
 		float m_FieldOfView; // fov in radians
-		float m_NearClipPlane;
-		float m_FarClipPlane;
 		EProjectionType m_ProjectionType;
 
 		Vector3 m_LastPosition;
 		Quaternion m_LastRotation;
 
-		Rectangle m_PixelScreenSize;
+		Viewport m_Viewport;
 
 		Matrix m_ViewMatrix;
 		Matrix m_ProjectionMatrix;
@@ -65,18 +63,23 @@ namespace CrowEngine.Components
 		public float FieldOfView
 		{
 			get { return m_FieldOfView * MathUtil.Rad2Deg; }
-			set { m_FieldOfView = value * MathUtil.Deg2Rad; }
+			set
+			{
+				m_FieldOfView = value * MathUtil.Deg2Rad;
+				m_UpdateProjectionMatrix = true;
+			}
 		}
 		/// <summary>
 		/// aspect ratio (Width / Height)
 		/// </summary>
-		public float Aspect
+		public float AspectRatio
 		{
-			get { return m_Aspect; }
+			get { return m_AspectRatio; }
 			set
 			{
-				m_Aspect = value;
+				m_AspectRatio = value;
 				m_CustomAspect = true;
+				m_UpdateProjectionMatrix = true;
 			}
 		}
 		//todo mal kucken ob wir es brauchen.
@@ -84,14 +87,14 @@ namespace CrowEngine.Components
 		/// <summary>
 		/// 
 		/// </summary>
-		public float NearClipPlane
+		public float MinimumClipPlane
 		{
-			get { return m_NearClipPlane; }
+			get { return m_Viewport.MinDepth; }
 			set
 			{
-				if ( m_NearClipPlane != value )
+				if ( m_Viewport.MinDepth != value )
 				{
-					m_NearClipPlane = Math.Max ( MIN_NEAR_CLIP_PLANE, value );
+					m_Viewport.MinDepth = Math.Max ( MIN_NEAR_CLIP_PLANE, value );
 					m_UpdateProjectionMatrix = true;
 				}
 			}
@@ -99,14 +102,14 @@ namespace CrowEngine.Components
 		/// <summary>
 		/// 
 		/// </summary>
-		public float FarClipPlane
+		public float MaximumClipPlane
 		{
-			get { return m_FarClipPlane; }
+			get { return m_Viewport.MaxDepth; }
 			set
 			{
-				if ( m_FarClipPlane != value )
+				if ( m_Viewport.MaxDepth != value )
 				{
-					m_FarClipPlane = Math.Max ( MIN_FAR_CLIP_PLANE, value );
+					m_Viewport.MaxDepth = Math.Max ( MIN_FAR_CLIP_PLANE, value );
 					m_UpdateProjectionMatrix = true;
 				}
 			}
@@ -147,21 +150,21 @@ namespace CrowEngine.Components
 			get { UpdateProjectionMatrix (); return m_ProjectionMatrix; }
 			set
 			{
-				m_ProjectionMatrix = value;
 				ProjectionType = EProjectionType.Custom;
 				m_UpdateProjectionMatrix = true;
+				m_ProjectionMatrix = value;
 			}
 		}
 
-		public Rectangle PixelScreenSize
+		public Viewport Viewport
 		{
-			get { return m_PixelScreenSize; }
+			get { return m_Viewport; }
 			set
 			{
-				m_PixelScreenSize = value;
+				m_Viewport = value;
 				if ( !m_CustomAspect && m_ProjectionType == EProjectionType.Perspective )
 				{
-					Aspect = (float)value.Width / (float)value.Height;
+					m_AspectRatio = value.Height != 0 ? (float)value.Width / (float)value.Height : 0f;
 				}
 				m_UpdateProjectionMatrix = true;
 			}
@@ -185,14 +188,105 @@ namespace CrowEngine.Components
 			UpdateProjectionMatrix ();
 		}
 
-		public void ResetAspect ()
+		public void ResetAspectRatio ()
 		{
 			if ( m_CustomAspect )
 			{
+				m_AspectRatio = m_Viewport.Height == 0 ? (float)m_Viewport.Width / (float)m_Viewport.Height : 0f;
 				m_CustomAspect = false;
-				Aspect = (float)m_PixelScreenSize.Width / (float)m_PixelScreenSize.Height;
+				m_UpdateProjectionMatrix = true;
 			}
 		}
+
+
+		public Ray ScreenPointToRay ( Vector3 screenPosition )
+		{
+			UpdateViewMatrix ();
+			UpdateProjectionMatrix ();
+
+			Matrix matrix;
+			Ray ray;
+
+			Matrix.Multiply ( ref m_ViewMatrix, ref m_ProjectionMatrix, out matrix );
+			matrix.Invert ();
+
+			screenPosition.Z = 0;
+			m_Viewport.Unproject ( ref screenPosition, ref matrix, out ray.Position );
+
+			screenPosition.Z = 1;
+			m_Viewport.Unproject ( ref screenPosition, ref matrix, out ray.Direction );
+
+			ray.Direction -= ray.Position;
+			ray.Direction.Normalize ();
+
+			return ray;
+		}
+		public Vector3 ScreenToViewportPoint ( Vector3 screenPosition )
+		{
+			Vector3 view = Transform.Position;
+			view.X = (m_Viewport.Width == 0 ? (1f / m_Viewport.Width) : 0f) * screenPosition.X;
+			view.Y = (m_Viewport.Height == 0 ? (1f / m_Viewport.Height) : 0f) * screenPosition.Y;
+			return view;
+		}
+		public Vector3 ScreenToWorldPoint ( Vector3 screenPosition )
+		{
+			UpdateViewMatrix ();
+			UpdateProjectionMatrix ();
+
+			Matrix matrix;
+
+			Matrix.Multiply ( ref m_ViewMatrix, ref m_ProjectionMatrix, out matrix );
+			matrix.Invert ();
+
+			screenPosition.Z = 0;
+			m_Viewport.Unproject ( ref screenPosition, ref matrix, out screenPosition );
+
+			return screenPosition;
+		}
+
+		/// <summary>
+		/// Viewport coordinates are normalized and relative to the camera. The bottom-left of the camera is (0,0); the top-right is (1,1)
+		/// </summary>
+		/// <param name="viewPosition"></param>
+		/// <returns></returns>
+		public Ray ViewportPointToRay ( Vector3 viewPosition )
+		{
+			viewPosition.X *= m_Viewport.Width;
+			viewPosition.Y *= m_Viewport.Height;
+			return ScreenPointToRay ( viewPosition );
+		}
+		public Vector3 ViewportToScreenPoint ( Vector3 viewPosition )
+		{
+			viewPosition.X *= m_Viewport.Width;
+			viewPosition.Y *= m_Viewport.Height;
+			return viewPosition;
+		}
+		public Vector3 ViewportToWorldPoint ( Vector3 viewPosition )
+		{
+			viewPosition.X *= m_Viewport.Width;
+			viewPosition.Y *= m_Viewport.Height;
+			return ScreenToWorldPoint ( viewPosition );
+		}
+
+		public Vector3 WorldToScreenPoint ( Vector3 worldPosition )
+		{
+			UpdateViewMatrix ();
+			UpdateProjectionMatrix ();
+
+			Matrix matrix;
+
+			Matrix.Multiply ( ref m_ViewMatrix, ref m_ProjectionMatrix, out matrix );
+			matrix.Invert ();
+
+			m_Viewport.Project ( ref worldPosition, ref matrix, out worldPosition );
+
+			return worldPosition;
+		}
+		public Vector3 WorldToViewportPoint ( Vector3 worldPosition )
+		{
+			return ScreenToViewportPoint ( WorldToScreenPoint ( worldPosition ) );
+		}
+
 
 		void UpdateViewMatrix ()
 		{
@@ -225,12 +319,12 @@ namespace CrowEngine.Components
 				if ( m_ProjectionType == EProjectionType.Perspective )
 				{
 					// Create an perspective projection matrix.
-					Matrix.PerspectiveFovLH ( m_FieldOfView, Aspect, m_NearClipPlane, m_FarClipPlane, out m_ProjectionMatrix );
+					Matrix.PerspectiveFovLH ( m_FieldOfView, m_AspectRatio, m_Viewport.MinDepth, m_Viewport.MaxDepth, out m_ProjectionMatrix );
 				}
 				else if ( m_ProjectionType == EProjectionType.Orthographic )
 				{
 					// Create an orthographic projection matrix.
-					Matrix.OrthoLH ( m_PixelScreenSize.Width, m_PixelScreenSize.Height, m_NearClipPlane, m_FarClipPlane, out m_ProjectionMatrix );
+					Matrix.OrthoLH ( m_Viewport.Width, m_Viewport.Height, m_Viewport.MinDepth, m_Viewport.MaxDepth, out m_ProjectionMatrix );
 				}
 			}
 		}

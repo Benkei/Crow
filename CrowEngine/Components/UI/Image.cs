@@ -237,7 +237,7 @@ namespace CrowEngine.Components.UI
 				if ( OverrideSprite == null )
 					return 0;
 				if ( Type == ImageType.Sliced || Type == ImageType.Tiled )
-					return OverrideSprite.GetMinSize ().Y / PixelsPerUnit;
+					return OverrideSprite.Rect.Height / PixelsPerUnit;
 				return OverrideSprite.Rect.Size.Y / PixelsPerUnit;
 			}
 		}
@@ -249,7 +249,7 @@ namespace CrowEngine.Components.UI
 				if ( OverrideSprite == null )
 					return 0;
 				if ( Type == ImageType.Sliced || Type == ImageType.Tiled )
-					return OverrideSprite.GetMinSize ().X / PixelsPerUnit;
+					return OverrideSprite.Rect.Width / PixelsPerUnit;
 				return OverrideSprite.Rect.Size.X / PixelsPerUnit;
 			}
 		}
@@ -311,7 +311,7 @@ namespace CrowEngine.Components.UI
 				return true;
 
 			Vector2 local;
-			RectTransformUtility.ScreenPointToLocalPointInRectangle ( Transform, screenPoint, eventCamera, out local );
+			RectTransform.ScreenPointToLocalPointInRectangle ( Transform, screenPoint, eventCamera, out local );
 
 			RectangleF rect = GetPixelAdjustedRect ();
 
@@ -322,7 +322,7 @@ namespace CrowEngine.Components.UI
 			local = MapCoordinate ( local, rect );
 
 			// Normalize local coordinates.
-			RectangleF spriteRect = sprite.textureRect;
+			Rectangle spriteRect = sprite.Rect;
 			Vector2 normalized = new Vector2 ( local.X / spriteRect.Width, local.Y / spriteRect.Height );
 
 			// Convert to texture space.
@@ -768,8 +768,8 @@ namespace CrowEngine.Components.UI
 			s_VertScratch[0] = new Vector2 ();
 			s_VertScratch[1].X = border.X;
 			s_VertScratch[1].Y = border.Y;
-			s_VertScratch[2].X = rect.Width - border.Z;
-			s_VertScratch[2].Y = rect.Height - border.W;
+			s_VertScratch[2].X = rect.Width - border.Maximum.X;
+			s_VertScratch[2].Y = rect.Height - border.Maximum.Y;
 			s_VertScratch[3] = new Vector2 ( rect.Width, rect.Height );
 
 			for ( int i = 0; i < 4; ++i )
@@ -810,28 +810,29 @@ namespace CrowEngine.Components.UI
 		private void GenerateTiledSprite ( Vector<Vertex> buffer )
 		{
 			RectangleF outer, inner;
-			Vector4 border;
+			RectangleF border;
 			Vector2 spriteSize;
 
 			if ( OverrideSprite != null )
 			{
 				outer = OverrideSprite.GetOuterUV ();
 				inner = OverrideSprite.GetInnerUV ();
-				border = (Vector4)OverrideSprite.Border;
+				border = (RectangleF)OverrideSprite.Border;
 				spriteSize = OverrideSprite.Rect.Size;
 			}
 			else
 			{
 				outer = new RectangleF ();
 				inner = new RectangleF ();
-				border = new Vector4 ();
+				border = new RectangleF ();
 				spriteSize = new Vector2 ( 100, 100 );
 			}
 
 			RectangleF rect = GetPixelAdjustedRect ();
-			float tileWidth = (spriteSize.X - border.X - border.Z) / PixelsPerUnit;
-			float tileHeight = (spriteSize.Y - border.Y - border.W) / PixelsPerUnit;
-			border = GetAdjustedBorders ( border / PixelsPerUnit, rect );
+			float tileWidth = (spriteSize.X - border.X - border.Maximum.X) / PixelsPerUnit;
+			float tileHeight = (spriteSize.Y - border.Y - border.Maximum.Y) / PixelsPerUnit;
+			border = (RectangleF)((Vector4)border / PixelsPerUnit);
+			GetAdjustedBorders ( ref border, rect );
 
 			var uvMin = new Vector2 ( inner.X, inner.Y );
 			var uvMax = new Vector2 ( inner.Maximum.X, inner.Maximum.Y );
@@ -841,9 +842,9 @@ namespace CrowEngine.Components.UI
 
 			// Min to max max range for tiled region in coordinates relative to lower left corner.
 			float xMin = border.X;
-			float xMax = rect.Width - border.Z;
+			float xMax = rect.Width - border.Maximum.X;
 			float yMin = border.Y;
-			float yMax = rect.Height - border.W;
+			float yMax = rect.Height - border.Maximum.Y;
 
 			// Safety check. Useful so Unity doesn't run out of memory if the sprites are too small.
 			// Max tiles are 100 x 100.
@@ -978,12 +979,12 @@ namespace CrowEngine.Components.UI
 		/// Image's dimensions used for drawing. X = left, Y = bottom, Z = right, W = top.
 		private Vector4 GetDrawingDimensions ( bool shouldPreserveAspect )
 		{
-			Vector4 padding = new Vector4 ();
+			Rectangle padding = new Rectangle ();
 			Vector2 size = new Vector2 ();
 
 			if ( OverrideSprite != null )
 			{
-				padding = OverrideSprite.GetPadding ();
+				padding = OverrideSprite.Border;
 				size = (Vector2)OverrideSprite.Rect.Size;
 			}
 
@@ -996,8 +997,8 @@ namespace CrowEngine.Components.UI
 			var v = new Vector4 (
 					  padding.X / spriteW,
 					  padding.Y / spriteH,
-					  (spriteW - padding.Z) / spriteW,
-					  (spriteH - padding.W) / spriteH );
+					  (spriteW - padding.Maximum.X) / spriteW,
+					  (spriteH - padding.Maximum.Y) / spriteH );
 
 			if ( shouldPreserveAspect && size.LengthSquared () > 0.0f )
 			{
@@ -1039,8 +1040,9 @@ namespace CrowEngine.Components.UI
 					local.X * spriteRect.Width / rect.Width,
 					local.Y * spriteRect.Height / rect.Height );
 
-			Vector4 border = (Vector4)Sprite.Border;
-			Vector4 adjustedBorder = GetAdjustedBorders ( border / PixelsPerUnit, rect );
+			RectangleF border = (RectangleF)((Vector4)Sprite.Border / PixelsPerUnit);
+			RectangleF adjustedBorder = border;
+			GetAdjustedBorders ( ref border, rect );
 
 			for ( int i = 0; i < 2; i++ )
 			{

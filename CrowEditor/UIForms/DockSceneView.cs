@@ -31,10 +31,8 @@ namespace CrowEditor.UIForms
 
 			m_MainCamera = m_Camera.AddComponent<Camera> ();
 			m_MainCamera.FieldOfView = 75;
-			m_MainCamera.FarClipPlane = 40f;
-			m_MainCamera.NearClipPlane = 1f;
-			m_MainCamera.Aspect = 1f;
-			m_MainCamera.PixelScreenSize = new Rectangle ( 0, 0, ClientSize.Width, ClientSize.Height );
+			m_MainCamera.AspectRatio = 1f;
+			m_MainCamera.Viewport = new Viewport ( 0, 0, ClientSize.Width, ClientSize.Height, 1f, 40f );
 		}
 
 		CrowGLControl GLRenderView.GLControl
@@ -47,7 +45,10 @@ namespace CrowEditor.UIForms
 			int w = glView.Width;
 			int h = glView.Height;
 
-			m_MainCamera.PixelScreenSize = new Rectangle ( 0, 0, w, h );
+			var view = m_MainCamera.Viewport;
+			view.Width = w;
+			view.Height = h;
+			m_MainCamera.Viewport = view;
 
 			int uniform_mview = CrowEditorApp.m_GLRenderThread.uniform_mview;
 			int uniform_diffuse = CrowEditorApp.m_GLRenderThread.uniform_diffuse;

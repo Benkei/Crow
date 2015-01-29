@@ -113,9 +113,7 @@ namespace CrowEngine
 			m_Camera.AddComponent<Transform> ();
 			m_MainCamera = m_Camera.AddComponent<Camera> ();
 			m_MainCamera.FieldOfView = 60;
-			m_MainCamera.FarClipPlane = 40f;
-			m_MainCamera.NearClipPlane = 1f;
-			m_MainCamera.PixelScreenSize = new Rectangle ( 0, 0, ClientSize.Width, ClientSize.Height );
+			m_MainCamera.Viewport = new Viewport ( 0, 0, ClientSize.Width, ClientSize.Height, 1f, 40f );
 
 			m_Cube = new GameObject ();
 			m_Cube.AddComponent<Transform> ();

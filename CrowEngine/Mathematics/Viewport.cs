@@ -1,22 +1,19 @@
 ﻿// Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+// associated documentation files (the "Software"), to deal in the Software without restriction,
+// including without limitation the rights to use, copy, modify, merge, publish, distribute,
+// sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// 
+// The above copyright notice and this permission notice shall be included in all copies or
+// substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+// NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
 using System.Globalization;
@@ -99,7 +96,9 @@ namespace CrowEngine.Mathematics
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Viewport"/> struct.
 		/// </summary>
-		/// <param name="bounds">A bounding box that defines the location and size of the viewport in a render target.</param>
+		/// <param name="bounds">
+		/// A bounding box that defines the location and size of the viewport in a render target.
+		/// </param>
 		public Viewport ( Rectangle bounds )
 		{
 			X = bounds.X;
@@ -116,11 +115,7 @@ namespace CrowEngine.Mathematics
 		/// <value>The bounds.</value>
 		public Rectangle Bounds
 		{
-			get
-			{
-				return new Rectangle ( X, Y, Width, Height );
-			}
-
+			get { return new Rectangle ( X, Y, Width, Height ); }
 			set
 			{
 				X = value.X;
@@ -131,15 +126,30 @@ namespace CrowEngine.Mathematics
 		}
 
 		/// <summary>
+		/// Gets the aspect ratio used by the viewport.
+		/// </summary>
+		/// <value>The aspect ratio.</value>
+		public float AspectRatio
+		{
+			get { return Height != 0 ? Width / (float)Height : 0f; }
+		}
+
+		/// <summary>
 		/// Determines whether the specified <see cref="Viewport"/> is equal to this instance.
 		/// </summary>
 		/// <param name="other">The <see cref="Viewport"/> to compare with this instance.</param>
 		/// <returns>
-		/// <c>true</c> if the specified <see cref="Viewport"/> is equal to this instance; otherwise, <c>false</c>.
+		/// <c>true</c> if the specified <see cref="Viewport"/> is equal to this instance;
+		/// otherwise, <c>false</c>.
 		/// </returns>
 		public bool Equals ( Viewport other )
 		{
-			return X == other.X && Y == other.Y && Width == other.Width && Height == other.Height && MathUtil.NearEqual ( MinDepth, other.MinDepth ) && MathUtil.NearEqual ( MaxDepth, other.MaxDepth );
+			return X == other.X
+				&& Y == other.Y
+				&& Width == other.Width
+				&& Height == other.Height
+				&& MathUtil.NearEqual ( MinDepth, other.MinDepth )
+				&& MathUtil.NearEqual ( MaxDepth, other.MaxDepth );
 		}
 
 		/// <summary>
@@ -162,7 +172,8 @@ namespace CrowEngine.Mathematics
 		/// Returns a hash code for this instance.
 		/// </summary>
 		/// <returns>
-		/// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
+		/// A hash code for this instance, suitable for use in hashing algorithms and data
+		/// structures like a hash table.
 		/// </returns>
 		public override int GetHashCode ()
 		{
@@ -203,7 +214,7 @@ namespace CrowEngine.Mathematics
 		/// <summary>
 		/// Retrieves a string representation of this object.
 		/// </summary>
-		/// <returns>A <see cref="System.String" /> that represents this instance.</returns>
+		/// <returns>A <see cref="System.String"/> that represents this instance.</returns>
 		public override string ToString ()
 		{
 			return string.Format ( CultureInfo.CurrentCulture, "{{X:{0} Y:{1} Width:{2} Height:{3} MinDepth:{4} MaxDepth:{5}}}", X, Y, Width, Height, MinDepth, MaxDepth );
@@ -287,22 +298,6 @@ namespace CrowEngine.Mathematics
 			if ( !MathUtil.IsOne ( a ) )
 			{
 				vector = (vector / a);
-			}
-		}
-
-		/// <summary>
-		/// Gets the aspect ratio used by the viewport.
-		/// </summary>
-		/// <value>The aspect ratio.</value>
-		public float AspectRatio
-		{
-			get
-			{
-				if ( Height != 0 )
-				{
-					return Width / (float)Height;
-				}
-				return 0f;
 			}
 		}
 	}

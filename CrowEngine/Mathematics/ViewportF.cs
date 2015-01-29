@@ -1,22 +1,19 @@
 ﻿// Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+// associated documentation files (the "Software"), to deal in the Software without restriction,
+// including without limitation the rights to use, copy, modify, merge, publish, distribute,
+// sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// 
+// The above copyright notice and this permission notice shall be included in all copies or
+// substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+// NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
 using System.Globalization;
@@ -99,7 +96,9 @@ namespace CrowEngine.Mathematics
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ViewportF"/> struct.
 		/// </summary>
-		/// <param name="bounds">A bounding box that defines the location and size of the viewport in a render target.</param>
+		/// <param name="bounds">
+		/// A bounding box that defines the location and size of the viewport in a render target.
+		/// </param>
 		public ViewportF ( RectangleF bounds )
 		{
 			X = bounds.X;
@@ -116,11 +115,7 @@ namespace CrowEngine.Mathematics
 		/// <value>The bounds.</value>
 		public RectangleF Bounds
 		{
-			get
-			{
-				return new RectangleF ( X, Y, Width, Height );
-			}
-
+			get { return new RectangleF ( X, Y, Width, Height ); }
 			set
 			{
 				X = value.X;
@@ -131,16 +126,30 @@ namespace CrowEngine.Mathematics
 		}
 
 		/// <summary>
+		/// Gets the aspect ratio used by the viewport.
+		/// </summary>
+		/// <value>The aspect ratio.</value>
+		public float AspectRatio
+		{
+			get { return !MathUtil.IsZero ( Height ) ? Width / Height : 0f; }
+		}
+
+		/// <summary>
 		/// Determines whether the specified <see cref="ViewportF"/> is equal to this instance.
 		/// </summary>
 		/// <param name="other">The <see cref="ViewportF"/> to compare with this instance.</param>
 		/// <returns>
-		/// <c>true</c> if the specified <see cref="ViewportF"/> is equal to this instance; otherwise, <c>false</c>.
+		/// <c>true</c> if the specified <see cref="ViewportF"/> is equal to this instance;
+		/// otherwise, <c>false</c>.
 		/// </returns>
 		public bool Equals ( ViewportF other )
 		{
-			return MathUtil.NearEqual ( X, other.X ) && MathUtil.NearEqual ( Y, other.Y ) && MathUtil.NearEqual ( Width, other.Width ) && MathUtil.NearEqual ( Height, other.Height ) && MathUtil.NearEqual ( MinDepth, other.MinDepth )
-					 && MathUtil.NearEqual ( MaxDepth, other.MaxDepth );
+			return MathUtil.NearEqual ( X, other.X )
+				&& MathUtil.NearEqual ( Y, other.Y )
+				&& MathUtil.NearEqual ( Width, other.Width )
+				&& MathUtil.NearEqual ( Height, other.Height )
+				&& MathUtil.NearEqual ( MinDepth, other.MinDepth )
+				&& MathUtil.NearEqual ( MaxDepth, other.MaxDepth );
 		}
 
 		/// <summary>
@@ -163,7 +172,8 @@ namespace CrowEngine.Mathematics
 		/// Returns a hash code for this instance.
 		/// </summary>
 		/// <returns>
-		/// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
+		/// A hash code for this instance, suitable for use in hashing algorithms and data
+		/// structures like a hash table.
 		/// </returns>
 		public override int GetHashCode ()
 		{
@@ -210,14 +220,10 @@ namespace CrowEngine.Mathematics
 			return string.Format ( CultureInfo.CurrentCulture, "{{X:{0} Y:{1} Width:{2} Height:{3} MinDepth:{4} MaxDepth:{5}}}", X, Y, Width, Height, MinDepth, MaxDepth );
 		}
 
-		/// <summary>
-		/// Projects a 3D vector from object space into screen space.
-		/// </summary>
-		/// <param name="source">The vector to project.</param>
-		/// <param name="projection">The projection matrix.</param>
-		/// <param name="view">The view matrix.</param>
-		/// <param name="world">The world matrix.</param>
-		/// <returns>The projected vector./returns>
+		/// <summary> Projects a 3D vector from object space into screen space. </summary> <param
+		/// name="source">The vector to project.</param> <param name="projection">The projection
+		/// matrix.</param> <param name="view">The view matrix.</param> <param name="world">The
+		/// world matrix.</param> <returns>The projected vector./returns>
 		public Vector3 Project ( Vector3 source, Matrix projection, Matrix view, Matrix world )
 		{
 			Matrix matrix;
@@ -288,22 +294,6 @@ namespace CrowEngine.Mathematics
 			if ( !MathUtil.IsOne ( a ) )
 			{
 				vector = (vector / a);
-			}
-		}
-
-		/// <summary>
-		/// Gets the aspect ratio used by the viewport.
-		/// </summary>
-		/// <value>The aspect ratio.</value>
-		public float AspectRatio
-		{
-			get
-			{
-				if ( !MathUtil.IsZero ( Height ) )
-				{
-					return Width / Height;
-				}
-				return 0f;
 			}
 		}
 
