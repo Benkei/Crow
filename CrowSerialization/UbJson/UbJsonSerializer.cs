@@ -72,7 +72,7 @@ namespace CrowSerialization.UbJson
 	//	}
 	//}
 
-	public class UbjsonSerializer
+	public class UbjsonSerializer : ISerializer
 	{
 		public void Serialize ( object obj, Stream stream )
 		{
@@ -209,11 +209,18 @@ namespace CrowSerialization.UbJson
 
 					writer.WriteToken ( Token.Object );
 					writer.WriteToken ( Token.Count );
-					writer.WriteLength ( meta.Properties.Count );
-					foreach ( var info in meta.Properties )
+					if ( meta.Properties != null )
 					{
-						writer.WritePropertyName ( info.Key );
-						WriteValue ( info.Value.GetValue ( obj ), writer, depth + 1 );
+						writer.WriteLength ( meta.Properties.Count );
+						foreach ( var info in meta.Properties )
+						{
+							writer.WritePropertyName ( info.Key );
+							WriteValue ( info.Value.GetValue ( obj ), writer, depth + 1 );
+						}
+					}
+					else
+					{
+						writer.WriteLength ( 0 );
 					}
 
 					#endregion Object ser
@@ -235,13 +242,14 @@ namespace CrowSerialization.UbJson
 			Token? valueType = null;
 			int? valueCount = null;
 
+			ObjectMetadata meta;
+
 			reader.ReadToken ();
 
 			if ( reader.CurrentToken == Token.Object )
 			{
 				ReadContainerOptions ( reader, ref valueType, ref valueCount );
 
-				ObjectMetadata meta;
 				ReflectionCache.GetObjectMetadata ( objType, out meta );
 
 				// todo add optimization case for IDictionary<,>
@@ -286,7 +294,7 @@ namespace CrowSerialization.UbJson
 					var name = reader.ReadString ();
 
 					PropertyMetadata data;
-					if ( meta.Properties.TryGetValue ( name, out data ) )
+					if ( meta.Properties != null && meta.Properties.TryGetValue ( name, out data ) )
 					{
 						var value = ReadValue ( data.Type, reader );
 						value = Convert.ChangeType ( value, data.Type );
@@ -310,15 +318,14 @@ namespace CrowSerialization.UbJson
 				ReadContainerOptions ( reader, ref valueType, ref valueCount );
 
 				int i;
-				ObjectMetadata meta;
 				ReflectionCache.GetObjectMetadata ( objType, out meta );
 
 				// fix size array
-				if ( objType.IsArray )
+				if ( meta.IsArray )
 				{
 					#region Array
 
-					var itemType = objType.GetElementType ();
+					var itemType = meta.ValueType;
 					Array array;
 					ArrayList list;
 

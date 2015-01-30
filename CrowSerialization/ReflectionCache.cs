@@ -10,6 +10,7 @@ namespace CrowSerialization
 		public Type ValueType; // IList and IDict.
 		public bool IsDictionary;
 		public bool IsList;
+		public bool IsArray;
 		public Func<object> CreateInstance;
 
 		public Dictionary<string, PropertyMetadata> Properties;
@@ -21,27 +22,27 @@ namespace CrowSerialization
 		public MemberInfo Info;
 		public Type Type;
 
-		public void SetValue ( object obj, object value )
+		public void SetValue ( object instance, object value )
 		{
 			if ( IsField )
 			{
-				((FieldInfo)Info).SetValue ( obj, value );
+				((FieldInfo)Info).SetValue ( instance, value );
 			}
 			else
 			{
-				((PropertyInfo)Info).SetValue ( obj, value, null );
+				((PropertyInfo)Info).SetValue ( instance, value, null );
 			}
 		}
 
-		public object GetValue ( object obj )
+		public object GetValue ( object instance )
 		{
 			if ( IsField )
 			{
-				return ((FieldInfo)Info).GetValue ( obj );
+				return ((FieldInfo)Info).GetValue ( instance );
 			}
 			else
 			{
-				return ((PropertyInfo)Info).GetValue ( obj, null );
+				return ((PropertyInfo)Info).GetValue ( instance, null );
 			}
 		}
 	}
@@ -62,6 +63,13 @@ namespace CrowSerialization
 				metadata = new ObjectMetadata ();
 				metadata.CreateInstance = InstanceFactory.CreateInstanceCallback<object> ( type );
 
+				if ( type.IsArray )
+				{
+					metadata.IsArray = true;
+					metadata.ValueType = type.GetElementType ();
+					return;
+				}
+
 				if ( type.IsGenericType )
 				{
 					foreach ( Type item in type.GetInterfaces () )
@@ -70,7 +78,7 @@ namespace CrowSerialization
 						{
 							var gType = item.GetGenericTypeDefinition ();
 							var aType = item.GetGenericArguments ();
-							if ( gType == typeof ( IDictionary<,> ) )
+							if ( gType == typeof ( IDictionary<,> ) && aType[0] == typeof ( string ) )
 							{
 								metadata.IsDictionary = true;
 								metadata.KeyType = aType[0];
@@ -85,6 +93,7 @@ namespace CrowSerialization
 					}
 					if ( metadata.IsDictionary && metadata.IsList )
 					{
+						// error? rest value, dont know how to handle
 						metadata.IsDictionary = false;
 						metadata.IsList = false;
 						metadata.KeyType = null;
@@ -96,6 +105,8 @@ namespace CrowSerialization
 						return;
 					}
 				}
+
+				// handle as normal object
 
 				var fields = type.GetFields ( Bindings );
 				var props = type.GetProperties ( Bindings );

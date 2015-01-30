@@ -317,7 +317,7 @@ namespace CrowSerialization.LitJson
 			token_value = 0;
 		}
 
-		private void ProcessSymbol ()
+		private void ProcessSymbol ( bool skipReadValue )
 		{
 			if ( current_symbol == '[' )
 			{
@@ -357,12 +357,12 @@ namespace CrowSerialization.LitJson
 			}
 			else if ( current_symbol == (int)ParserToken.CharSeq )
 			{
-				token_value = lexer.StringValue;
+				token_value = skipReadValue ? null : lexer.StringValue;
 			}
 			else if ( current_symbol == (int)ParserToken.False )
 			{
 				token = JsonToken.Boolean;
-				token_value = false;
+				token_value = skipReadValue ? null : (object)false;
 				parser_return = true;
 			}
 			else if ( current_symbol == (int)ParserToken.Null )
@@ -372,8 +372,15 @@ namespace CrowSerialization.LitJson
 			}
 			else if ( current_symbol == (int)ParserToken.Number )
 			{
-				ProcessNumber ( lexer.StringValue );
-
+				if ( skipReadValue )
+				{
+					token = JsonToken.Int;
+					token_value = 0;
+				}
+				else
+				{
+					ProcessNumber ( lexer.StringValue );
+				}
 				parser_return = true;
 			}
 			else if ( current_symbol == (int)ParserToken.Pair )
@@ -383,17 +390,17 @@ namespace CrowSerialization.LitJson
 			else if ( current_symbol == (int)ParserToken.True )
 			{
 				token = JsonToken.Boolean;
-				token_value = true;
+				token_value = skipReadValue ? null : (object)true;
 				parser_return = true;
 			}
 		}
 
-		private bool ReadToken ()
+		private bool ReadToken ( bool skipReadValue )
 		{
 			if ( end_of_input )
 				return false;
 
-			lexer.NextToken ();
+			lexer.NextToken ( skipReadValue );
 
 			if ( lexer.EndOfInput )
 			{
@@ -423,7 +430,7 @@ namespace CrowSerialization.LitJson
 			reader = null;
 		}
 
-		public bool Read ()
+		public bool Read ( bool skipReadValue = false )
 		{
 			if ( end_of_input )
 				return false;
@@ -446,7 +453,7 @@ namespace CrowSerialization.LitJson
 			{
 				read_started = true;
 
-				if ( !ReadToken () )
+				if ( !ReadToken ( skipReadValue ) )
 					return false;
 			}
 
@@ -464,11 +471,11 @@ namespace CrowSerialization.LitJson
 
 				current_symbol = automaton_stack.Pop ();
 
-				ProcessSymbol ();
+				ProcessSymbol ( skipReadValue );
 
 				if ( current_symbol == current_input )
 				{
-					if ( !ReadToken () )
+					if ( !ReadToken ( skipReadValue ) )
 					{
 						if ( automaton_stack.Peek () != (int)ParserToken.End )
 							throw new JsonException (
@@ -485,8 +492,7 @@ namespace CrowSerialization.LitJson
 
 				try
 				{
-					entry_symbols =
-						parse_table[current_symbol][current_input];
+					entry_symbols = parse_table[current_symbol][current_input];
 				}
 				catch ( KeyNotFoundException e )
 				{

@@ -310,6 +310,33 @@ namespace CrowSerialization.LitJson
 				inst_string_builder.Remove ( 0, inst_string_builder.Length );
 		}
 
+		public bool Write ( object value )
+		{
+			switch ( value == null ? TypeCode.Empty : Type.GetTypeCode ( value.GetType () ) )
+			{
+				case TypeCode.Boolean: Write ( (bool)value ); break;
+				case TypeCode.Byte: Write ( (byte)value ); break;
+				case TypeCode.Char: Write ( (char)value ); break;
+				//case TypeCode.DBNull: break;
+				//case TypeCode.DateTime: break;
+				case TypeCode.Decimal: Write ( (decimal)value ); break;
+				case TypeCode.Double: Write ( (double)value ); break;
+				case TypeCode.Empty: Write ( null ); break;
+				case TypeCode.Int16: Write ( (short)value ); break;
+				case TypeCode.Int32: Write ( (int)value ); break;
+				case TypeCode.Int64: Write ( (long)value ); break;
+				//case TypeCode.Object: break;
+				case TypeCode.SByte: Write ( (sbyte)value ); break;
+				case TypeCode.Single: Write ( (float)value ); break;
+				case TypeCode.String: Write ( (string)value ); break;
+				case TypeCode.UInt16: Write ( (ushort)value ); break;
+				case TypeCode.UInt32: Write ( (uint)value ); break;
+				case TypeCode.UInt64: Write ( (ulong)value ); break;
+				default: return false;
+			}
+			return true;
+		}
+
 		public void Write ( bool boolean )
 		{
 			DoValidation ( Condition.Value );
