@@ -36,9 +36,7 @@ namespace CrowEngine.Components
 				{
 					((IInitializable)this).OnInitialize ();
 				}
-				catch ( Exception ex )
-				{
-				}
+				catch ( Exception ) { }
 			}
 		}
 
@@ -55,9 +53,7 @@ namespace CrowEngine.Components
 				{
 					((IInitializable)this).OnDestroy ();
 				}
-				catch ( Exception ex )
-				{
-				}
+				catch ( Exception ) { }
 			}
 		}
 	}

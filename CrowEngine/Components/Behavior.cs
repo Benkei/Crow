@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CrowEngine.Components
 {
 	public abstract class Behavior : Component
 	{
-		bool m_Enabled = true;
+		private bool m_Enabled = true;
 
 		public bool Enabled
 		{
@@ -19,10 +16,14 @@ namespace CrowEngine.Components
 					m_Enabled = value;
 					if ( this is IActivatable )
 					{
-						if ( value )
-							((IActivatable)this).OnEnable ();
-						else
-							((IActivatable)this).OnDisable ();
+						try
+						{
+							if ( value )
+								((IActivatable)this).OnEnable ();
+							else
+								((IActivatable)this).OnDisable ();
+						}
+						catch ( Exception ) { }
 					}
 				}
 			}

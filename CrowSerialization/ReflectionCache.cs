@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CrowSerialization
 {
@@ -14,6 +10,7 @@ namespace CrowSerialization
 		public Type ValueType; // IList and IDict.
 		public bool IsDictionary;
 		public bool IsList;
+		public Func<object> CreateInstance;
 
 		public Dictionary<string, PropertyMetadata> Properties;
 	}
@@ -35,6 +32,7 @@ namespace CrowSerialization
 				((PropertyInfo)Info).SetValue ( obj, value, null );
 			}
 		}
+
 		public object GetValue ( object obj )
 		{
 			if ( IsField )
@@ -50,10 +48,9 @@ namespace CrowSerialization
 
 	internal static class ReflectionCache
 	{
-		const BindingFlags Bindings = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
+		private const BindingFlags Bindings = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
 
 		private static readonly Dictionary<Type, ObjectMetadata> m_ObjectMetadata = new Dictionary<Type, ObjectMetadata> ();
-
 
 		public static void GetObjectMetadata ( Type type, out ObjectMetadata metadata )
 		{
@@ -63,6 +60,7 @@ namespace CrowSerialization
 					return;
 
 				metadata = new ObjectMetadata ();
+				metadata.CreateInstance = InstanceFactory.CreateInstanceCallback<object> ( type );
 
 				if ( type.IsGenericType )
 				{

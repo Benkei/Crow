@@ -1,33 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CrowSerialization.UbJson
 {
-	class UbjsonWriter
+	internal class UbjsonWriter
 	{
 		private const int LargeByteBufferSize = 256;
 		private BinaryWriter m_Writer;
-		private Encoding m_encoding;
-		private Encoder m_encoder;
-		private byte[] m_largeByteBuffer;
-		private int m_maxChars;
+		private Encoding m_Encoding;
+		private byte[] m_LargeByteBuffer;
+		private int m_MaxChars;
 
-		public UbjsonWriter ( Stream output, Encoding encoding, bool leaveOpen )
+		public UbjsonWriter ( Stream output, Encoding encoding )
 		{
-			m_Writer = new BinaryWriter ( output, encoding, leaveOpen );
-			m_encoding = encoding;
-			m_encoder = encoding.GetEncoder ();
+			m_Writer = new BinaryWriter ( output, encoding );
+			m_Encoding = encoding;
 		}
 
 		public BinaryWriter Writer
 		{
 			get { return m_Writer; }
 		}
-
 
 		public virtual void WriteToken ( Token value )
 		{
@@ -72,51 +66,61 @@ namespace CrowSerialization.UbJson
 		{
 			m_Writer.Write ( (byte)(value ? Token.True : Token.False) );
 		}
+
 		public virtual void WriteValue ( byte value )
 		{
 			m_Writer.Write ( (byte)Token.Int8 );
 			m_Writer.Write ( value );
 		}
+
 		public virtual void WriteValue ( char ch )
 		{
 			m_Writer.Write ( (byte)Token.Int16 );
 			m_Writer.Write ( (short)ch );
 		}
+
 		public virtual void WriteValue ( decimal value )
 		{
 			m_Writer.Write ( (byte)Token.Float128 );
 			m_Writer.Write ( value );
 		}
+
 		public virtual void WriteValue ( double value )
 		{
 			m_Writer.Write ( (byte)Token.Float64 );
 			m_Writer.Write ( value );
 		}
+
 		public virtual void WriteValue ( float value )
 		{
 			m_Writer.Write ( (byte)Token.Float32 );
 			m_Writer.Write ( value );
 		}
+
 		public virtual void WriteValue ( int value )
 		{
 			m_Writer.Write ( (byte)Token.Int32 );
 			m_Writer.Write ( value );
 		}
+
 		public virtual void WriteValue ( long value )
 		{
 			m_Writer.Write ( (byte)Token.Int64 );
 			m_Writer.Write ( value );
 		}
+
 		public virtual void WriteValue ( sbyte value )
 		{
 			m_Writer.Write ( (byte)Token.Int8 );
 			m_Writer.Write ( value );
 		}
+
 		public virtual void WriteValue ( short value )
 		{
 			m_Writer.Write ( (byte)Token.Int16 );
 			m_Writer.Write ( value );
 		}
+
 		public virtual void WriteValue ( string value )
 		{
 			if ( value == null )
@@ -126,16 +130,19 @@ namespace CrowSerialization.UbJson
 
 			Write ( value );
 		}
+
 		public virtual void WriteValue ( uint value )
 		{
 			m_Writer.Write ( (byte)Token.Int32 );
 			m_Writer.Write ( (int)value );
 		}
+
 		public virtual void WriteValue ( ulong value )
 		{
 			m_Writer.Write ( (byte)Token.Int64 );
 			m_Writer.Write ( (long)value );
 		}
+
 		public virtual void WriteValue ( ushort value )
 		{
 			m_Writer.Write ( (byte)Token.Int16 );
@@ -154,38 +161,32 @@ namespace CrowSerialization.UbJson
 		}
 
 		// writes: length token + string bytes
-		public unsafe virtual void Write ( string value )
+		public virtual void Write ( string value )
 		{
 			if ( value == null )
 				throw new ArgumentNullException ( "value" );
 
-			int byteCount = m_encoding.GetByteCount ( value );
+			int byteCount = m_Encoding.GetByteCount ( value );
 			WriteLength ( byteCount );
-			if ( m_largeByteBuffer == null )
+			if ( m_LargeByteBuffer == null )
 			{
-				m_largeByteBuffer = new byte[LargeByteBufferSize];
-				m_maxChars = LargeByteBufferSize / m_encoding.GetMaxByteCount ( 1 );
+				m_LargeByteBuffer = new byte[LargeByteBufferSize];
+				m_MaxChars = LargeByteBufferSize / m_Encoding.GetMaxByteCount ( 1 );
 			}
 			if ( byteCount <= LargeByteBufferSize )
 			{
-				m_encoding.GetBytes ( value, 0, value.Length, m_largeByteBuffer, 0 );
-				m_Writer.Write ( m_largeByteBuffer, 0, byteCount );
+				m_Encoding.GetBytes ( value, 0, value.Length, m_LargeByteBuffer, 0 );
+				m_Writer.Write ( m_LargeByteBuffer, 0, byteCount );
 				return;
 			}
 
-			fixed ( char* ptr = value )
-			fixed ( byte* largeByteBuffer = m_largeByteBuffer )
+			int offset = 0, count;
+			for ( int i = value.Length; i > 0; i -= count )
 			{
-				int num = 0;
-				int num2;
-				for ( int i = value.Length; i > 0; i -= num2 )
-				{
-					num2 = (i > m_maxChars) ? m_maxChars : i;
-					int bytes;
-					bytes = m_encoder.GetBytes ( ptr + num, num2, largeByteBuffer, LargeByteBufferSize, num2 == i );
-					m_Writer.Write ( m_largeByteBuffer, 0, bytes );
-					num += num2;
-				}
+				count = (i > m_MaxChars) ? m_MaxChars : i;
+				int bytes = m_Encoding.GetBytes ( value, offset, count, m_LargeByteBuffer, LargeByteBufferSize );
+				m_Writer.Write ( m_LargeByteBuffer, 0, bytes );
+				offset += count;
 			}
 		}
 

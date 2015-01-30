@@ -11,8 +11,9 @@ namespace CrowEngine.GpuPrograms
 		public static GLProgram Load ( string filePath )
 		{
 			GpuProgramAsset data;
-			using ( var reader = new StreamReader ( filePath, Encoding.UTF8 ) )
+			using ( var stream = new StreamReader ( filePath, Encoding.UTF8 ) )
 			{
+				var reader = new JsonReader ( stream );
 				data = JsonMapper.ToObject<GpuProgramAsset> ( reader );
 			}
 

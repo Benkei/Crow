@@ -109,13 +109,13 @@ namespace CrowSerialization.LitJson
 			PopulateParseTable ();
 		}
 
-		public JsonReader ( string json_text ) :
-			this ( new StringReader ( json_text ), true )
+		public JsonReader ( string json_text )
+			: this ( new StringReader ( json_text ), true )
 		{
 		}
 
-		public JsonReader ( TextReader reader ) :
-			this ( reader, false )
+		public JsonReader ( TextReader reader )
+			: this ( reader, false )
 		{
 		}
 

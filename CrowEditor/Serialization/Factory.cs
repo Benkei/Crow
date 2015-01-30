@@ -38,9 +38,10 @@ namespace CrowEditor.Serialization
 
 		public static ProjektFile LoadProjectFile ( string filePath )
 		{
-			using ( var file = new StreamReader ( filePath, Encoding.UTF8 ) )
+			using ( var stream = new StreamReader ( filePath, Encoding.UTF8 ) )
 			{
-				return JsonMapper.ToObject<ProjektFile> ( file );
+				var reader = new JsonReader ( stream );
+				return JsonMapper.ToObject<ProjektFile> ( reader );
 			}
 		}
 	}

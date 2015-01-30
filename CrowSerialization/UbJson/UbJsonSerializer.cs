@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CrowSerialization.UbJson
 {
 	// http://ubjson.org/type-reference/
-	enum Token : byte
+	internal enum Token : byte
 	{
 		None = 0, // error
 
@@ -19,6 +15,7 @@ namespace CrowSerialization.UbJson
 
 		// value token
 		Null = (byte)'Z', // 1 byte
+
 		//NoOp = (byte)'N', // 1 byte
 
 		True = (byte)'T', // 1 byte
@@ -39,6 +36,7 @@ namespace CrowSerialization.UbJson
 
 		// container token
 		Array = (byte)'[', // 2+ bytes
+
 		Object = (byte)'{', // 2+ bytes
 		End = (byte)'E',
 
@@ -47,11 +45,12 @@ namespace CrowSerialization.UbJson
 		//  If a type is specified, it must be done so before a count.
 		//  If a type is specified, a count must be specified as well.
 		Type = (byte)'$', // 1  byte + value token
+
 		Count = (byte)'#', // 1 byte + length token
 
 		// Custom --------------------------------------------------------
-		// value token type 
-		//RefType = (byte)'!', // 1 byte + length token + string char; reflection type 
+		// value token type
+		//RefType = (byte)'!', // 1 byte + length token + string char; reflection type
 	}
 
 	//static class UbJsonEx
@@ -77,7 +76,7 @@ namespace CrowSerialization.UbJson
 	{
 		public void Serialize ( object obj, Stream stream )
 		{
-			var writer = new UbjsonWriter ( stream, Encoding.UTF8, true );
+			var writer = new UbjsonWriter ( stream, Encoding.UTF8 );
 			WriteValue ( obj, writer, 0 );
 		}
 
@@ -88,10 +87,9 @@ namespace CrowSerialization.UbJson
 
 		public object Deserialize ( Type instanceType, Stream stream )
 		{
-			var reader = new UbjsonReader ( stream, Encoding.UTF8, true );
+			var reader = new UbjsonReader ( stream, Encoding.UTF8 );
 			return ReadValue ( instanceType, reader );
 		}
-
 
 		private void WriteValue ( object obj, UbjsonWriter writer, int depth )
 		{
@@ -122,7 +120,9 @@ namespace CrowSerialization.UbJson
 				case TypeCode.Int64: writer.WriteValue ( (long)obj ); break;
 
 				case TypeCode.Object:
+
 					#region Object ser
+
 					if ( objType.IsEnum )
 					{
 						object underlyingValue = Convert.ChangeType ( obj, Enum.GetUnderlyingType ( objType ) );
@@ -215,7 +215,9 @@ namespace CrowSerialization.UbJson
 						writer.WritePropertyName ( info.Key );
 						WriteValue ( info.Value.GetValue ( obj ), writer, depth + 1 );
 					}
-					#endregion
+
+					#endregion Object ser
+
 					break;
 
 				case TypeCode.SByte: writer.WriteValue ( (sbyte)obj ); break;
@@ -248,7 +250,8 @@ namespace CrowSerialization.UbJson
 				if ( meta.IsDictionary )
 				{
 					#region target object is a IDictionary<,> (Key:Value pairs)
-					instance = Activator.CreateInstance ( objType );
+
+					instance = meta.CreateInstance ();
 					if ( ((IDictionary)instance).IsReadOnly || meta.KeyType != typeof ( string ) )
 					{
 						SkipReadContainer ( true, ref valueType, ref valueCount, reader );
@@ -269,11 +272,13 @@ namespace CrowSerialization.UbJson
 							break;
 					}
 					return instance;
-					#endregion
+
+					#endregion target object is a IDictionary<,> (Key:Value pairs)
 				}
 
 				#region Normal handling
-				instance = Activator.CreateInstance ( objType );
+
+				instance = meta.CreateInstance ();
 
 				while ( !valueCount.HasValue || valueCount-- >= 0 )
 				{
@@ -297,7 +302,8 @@ namespace CrowSerialization.UbJson
 				}
 
 				return instance;
-				#endregion
+
+				#endregion Normal handling
 			}
 			else if ( reader.CurrentToken == Token.Array )
 			{
@@ -311,6 +317,7 @@ namespace CrowSerialization.UbJson
 				if ( objType.IsArray )
 				{
 					#region Array
+
 					var itemType = objType.GetElementType ();
 					Array array;
 					ArrayList list;
@@ -374,14 +381,16 @@ namespace CrowSerialization.UbJson
 						list.CopyTo ( array );
 						return array;
 					}
-					#endregion
+
+					#endregion Array
 				}
 
 				// IList<>
 				if ( meta.IsList )
 				{
 					#region List
-					instance = Activator.CreateInstance ( objType );
+
+					instance = meta.CreateInstance ();
 					if ( ((IList)instance).IsReadOnly )
 					{
 						SkipReadContainer ( false, ref valueType, ref valueCount, reader );
@@ -408,7 +417,6 @@ namespace CrowSerialization.UbJson
 						return null;
 					}
 
-
 					while ( !valueCount.HasValue || valueCount-- >= 0 )
 					{
 						var value = ReadValue ( meta.ValueType, reader );
@@ -418,7 +426,8 @@ namespace CrowSerialization.UbJson
 							break;
 					}
 					return instance;
-					#endregion
+
+					#endregion List
 				}
 
 				SkipReadContainer ( false, ref valueType, ref valueCount, reader );
@@ -469,7 +478,6 @@ namespace CrowSerialization.UbJson
 				valueCount = reader.ReadLength () - 1;
 			}
 		}
-
 
 		private static void SkipReadValue ( UbjsonReader reader )
 		{
@@ -536,7 +544,6 @@ namespace CrowSerialization.UbJson
 			}
 		}
 
-
 		private static bool WriteArrayPrimitiveType ( Array obj, Type objType, UbjsonWriter writer )
 		{
 			var itemType = objType.GetElementType ();
@@ -562,6 +569,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.Byte:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -576,6 +584,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.Char:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -590,6 +599,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.DateTime:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -604,6 +614,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.Decimal:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -618,6 +629,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.Double:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -632,6 +644,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.Int16:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -646,6 +659,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.Int32:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -660,6 +674,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.Int64:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -674,6 +689,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.SByte:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -688,6 +704,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.Single:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -702,6 +719,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.String:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -716,6 +734,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.UInt16:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -730,6 +749,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.UInt32:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -744,6 +764,7 @@ namespace CrowSerialization.UbJson
 						}
 					}
 					return true;
+
 				case TypeCode.UInt64:
 					writer.WriteToken ( Token.Array );
 					writer.WriteToken ( Token.Type );
@@ -764,7 +785,6 @@ namespace CrowSerialization.UbJson
 			}
 		}
 
-
 		private static bool HasGenericInterface ( Type type, Type genericInterfaceType )
 		{
 			foreach ( Type item in type.GetInterfaces () )
@@ -777,5 +797,4 @@ namespace CrowSerialization.UbJson
 			return false;
 		}
 	}
-
 }

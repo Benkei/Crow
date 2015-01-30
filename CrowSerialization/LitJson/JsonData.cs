@@ -16,25 +16,39 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace CrowSerialization.LitJson
 {
+	using JsonArray = List<JsonData>;
+	using JsonDict = OrderedDictionary;
+
 	public class JsonData : IJsonWrapper, IEquatable<JsonData>
 	{
+		[StructLayout ( LayoutKind.Explicit )]
+		private struct JsonValue
+		{
+			[FieldOffset ( 0 )]
+			public bool inst_boolean;
+
+			[FieldOffset ( 0 )]
+			public double inst_double;
+
+			[FieldOffset ( 0 )]
+			public int inst_int;
+
+			[FieldOffset ( 0 )]
+			public long inst_long;
+		}
+
 		#region Fields
 
-		private IList<JsonData> inst_array;
-		private bool inst_boolean;
-		private double inst_double;
-		private int inst_int;
-		private long inst_long;
-		private IDictionary<string, JsonData> inst_object;
-		private string inst_string;
-		private string json;
 		private JsonType type;
+		private JsonValue inst_value;
+		private object inst_object;
 
-		// Used to implement the IOrderedDictionary interface
-		private IList<KeyValuePair<string, JsonData>> object_list;
+		// cache
+		private string json;
 
 		#endregion Fields
 
@@ -80,9 +94,9 @@ namespace CrowSerialization.LitJson
 			get { return type == JsonType.String; }
 		}
 
-		public ICollection<string> Keys
+		public ICollection Keys
 		{
-			get { EnsureDictionary (); return inst_object.Keys; }
+			get { EnsureDictionary (); return ((JsonDict)inst_object).Keys; }
 		}
 
 		#endregion Properties
@@ -91,26 +105,17 @@ namespace CrowSerialization.LitJson
 
 		int ICollection.Count
 		{
-			get
-			{
-				return Count;
-			}
+			get { return Count; }
 		}
 
 		bool ICollection.IsSynchronized
 		{
-			get
-			{
-				return EnsureCollection ().IsSynchronized;
-			}
+			get { return EnsureCollection ().IsSynchronized; }
 		}
 
 		object ICollection.SyncRoot
 		{
-			get
-			{
-				return EnsureCollection ().SyncRoot;
-			}
+			get { return EnsureCollection ().SyncRoot; }
 		}
 
 		#endregion ICollection Properties
@@ -119,52 +124,22 @@ namespace CrowSerialization.LitJson
 
 		bool IDictionary.IsFixedSize
 		{
-			get
-			{
-				return EnsureDictionary ().IsFixedSize;
-			}
+			get { return ((IDictionary)EnsureDictionary ()).IsFixedSize; }
 		}
 
 		bool IDictionary.IsReadOnly
 		{
-			get
-			{
-				return EnsureDictionary ().IsReadOnly;
-			}
+			get { return EnsureDictionary ().IsReadOnly; }
 		}
 
 		ICollection IDictionary.Keys
 		{
-			get
-			{
-				EnsureDictionary ();
-				IList<string> keys = new List<string> ();
-
-				foreach ( KeyValuePair<string, JsonData> entry in
-						 object_list )
-				{
-					keys.Add ( entry.Key );
-				}
-
-				return (ICollection)keys;
-			}
+			get { EnsureDictionary (); return ((JsonDict)inst_object).Keys; }
 		}
 
 		ICollection IDictionary.Values
 		{
-			get
-			{
-				EnsureDictionary ();
-				IList<JsonData> values = new List<JsonData> ();
-
-				foreach ( KeyValuePair<string, JsonData> entry in
-						 object_list )
-				{
-					values.Add ( entry.Value );
-				}
-
-				return (ICollection)values;
-			}
+			get { EnsureDictionary (); return ((JsonDict)inst_object).Values; }
 		}
 
 		#endregion IDictionary Properties
@@ -212,18 +187,12 @@ namespace CrowSerialization.LitJson
 
 		bool IList.IsFixedSize
 		{
-			get
-			{
-				return EnsureList ().IsFixedSize;
-			}
+			get { return ((IList)EnsureList ()).IsFixedSize; }
 		}
 
 		bool IList.IsReadOnly
 		{
-			get
-			{
-				return EnsureList ().IsReadOnly;
-			}
+			get { return ((IList)EnsureList ()).IsReadOnly; }
 		}
 
 		#endregion IList Properties
@@ -232,11 +201,7 @@ namespace CrowSerialization.LitJson
 
 		object IDictionary.this[object key]
 		{
-			get
-			{
-				return EnsureDictionary ()[key];
-			}
-
+			get { return EnsureDictionary ()[key]; }
 			set
 			{
 				if ( !(key is String) )
@@ -255,26 +220,8 @@ namespace CrowSerialization.LitJson
 
 		object IOrderedDictionary.this[int idx]
 		{
-			get
-			{
-				EnsureDictionary ();
-				return object_list[idx].Value;
-			}
-
-			set
-			{
-				EnsureDictionary ();
-				JsonData data = ToJsonData ( value );
-
-				KeyValuePair<string, JsonData> old_entry = object_list[idx];
-
-				inst_object[old_entry.Key] = data;
-
-				KeyValuePair<string, JsonData> entry =
-					new KeyValuePair<string, JsonData> ( old_entry.Key, data );
-
-				object_list[idx] = entry;
-			}
+			get { return EnsureDictionary ()[idx]; }
+			set { JsonData data = ToJsonData ( value ); EnsureDictionary ()[idx] = data; }
 		}
 
 		#endregion IOrderedDictionary Indexer
@@ -283,17 +230,11 @@ namespace CrowSerialization.LitJson
 
 		object IList.this[int index]
 		{
-			get
-			{
-				return EnsureList ()[index];
-			}
-
+			get { return EnsureList ()[index]; }
 			set
 			{
 				EnsureList ();
-				JsonData data = ToJsonData ( value );
-
-				this[index] = data;
+				this[index] = ToJsonData ( value );
 			}
 		}
 
@@ -303,37 +244,8 @@ namespace CrowSerialization.LitJson
 
 		public JsonData this[string prop_name]
 		{
-			get
-			{
-				EnsureDictionary ();
-				return inst_object[prop_name];
-			}
-
-			set
-			{
-				EnsureDictionary ();
-
-				KeyValuePair<string, JsonData> entry =
-					new KeyValuePair<string, JsonData> ( prop_name, value );
-
-				if ( inst_object.ContainsKey ( prop_name ) )
-				{
-					for ( int i = 0; i < object_list.Count; i++ )
-					{
-						if ( object_list[i].Key == prop_name )
-						{
-							object_list[i] = entry;
-							break;
-						}
-					}
-				}
-				else
-					object_list.Add ( entry );
-
-				inst_object[prop_name] = value;
-
-				json = null;
-			}
+			get { return (JsonData)EnsureDictionary ()[prop_name]; }
+			set { EnsureDictionary ()[prop_name] = value; json = null; }
 		}
 
 		public JsonData this[int index]
@@ -341,29 +253,18 @@ namespace CrowSerialization.LitJson
 			get
 			{
 				EnsureCollection ();
-
 				if ( type == JsonType.Array )
-					return inst_array[index];
-
-				return object_list[index].Value;
+					return ((JsonArray)inst_object)[index];
+				else
+					return (JsonData)((JsonDict)inst_object)[index];
 			}
-
 			set
 			{
 				EnsureCollection ();
-
 				if ( type == JsonType.Array )
-					inst_array[index] = value;
+					((JsonArray)inst_object)[index] = value;
 				else
-				{
-					KeyValuePair<string, JsonData> entry = object_list[index];
-					KeyValuePair<string, JsonData> new_entry =
-						new KeyValuePair<string, JsonData> ( entry.Key, value );
-
-					object_list[index] = new_entry;
-					inst_object[entry.Key] = value;
-				}
-
+					((JsonDict)inst_object)[index] = value;
 				json = null;
 			}
 		}
@@ -379,25 +280,31 @@ namespace CrowSerialization.LitJson
 		public JsonData ( bool boolean )
 		{
 			type = JsonType.Boolean;
-			inst_boolean = boolean;
+			inst_value.inst_boolean = boolean;
 		}
 
 		public JsonData ( double number )
 		{
 			type = JsonType.Double;
-			inst_double = number;
+			inst_value.inst_double = number;
 		}
 
 		public JsonData ( int number )
 		{
 			type = JsonType.Int;
-			inst_int = number;
+			inst_value.inst_int = number;
 		}
 
 		public JsonData ( long number )
 		{
 			type = JsonType.Long;
-			inst_long = number;
+			inst_value.inst_long = number;
+		}
+
+		public JsonData ( string str )
+		{
+			type = JsonType.String;
+			inst_object = str;
 		}
 
 		public JsonData ( object obj )
@@ -405,46 +312,34 @@ namespace CrowSerialization.LitJson
 			if ( obj is Boolean )
 			{
 				type = JsonType.Boolean;
-				inst_boolean = (bool)obj;
+				inst_value.inst_boolean = (bool)obj;
 				return;
 			}
-
 			if ( obj is Double )
 			{
 				type = JsonType.Double;
-				inst_double = (double)obj;
+				inst_value.inst_double = (double)obj;
 				return;
 			}
-
 			if ( obj is Int32 )
 			{
 				type = JsonType.Int;
-				inst_int = (int)obj;
+				inst_value.inst_int = (int)obj;
 				return;
 			}
-
 			if ( obj is Int64 )
 			{
 				type = JsonType.Long;
-				inst_long = (long)obj;
+				inst_value.inst_long = (long)obj;
 				return;
 			}
-
 			if ( obj is String )
 			{
 				type = JsonType.String;
-				inst_string = (string)obj;
+				inst_object = (string)obj;
 				return;
 			}
-
-			throw new ArgumentException (
-				"Unable to wrap the given object with JsonData" );
-		}
-
-		public JsonData ( string str )
-		{
-			type = JsonType.String;
-			inst_string = str;
+			throw new ArgumentException ( "Unable to wrap the given object with JsonData" );
 		}
 
 		#endregion Constructors
@@ -483,46 +378,41 @@ namespace CrowSerialization.LitJson
 		public static explicit operator Boolean ( JsonData data )
 		{
 			if ( data.type != JsonType.Boolean )
-				throw new InvalidCastException (
-					"Instance of JsonData doesn't hold a double" );
+				throw new InvalidCastException ( "Instance of JsonData doesn't hold a boolean" );
 
-			return data.inst_boolean;
+			return data.inst_value.inst_boolean;
 		}
 
 		public static explicit operator Double ( JsonData data )
 		{
 			if ( data.type != JsonType.Double )
-				throw new InvalidCastException (
-					"Instance of JsonData doesn't hold a double" );
+				throw new InvalidCastException ( "Instance of JsonData doesn't hold a double" );
 
-			return data.inst_double;
+			return data.inst_value.inst_double;
 		}
 
 		public static explicit operator Int32 ( JsonData data )
 		{
 			if ( data.type != JsonType.Int )
-				throw new InvalidCastException (
-					"Instance of JsonData doesn't hold an int" );
+				throw new InvalidCastException ( "Instance of JsonData doesn't hold an int32" );
 
-			return data.inst_int;
+			return data.inst_value.inst_int;
 		}
 
 		public static explicit operator Int64 ( JsonData data )
 		{
 			if ( data.type != JsonType.Long )
-				throw new InvalidCastException (
-					"Instance of JsonData doesn't hold an int" );
+				throw new InvalidCastException ( "Instance of JsonData doesn't hold an int64" );
 
-			return data.inst_long;
+			return data.inst_value.inst_long;
 		}
 
 		public static explicit operator String ( JsonData data )
 		{
 			if ( data.type != JsonType.String )
-				throw new InvalidCastException (
-					"Instance of JsonData doesn't hold a string" );
+				throw new InvalidCastException ( "Instance of JsonData doesn't hold a string" );
 
-			return data.inst_string;
+			return (string)data.inst_object;
 		}
 
 		#endregion Explicit Conversions
@@ -541,20 +431,13 @@ namespace CrowSerialization.LitJson
 		void IDictionary.Add ( object key, object value )
 		{
 			JsonData data = ToJsonData ( value );
-
 			EnsureDictionary ().Add ( key, data );
-
-			KeyValuePair<string, JsonData> entry =
-				new KeyValuePair<string, JsonData> ( (string)key, data );
-			object_list.Add ( entry );
-
 			json = null;
 		}
 
 		void IDictionary.Clear ()
 		{
 			EnsureDictionary ().Clear ();
-			object_list.Clear ();
 			json = null;
 		}
 
@@ -571,16 +454,6 @@ namespace CrowSerialization.LitJson
 		void IDictionary.Remove ( object key )
 		{
 			EnsureDictionary ().Remove ( key );
-
-			for ( int i = 0; i < object_list.Count; i++ )
-			{
-				if ( object_list[i].Key == (string)key )
-				{
-					object_list.RemoveAt ( i );
-					break;
-				}
-			}
-
 			json = null;
 		}
 
@@ -603,7 +476,7 @@ namespace CrowSerialization.LitJson
 				throw new InvalidOperationException (
 					"JsonData instance doesn't hold a boolean" );
 
-			return inst_boolean;
+			return inst_value.inst_boolean;
 		}
 
 		double IJsonWrapper.GetDouble ()
@@ -612,7 +485,7 @@ namespace CrowSerialization.LitJson
 				throw new InvalidOperationException (
 					"JsonData instance doesn't hold a double" );
 
-			return inst_double;
+			return inst_value.inst_double;
 		}
 
 		int IJsonWrapper.GetInt ()
@@ -621,7 +494,7 @@ namespace CrowSerialization.LitJson
 				throw new InvalidOperationException (
 					"JsonData instance doesn't hold an int" );
 
-			return inst_int;
+			return inst_value.inst_int;
 		}
 
 		long IJsonWrapper.GetLong ()
@@ -630,7 +503,7 @@ namespace CrowSerialization.LitJson
 				throw new InvalidOperationException (
 					"JsonData instance doesn't hold a long" );
 
-			return inst_long;
+			return inst_value.inst_long;
 		}
 
 		string IJsonWrapper.GetString ()
@@ -639,41 +512,41 @@ namespace CrowSerialization.LitJson
 				throw new InvalidOperationException (
 					"JsonData instance doesn't hold a string" );
 
-			return inst_string;
+			return (string)inst_object;
 		}
 
 		void IJsonWrapper.SetBoolean ( bool val )
 		{
 			type = JsonType.Boolean;
-			inst_boolean = val;
+			inst_value.inst_boolean = val;
 			json = null;
 		}
 
 		void IJsonWrapper.SetDouble ( double val )
 		{
 			type = JsonType.Double;
-			inst_double = val;
+			inst_value.inst_double = val;
 			json = null;
 		}
 
 		void IJsonWrapper.SetInt ( int val )
 		{
 			type = JsonType.Int;
-			inst_int = val;
+			inst_value.inst_int = val;
 			json = null;
 		}
 
 		void IJsonWrapper.SetLong ( long val )
 		{
 			type = JsonType.Long;
-			inst_long = val;
+			inst_value.inst_long = val;
 			json = null;
 		}
 
 		void IJsonWrapper.SetString ( string val )
 		{
 			type = JsonType.String;
-			inst_string = val;
+			inst_object = val;
 			json = null;
 		}
 
@@ -704,23 +577,23 @@ namespace CrowSerialization.LitJson
 
 		bool IList.Contains ( object value )
 		{
-			return EnsureList ().Contains ( value );
+			return ((IList)EnsureList ()).Contains ( value );
 		}
 
 		int IList.IndexOf ( object value )
 		{
-			return EnsureList ().IndexOf ( value );
+			return ((IList)EnsureList ()).IndexOf ( value );
 		}
 
 		void IList.Insert ( int index, object value )
 		{
-			EnsureList ().Insert ( index, value );
+			((IList)EnsureList ()).Insert ( index, value );
 			json = null;
 		}
 
 		void IList.Remove ( object value )
 		{
-			EnsureList ().Remove ( value );
+			((IList)EnsureList ()).Remove ( value );
 			json = null;
 		}
 
@@ -736,31 +609,19 @@ namespace CrowSerialization.LitJson
 
 		IDictionaryEnumerator IOrderedDictionary.GetEnumerator ()
 		{
-			EnsureDictionary ();
-
-			return new OrderedDictionaryEnumerator (
-				object_list.GetEnumerator () );
+			return EnsureDictionary ().GetEnumerator ();
 		}
 
 		void IOrderedDictionary.Insert ( int idx, object key, object value )
 		{
 			string property = (string)key;
 			JsonData data = ToJsonData ( value );
-
 			this[property] = data;
-
-			KeyValuePair<string, JsonData> entry =
-				new KeyValuePair<string, JsonData> ( property, data );
-
-			object_list.Insert ( idx, entry );
 		}
 
 		void IOrderedDictionary.RemoveAt ( int idx )
 		{
-			EnsureDictionary ();
-
-			inst_object.Remove ( object_list[idx].Key );
-			object_list.RemoveAt ( idx );
+			EnsureDictionary ().RemoveAt ( idx );
 		}
 
 		#endregion IOrderedDictionary Methods
@@ -769,45 +630,40 @@ namespace CrowSerialization.LitJson
 
 		private ICollection EnsureCollection ()
 		{
-			if ( type == JsonType.Array )
-				return (ICollection)inst_array;
-
-			if ( type == JsonType.Object )
+			if ( type == JsonType.Array || type == JsonType.Object )
 				return (ICollection)inst_object;
 
 			throw new InvalidOperationException (
 				"The JsonData instance has to be initialized first" );
 		}
 
-		private IDictionary EnsureDictionary ()
+		private JsonDict EnsureDictionary ()
 		{
 			if ( type == JsonType.Object )
-				return (IDictionary)inst_object;
+				return (JsonDict)inst_object;
 
 			if ( type != JsonType.None )
-				throw new InvalidOperationException (
-					"Instance of JsonData is not a dictionary" );
+				throw new InvalidOperationException ( "Instance of JsonData is not a dictionary" );
 
 			type = JsonType.Object;
-			inst_object = new Dictionary<string, JsonData> ();
-			object_list = new List<KeyValuePair<string, JsonData>> ();
+			inst_object = new JsonDict ( StringComparer.InvariantCulture );
 
-			return (IDictionary)inst_object;
+			return (JsonDict)inst_object;
 		}
 
-		private IList EnsureList ()
+		private JsonArray EnsureList ()
 		{
 			if ( type == JsonType.Array )
-				return (IList)inst_array;
+				return (JsonArray)inst_object;
 
 			if ( type != JsonType.None )
 				throw new InvalidOperationException (
 					"Instance of JsonData is not a list" );
 
 			type = JsonType.Array;
-			inst_array = new List<JsonData> ();
+			inst_object = new JsonArray ();
 
-			return (IList)inst_array;
+			return (JsonArray)inst_object;
 		}
 
 		private JsonData ToJsonData ( object obj )
@@ -886,13 +742,26 @@ namespace CrowSerialization.LitJson
 
 		#endregion Private Methods
 
+		public object GetValue ()
+		{
+			switch ( type )
+			{
+				case JsonType.String: return (string)inst_object;
+				case JsonType.Int: return inst_value.inst_int;
+				case JsonType.Long: return inst_value.inst_long;
+				case JsonType.Double: return inst_value.inst_double;
+				case JsonType.Boolean: return inst_value.inst_boolean;
+				default: throw new InvalidDataException ();
+			}
+		}
+
 		public int Add ( object value )
 		{
 			JsonData data = ToJsonData ( value );
 
 			json = null;
 
-			return EnsureList ().Add ( data );
+			return ((IList)EnsureList ()).Add ( data );
 		}
 
 		public void Clear ()
@@ -924,25 +793,21 @@ namespace CrowSerialization.LitJson
 					return true;
 
 				case JsonType.Object:
+				case JsonType.Array:
+				case JsonType.String:
 					return this.inst_object.Equals ( x.inst_object );
 
-				case JsonType.Array:
-					return this.inst_array.Equals ( x.inst_array );
-
-				case JsonType.String:
-					return this.inst_string.Equals ( x.inst_string );
-
 				case JsonType.Int:
-					return this.inst_int.Equals ( x.inst_int );
+					return this.inst_value.inst_int.Equals ( x.inst_value.inst_int );
 
 				case JsonType.Long:
-					return this.inst_long.Equals ( x.inst_long );
+					return this.inst_value.inst_long.Equals ( x.inst_value.inst_long );
 
 				case JsonType.Double:
-					return this.inst_double.Equals ( x.inst_double );
+					return this.inst_value.inst_double.Equals ( x.inst_value.inst_double );
 
 				case JsonType.Boolean:
-					return this.inst_boolean.Equals ( x.inst_boolean );
+					return this.inst_value.inst_boolean.Equals ( x.inst_value.inst_boolean );
 			}
 
 			return false;
@@ -964,32 +829,31 @@ namespace CrowSerialization.LitJson
 					break;
 
 				case JsonType.Object:
-					inst_object = new Dictionary<string, JsonData> ();
-					object_list = new List<KeyValuePair<string, JsonData>> ();
+					inst_object = new JsonDict ( StringComparer.InvariantCulture );
 					break;
 
 				case JsonType.Array:
-					inst_array = new List<JsonData> ();
+					inst_object = new JsonArray ();
 					break;
 
 				case JsonType.String:
-					inst_string = default ( String );
+					inst_object = default ( String );
 					break;
 
 				case JsonType.Int:
-					inst_int = default ( Int32 );
+					inst_value = default ( JsonValue );
 					break;
 
 				case JsonType.Long:
-					inst_long = default ( Int64 );
+					inst_value = default ( JsonValue );
 					break;
 
 				case JsonType.Double:
-					inst_double = default ( Double );
+					inst_value = default ( JsonValue );
 					break;
 
 				case JsonType.Boolean:
-					inst_boolean = default ( Boolean );
+					inst_value = default ( JsonValue );
 					break;
 			}
 
@@ -1030,70 +894,25 @@ namespace CrowSerialization.LitJson
 					return "JsonData array";
 
 				case JsonType.Boolean:
-					return inst_boolean.ToString ();
+					return inst_value.inst_boolean.ToString ();
 
 				case JsonType.Double:
-					return inst_double.ToString ();
+					return inst_value.inst_double.ToString ();
 
 				case JsonType.Int:
-					return inst_int.ToString ();
+					return inst_value.inst_int.ToString ();
 
 				case JsonType.Long:
-					return inst_long.ToString ();
+					return inst_value.inst_long.ToString ();
 
 				case JsonType.Object:
 					return "JsonData object";
 
 				case JsonType.String:
-					return inst_string;
+					return (string)inst_object;
 			}
 
 			return "Uninitialized JsonData";
-		}
-	}
-
-	internal class OrderedDictionaryEnumerator : IDictionaryEnumerator
-	{
-		private IEnumerator<KeyValuePair<string, JsonData>> list_enumerator;
-
-		public object Current
-		{
-			get { return Entry; }
-		}
-
-		public DictionaryEntry Entry
-		{
-			get
-			{
-				KeyValuePair<string, JsonData> curr = list_enumerator.Current;
-				return new DictionaryEntry ( curr.Key, curr.Value );
-			}
-		}
-
-		public object Key
-		{
-			get { return list_enumerator.Current.Key; }
-		}
-
-		public object Value
-		{
-			get { return list_enumerator.Current.Value; }
-		}
-
-		public OrderedDictionaryEnumerator (
-			IEnumerator<KeyValuePair<string, JsonData>> enumerator )
-		{
-			list_enumerator = enumerator;
-		}
-
-		public bool MoveNext ()
-		{
-			return list_enumerator.MoveNext ();
-		}
-
-		public void Reset ()
-		{
-			list_enumerator.Reset ();
 		}
 	}
 }

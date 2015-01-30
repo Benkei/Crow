@@ -51,7 +51,7 @@
     </Reference>
     <Reference Include="Magick.NET-AnyCPU, Version=6.0.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Magick.NET-Q16-AnyCPU.7.0.0.0008\lib\net40-client\Magick.NET-AnyCPU.dll</HintPath>
+      <HintPath>..\packages\Magick.NET-Q16-AnyCPU.7.0.0.0009\lib\net40-client\Magick.NET-AnyCPU.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

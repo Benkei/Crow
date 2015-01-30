@@ -1,40 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CrowSerialization.UbJson
 {
-	class UbjsonReader
+	internal class UbjsonReader
 	{
 		private const int MaxCharBytesSize = 128;
-		private Decoder m_decoder;
-		private int m_maxCharsSize;
-		private byte[] m_charBytes;
-		private char[] m_charBuffer;
-		private StringBuilder stringBuilder;
 		private BinaryReader m_Reader;
+		private Decoder m_Decoder;
+		private int m_MaxCharsSize;
+		private byte[] m_CharBytes;
+		private char[] m_CharBuffer;
+		private StringBuilder m_StringBuilder;
 
-
-		public UbjsonReader ( Stream input, Encoding encoding, bool leaveOpen )
+		public UbjsonReader ( Stream input, Encoding encoding )
 		{
 			if ( !input.CanSeek )
 				throw new System.IO.IOException ();
 
-			m_Reader = new BinaryReader ( input, encoding, leaveOpen );
-			m_decoder = encoding.GetDecoder ();
-			m_maxCharsSize = encoding.GetMaxCharCount ( 128 );
+			m_Reader = new BinaryReader ( input, encoding );
+			m_Decoder = encoding.GetDecoder ();
+			m_MaxCharsSize = encoding.GetMaxCharCount ( MaxCharBytesSize );
 		}
-
 
 		public Token CurrentToken
 		{
 			get;
 			private set;
 		}
-
 
 		public void Seek ( int offset )
 		{
@@ -67,9 +61,7 @@ namespace CrowSerialization.UbJson
 
 		public void Reset ()
 		{
-
 		}
-
 
 		public string ReadString ()
 		{
@@ -78,35 +70,35 @@ namespace CrowSerialization.UbJson
 				throw new IOException ();
 			if ( length == 0 )
 				return string.Empty;
-			if ( m_charBytes == null )
-				m_charBytes = new byte[MaxCharBytesSize];
-			if ( m_charBuffer == null )
-				m_charBuffer = new char[m_maxCharsSize];
-			if ( stringBuilder != null )
+			if ( m_CharBytes == null )
+				m_CharBytes = new byte[MaxCharBytesSize];
+			if ( m_CharBuffer == null )
+				m_CharBuffer = new char[m_MaxCharsSize];
+			if ( m_StringBuilder != null )
 			{
-				stringBuilder.Length = 0;
-				stringBuilder.EnsureCapacity ( length );
+				m_StringBuilder.Length = 0;
+				m_StringBuilder.EnsureCapacity ( length );
 			}
 			int offset = 0;
 			while ( true )
 			{
 				int count = (length - offset > MaxCharBytesSize) ? MaxCharBytesSize : (length - offset);
-				int readed = m_Reader.Read ( m_charBytes, 0, count );
+				int readed = m_Reader.Read ( m_CharBytes, 0, count );
 				if ( readed == 0 )
 					throw new EndOfStreamException ();
-				int chars = m_decoder.GetChars ( m_charBytes, 0, readed, m_charBuffer, 0 );
+				int chars = m_Decoder.GetChars ( m_CharBytes, 0, readed, m_CharBuffer, 0 );
 				if ( offset == 0 && readed == length )
 				{
-					return new string ( m_charBuffer, 0, chars );
+					return new string ( m_CharBuffer, 0, chars );
 				}
-				if ( stringBuilder == null )
-					stringBuilder = new StringBuilder ( length );
-				stringBuilder.Append ( m_charBuffer, 0, chars );
+				if ( m_StringBuilder == null )
+					m_StringBuilder = new StringBuilder ( length );
+				m_StringBuilder.Append ( m_CharBuffer, 0, chars );
 				offset += readed;
 				if ( offset >= length )
 				{
-					var str = stringBuilder.ToString ();
-					stringBuilder.Length = 0;
+					var str = m_StringBuilder.ToString ();
+					m_StringBuilder.Length = 0;
 					return str;
 				}
 			}
@@ -148,7 +140,6 @@ namespace CrowSerialization.UbJson
 			throw new NotImplementedException ();
 		}
 
-
 		public int ReadLength ()
 		{
 			switch ( CurrentToken )
@@ -177,7 +168,6 @@ namespace CrowSerialization.UbJson
 			}
 			throw new FormatException ();
 		}
-
 
 		public void SkipPropertyName ()
 		{

@@ -119,7 +119,7 @@ namespace CrowEngine
 				}
 				finally
 				{
-					sb.Clear ();
+					sb.Length = 0;
 					sb.Capacity = 256;
 				}
 			}

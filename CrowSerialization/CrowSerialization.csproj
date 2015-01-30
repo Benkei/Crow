@@ -39,6 +39,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InstanceFactory.cs" />
     <Compile Include="LitJson\IJsonWrapper.cs" />
     <Compile Include="LitJson\JsonData.cs" />
     <Compile Include="LitJson\JsonException.cs" />
